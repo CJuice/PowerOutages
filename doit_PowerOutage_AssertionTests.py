@@ -7,6 +7,13 @@ def main():
                      r"doit_PowerOutage_Main.py",
                      r"doit_PowerOutage_ProviderClasses.py",
                      r"doit_PowerOutage_WebRelatedFunctionality.py",
+                     r"doit_PowerOutage_BGEClasses.py",
+                     r"doit_PowerOutage_CTKClasses.py",
+                     r"doit_PowerOutage_DELClasses.py",
+                     r"doit_PowerOutage_EUCClasses.py",
+                     r"doit_PowerOutage_FESClasses.py",
+                     r"doit_PowerOutage_PEPClasses.py",
+                     r"doit_PowerOutage_SMEClasses.py",
                      ]
     for item in features_list:
         try:
