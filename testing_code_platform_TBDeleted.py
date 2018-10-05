@@ -13,7 +13,7 @@ import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
 # import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
 import PowerOutages_V2.doit_PowerOutage_ProviderClasses as ProvMod
 # import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
-
+import xml.etree.ElementTree as ET
 
 _root_project_path = os.path.dirname(__file__)
 credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
@@ -82,7 +82,7 @@ ctk_obj.data_feed_uri = ProvMod.Provider.get_config_variable(parser=parser,
 ctk_obj.data_feed_response = ctk_obj.web_func_class.make_web_request(uri=ctk_obj.data_feed_uri)
 
 # Parse the xml into a dom object. Pull a tag element and an attribute string.
-ctk_obj.xml_dom = ctk_obj.prov_xml_class.process_xml_response_to_DOM(
+ctk_obj.xml_dom = ctk_obj.prov_xml_class.convert_xml_response_to_DOM(
     response_xml_str=ctk_obj.data_feed_response.text)
 tag_element_date_generated = ctk_obj.prov_xml_class.extract_xml_tag_element(xml_dom=ctk_obj.xml_dom,
                                                                             tag_name="generated",
