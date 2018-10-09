@@ -4,10 +4,10 @@
 from datetime import datetime
 from dataclasses import dataclass
 # from xml.dom.minidom import parseString
-import configparser
+# import configparser
 import json
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
-import xml.dom.minidom
+# import xml.dom.minidom
 import xml.etree.ElementTree as ET
 
 
@@ -46,51 +46,24 @@ class Provider:
     def current_date_time() -> str:
         return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
 
+    @staticmethod
+    def build_data_feed_uri(metadata_key: str, data_feed_uri: str) -> str:
+        return data_feed_uri.format(metadata_key=metadata_key)
+
 
 class ProviderXML:
 
     @staticmethod
     def parse_xml_response_to_element(response_xml_str: str) -> ET.Element:
         try:
-            # print(response_xml_str)
-            x = ET.fromstring(response_xml_str)
-            # print(x)
-            # return ET.fromstring(response_xml_str)
-            return x
-        except Exception as e:
+            return ET.fromstring(response_xml_str)
+        except Exception as e:  # TODO: Improve exception handling
             print(f"Unable to process xml response to Element using ET.fromstring(): {e}")
             exit()
 
     @staticmethod
     def extract_metadata_attribute_value_from_xml_element(root_element: ET.Element) -> str:
         return root_element[0].text
-
-    #
-    # @staticmethod
-    # def convert_xml_response_to_DOM(response_xml_str: str) -> xml.dom.minidom.Document:
-    #     try:
-    #         return xml.dom.minidom.parseString(response_xml_str)
-    #     except Exception as e:
-    #         print(f"Unable to process xml response to DOM using parseString(): {e}")
-    #         exit()
-    #
-    # @staticmethod
-    # def extract_xml_tag_element(xml_dom: xml.dom.minidom.Document, tag_name: str, tag_index: int = 0) -> xml.dom.minidom.Element:
-    #     try:
-    #         return xml_dom.getElementsByTagName(tag_name)[tag_index]
-    #     except Exception as e:  # TODO: Improve exception handling
-    #         print(e)
-    #         exit()
-    #
-    # @staticmethod
-    # def extract_attribute_from_xml_tag_element(xml_element: xml.dom.minidom.Element, attribute_name: str) -> str:
-    #     # print(f"func: {xml_element}, {attribute_name}")
-    #     try:
-    #         return xml_element.getAttribute(attname=attribute_name)
-    #         # return xml_element.getElementsByTagName(attribute_name)[0].firstChild.nodeValue
-    #     except Exception as e:  # TODO: Improve exception handling
-    #         print(e)
-    #         exit()
 
 
 class ProviderJSON:
