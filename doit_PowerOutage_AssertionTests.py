@@ -14,6 +14,7 @@ def main():
                      r"doit_PowerOutage_FESClasses.py",
                      r"doit_PowerOutage_PEPClasses.py",
                      r"doit_PowerOutage_SMEClasses.py",
+                     r"JSON_Outputs",
                      ]
     for item in features_list:
         try:

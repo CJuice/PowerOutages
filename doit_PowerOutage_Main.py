@@ -5,11 +5,11 @@
 
 def main():
     import configparser
-    import json
+    # import json
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
-    # import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
+    import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
     import PowerOutages_V2.doit_PowerOutage_DELClasses as DELMod
     import PowerOutages_V2.doit_PowerOutage_EUCClasses as EUCMod
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
@@ -17,12 +17,14 @@ def main():
     # import PowerOutages_V2.doit_PowerOutage_ProviderClasses as ProvMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_TestFunctions as TestMod
+    import PowerOutages_V2.doit_PowerOutage_UtilityClass as UtilMod
     # import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebMod
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
     credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
+    OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
     outage_area_types = ("County", "ZIP")
@@ -80,10 +82,8 @@ def main():
     for key, obj in provider_objects.items():
         if "BGE" in key:
             # BGE uses POST and no metadata key.
-            # TODO: Create the BGE specific data request
-            bge_extra_header = obj.build_extra_header()
-
-            #   Make the POST request and include the headers and the post data as a string (is xml, not json)
+            # Make the POST request and include the headers and the post data as a string (is xml, not json)
+            bge_extra_header = obj.build_extra_header_for_SOAP_request()
             bge_username, bge_password = [parser["BGE"][item] for item in parser["BGE"]]
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
                                                                          payload=obj.POST_DATA_XML_STRING.format(
@@ -99,12 +99,39 @@ def main():
                                                             data_feed_uri=obj.data_feed_uri)
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
 
-    # TODO: At this point have all responses. Could check status and write output json for status check functionality
+    # Need to write json file containing status check on all feeds.
+    # TODO: Will need to be moved to later stage when finish coding check for data freshness also
+    status_check_output_dict = {}
     for key, obj in provider_objects.items():
-        # print(key, obj.metadata_feed_uri, obj.metadata_key, obj.data_feed_uri)
-        print(key, obj.data_feed_response)
+        obj.set_status_codes()
+    for key, obj in provider_objects.items():
+        print(key, obj.data_feed_response_status_code, obj.date_created_response_status_code, obj.metadata_feed_response_status_code)
+        status_check_output_dict.update(obj.build_output_dict(unique_key=key))
+    UtilMod.Utility.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+
+    # FIXME: The date created doesn't seem to be populating in json file. Is always null.
 
     # TODO: Using response content, extract the outage data for each provider. Each provider does it differently
+    # NOTE: STARTING WITH FES AS MY MODEL SINCE IT IS SIMPLE
+
+    # Need to extract the outage data for each provider from the response.
+    #   establish connection
+    db_obj = DbMod.DatabaseUtilities(parser=parser)
+    # db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
+
+    #   parse xml to dom
+    # STOPPED
+    #   trigger stored procedure for deleting, then commit
+    #   get the outage count
+    #   for each outage get
+    #       customer count
+    #       county
+    #       state
+    #   trigger stored procedure for updating, then commit
+
+
+
+
 
 
     # TESTING CALLS
