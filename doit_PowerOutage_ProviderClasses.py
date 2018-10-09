@@ -78,7 +78,7 @@ class ProviderJSON:
         try:
             return metadata_dict[attribute_name]
         except KeyError as ke:
-            print(f"Unable to extract key from metadata response dict: {e}")
+            print(f"Unable to extract key from metadata response dict: {ke}")
             exit()
 
 

@@ -44,24 +44,23 @@ def main():
                         "SME_ZIP": SMEMod.SME("SME"),
                         }
 
-    # Need to get and store variables, as provider object attributes, from cfg file
+    # Need to get and store variables, as provider object attributes, from cfg file.
     for key, obj in provider_objects.items():
         section_items = [item for item in parser[key]]
         if "BGE" in key:
-            obj.soap_header_uri, obj.post_data_file, obj.post_uri = [parser[key][item] for item in section_items]
+            obj.soap_header_uri, obj.post_uri = [parser[key][item] for item in section_items]
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_uri = [parser[key][item] for item in section_items]
 
-    # Need to get metadata key, for those providers that use the metadata key to access the data feed
+    # Need to get metadata key, for those providers that use the metadata key to access the data feed.
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri == "NA" or obj.metadata_feed_uri is None:
-            # Providers who do not use the metadata key style
-            # BGE does not use the metadata key style AND it does not use a GET request; Uses POST.
+            # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
             continue
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
 
-    # Need to extract the metadata key and assign to provider object attribute for later use
+    # Need to extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri == "NA" or obj.metadata_feed_uri is None:
             continue
@@ -77,12 +76,21 @@ def main():
                     metadata_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
-    # Need to make the data feed requests and store the response
+    # Need to make the data feed requests and store the response.
     for key, obj in provider_objects.items():
         if "BGE" in key:
-            # BGE does not use the metadata key style AND it does not use a GET request; Uses POST. 20181005 CJuice
+            # BGE uses POST and no metadata key.
             # TODO: Create the BGE specific data request
-            continue
+            bge_extra_header = obj.build_extra_header()
+
+            #   Make the POST request and include the headers and the post data as a string (is xml, not json)
+            bge_username, bge_password = [parser["BGE"][item] for item in parser["BGE"]]
+            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
+                                                                         payload=obj.POST_DATA_XML_STRING.format(
+                                                                             username=bge_username,
+                                                                             password=bge_password),
+                                                                         style="POST_data",
+                                                                         headers=bge_extra_header)
         else:
             if obj.metadata_key is None:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
@@ -91,9 +99,10 @@ def main():
                                                             data_feed_uri=obj.data_feed_uri)
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
 
-    # for key, obj in provider_objects.items():
+    # TODO: At this point have all responses. Could check status and write output json for status check functionality
+    for key, obj in provider_objects.items():
         # print(key, obj.metadata_feed_uri, obj.metadata_key, obj.data_feed_uri)
-        # print(key, obj.data_feed_response)
+        print(key, obj.data_feed_response)
 
     # TODO: Using response content, extract the outage data for each provider. Each provider does it differently
 
