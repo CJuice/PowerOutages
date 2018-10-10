@@ -49,8 +49,8 @@ class Provider:
             self.data_feed_response_style = "JSON"
         return
 
-    def extract_outage_count(self):
-        pass
+    # def extract_outage_count(self):
+    #     pass
 
     def set_status_codes(self):
         try:
@@ -113,7 +113,7 @@ class ProviderJSON:
         return json.loads(response_json_str)
 
     @staticmethod
-    def extract_attribute_from_dict(data_dict: dict, attribute_name: str) -> str:
+    def extract_attribute_from_dict(data_dict: dict, attribute_name: str):
         try:
             return data_dict[attribute_name]
         except KeyError as ke:
