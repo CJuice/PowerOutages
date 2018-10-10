@@ -58,7 +58,7 @@ def main():
 
     # Need to make the metadata key requests and store the response, for those providers that use the metadata key.
     #   Key used to access the data feeds and date created feeds.
-    print("Metadata processing...")
+    print("Metadata feed processing...")
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in none_and_not_available:
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
@@ -83,7 +83,7 @@ def main():
                     attribute_name=obj.metadata_key_attribute)
 
     # Need to make the date created requests and store the response.
-    print("Date created processing...")
+    print("Date created feed processing...")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
@@ -138,10 +138,12 @@ def main():
                 obj.data_feed_uri = obj.build_feed_uri(metadata_key=obj.metadata_key,
                                                        data_feed_uri=obj.data_feed_uri)
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
+    # Need to detect style of response
+    for key, obj in provider_objects.items():
+        obj.detect_response_style()
 
     # Need to write json file containing status check on all feeds.
-    # TODO: Will need to be moved to later stage when finish coding check for data freshness also
-    print("writing feed status to json file...")
+    print("Writing feed check to json file...")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         obj.set_status_codes()
@@ -153,24 +155,31 @@ def main():
     # NOTE: STARTING WITH FES AS MY MODEL SINCE IT IS SIMPLE
 
     # Need to extract the outage data for each provider from the response.
-    #   establish connection
-    db_obj = DbMod.DatabaseUtilities(parser=parser)
-    # db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
+    print("Data processing...")
+    #   parse xml to dom OR json to dict
+    for key, obj in provider_objects.items():
+        if obj.data_feed_response_style == "JSON":
+            print(obj.data_feed_response.json())
+        else:
+            xml = obj.prov_xml_class.parse_xml_response_to_element(obj.data_feed_response.text)
+            print(xml)
 
-    #   parse xml to dom
-    # STOPPED
-    #   trigger stored procedure for deleting, then commit
     #   get the outage count
     #   for each outage get
     #       customer count
     #       county
     #       state
-    #   trigger stored procedure for updating, then commit
 
 
 
 
-
+    exit()
+    # Database actions
+    #   establish connection
+    db_obj = DbMod.DatabaseUtilities(parser=parser)
+    # db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
+    # trigger stored procedure for deleting, then commit
+    # trigger stored procedure for updating, then commit
 
     # TESTING CALLS
     exit()

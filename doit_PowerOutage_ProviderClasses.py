@@ -22,6 +22,7 @@ class Provider:
         self.date_created_feed_uri = None
         self.data_feed_response = None
         self.data_feed_response_status_code = None
+        self.data_feed_response_style = None
         self.data_feed_uri = None
         self.maryland = "Maryland"
         self.metadata_feed_response = None
@@ -41,6 +42,12 @@ class Provider:
             "created": self.date_created,
         }
         }
+
+    def detect_response_style(self):
+        if "xml" in self.data_feed_response.headers["content-type"]:
+            self.data_feed_response_style = "XML"
+        else:
+            self.data_feed_response_style = "JSON"
 
     def set_status_codes(self):
         try:
