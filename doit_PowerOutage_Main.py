@@ -161,23 +161,25 @@ def main():
         print(key, obj.data_feed_response_style)
         # continue
         if key == "FES_County" and obj.data_feed_response_style == "JSON":
-            continue
+            # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             obj.change_county_name_case_to_title()
             # TODO: At this point the county data is ready for the database stage
 
         elif key == "FES_ZIP" and obj.data_feed_response_style == "JSON":
-            continue
+            # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
-            obj.remove_commas_from_outage_counts()
-            obj.remove_commas_from_customer_counts()
+            obj.remove_commas_from_counts()
             obj.process_outage_counts_to_integers()
             obj.process_customer_counts_to_integers()
-            print(obj.stats_objects_by_zip)
             # TODO: At this point the zip data is ready for the database stage
-
+        elif key == "DEL_County" or key == "PEP_County":
+            print(obj.data_feed_response.json())
+            pass
+        elif key == "DEL_ZIP" or key == "PEP_ZIP":
+            pass
         else:
             # xml = obj.prov_xml_class.parse_xml_response_to_element(obj.data_feed_response.text)
             # print(key, xml)

@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 class Provider:
 
     def __init__(self, provider_abbrev: str):
+        super(Provider, self).__init__()
         self.abbrev = provider_abbrev
         self.date_created = None
         self.date_created_attribute = "date_generated"

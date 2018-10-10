@@ -73,13 +73,9 @@ class FES(Provider):
         self.stats_objects_by_zip = stats_objects_by_zip
         return
 
-    def remove_commas_from_outage_counts(self):
+    def remove_commas_from_counts(self):
         for obj in self.stats_objects_by_zip:
             obj.outages = obj.outages.replace(",", "")
-        return
-
-    def remove_commas_from_customer_counts(self):
-        for obj in self.stats_objects_by_zip:
             obj.customers = obj.customers.replace(",", "")
         return
 
