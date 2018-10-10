@@ -28,6 +28,7 @@ def main():
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
     outage_area_types = ("County", "ZIP")
+    none_and_not_available = (None, "NA")
 
     # Need to set up objects for use
     provider_objects = {"BGE_County": BGEMod.BGE("BGE"),
@@ -47,16 +48,19 @@ def main():
                         }
 
     # Need to get and store variables, as provider object attributes, from cfg file.
+    print("Gathering variables...")
     for key, obj in provider_objects.items():
         section_items = [item for item in parser[key]]
         if "BGE" in key:
             obj.soap_header_uri, obj.post_uri = [parser[key][item] for item in section_items]
         else:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_uri = [parser[key][item] for item in section_items]
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [parser[key][item] for item in section_items]
 
-    # Need to get metadata key, for those providers that use the metadata key to access the data feed.
+    # Need to make the metadata key requests and store the response, for those providers that use the metadata key.
+    #   Key used to access the data feeds and date created feeds.
+    print("Metadata processing...")
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri == "NA" or obj.metadata_feed_uri is None:
+        if obj.metadata_feed_uri in none_and_not_available:
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
             continue
         else:
@@ -64,21 +68,57 @@ def main():
 
     # Need to extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri == "NA" or obj.metadata_feed_uri is None:
+        if obj.metadata_feed_uri in none_and_not_available:
             continue
         else:
             if "xml" in obj.metadata_feed_response.headers["content-type"]:
                 metadata_xml_element = obj.prov_xml_class.parse_xml_response_to_element(
                     response_xml_str=obj.metadata_feed_response.text)
-                obj.metadata_key = obj.prov_xml_class.extract_metadata_attribute_value_from_xml_element(
+                obj.metadata_key = obj.prov_xml_class.extract_attribute_value_from_xml_element_by_index(
                     root_element=metadata_xml_element)
             else:
                 metadata_response_dict = obj.metadata_feed_response.json()
                 obj.metadata_key = obj.prov_json_class.extract_attribute_from_dict(
-                    metadata_dict=metadata_response_dict,
+                    data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
+    # Need to make the date created requests and store the response.
+    print("Date created processing...")
+    for key, obj in provider_objects.items():
+        if obj.date_created_feed_uri in none_and_not_available:
+            continue
+        else:
+            obj.date_created_feed_uri = obj.build_feed_uri(metadata_key=obj.metadata_key,
+                                                           data_feed_uri=obj.date_created_feed_uri)
+            obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
+
+    # Need to extract the date created value and assign to provider object attribute
+    for key, obj in provider_objects.items():
+        if obj.date_created_feed_uri in none_and_not_available:
+            continue
+        else:
+            if "xml" in obj.date_created_feed_response.headers["content-type"]:
+                date_created_xml_element = obj.prov_xml_class.parse_xml_response_to_element(
+                    response_xml_str=obj.date_created_feed_response.text)
+                obj.date_created = obj.prov_xml_class.extract_attribute_value_from_xml_element_by_index(
+                    root_element=date_created_xml_element)
+            else:
+                date_created_response_dict = obj.date_created_feed_response.json()
+                if obj.abbrev == "SME":
+                    # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data
+                    #   dict containing the date. SME uses "summaryFileData" as the key to access the data dict
+                    #   containing the date
+                    file_data = obj.prov_json_class.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                                attribute_name="summaryFileData")
+                else:
+                    file_data = obj.prov_json_class.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                                attribute_name="file_data")
+                obj.date_created = obj.prov_json_class.extract_attribute_from_dict(
+                    data_dict=file_data,
+                    attribute_name=obj.date_created_attribute)
+
     # Need to make the data feed requests and store the response.
+    print("Data feed processing...")
     for key, obj in provider_objects.items():
         if "BGE" in key:
             # BGE uses POST and no metadata key.
@@ -92,24 +132,22 @@ def main():
                                                                          style="POST_data",
                                                                          headers=bge_extra_header)
         else:
-            if obj.metadata_key is None:
+            if obj.metadata_key in none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
             else:
-                obj.data_feed_uri = obj.build_data_feed_uri(metadata_key=obj.metadata_key,
-                                                            data_feed_uri=obj.data_feed_uri)
+                obj.data_feed_uri = obj.build_feed_uri(metadata_key=obj.metadata_key,
+                                                       data_feed_uri=obj.data_feed_uri)
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
 
     # Need to write json file containing status check on all feeds.
     # TODO: Will need to be moved to later stage when finish coding check for data freshness also
+    print("writing feed status to json file...")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         obj.set_status_codes()
     for key, obj in provider_objects.items():
-        print(key, obj.data_feed_response_status_code, obj.date_created_response_status_code, obj.metadata_feed_response_status_code)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     UtilMod.Utility.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
-
-    # FIXME: The date created doesn't seem to be populating in json file. Is always null.
 
     # TODO: Using response content, extract the outage data for each provider. Each provider does it differently
     # NOTE: STARTING WITH FES AS MY MODEL SINCE IT IS SIMPLE

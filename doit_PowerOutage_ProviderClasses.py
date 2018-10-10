@@ -15,16 +15,18 @@ class Provider:
 
     def __init__(self, provider_abbrev: str):
         self.abbrev = provider_abbrev
-        self.date_created_response = None
-        self.date_created_response_status_code = None
-        self.date_created_uri = None
+        self.date_created = None
+        self.date_created_attribute = "date_generated"
+        self.date_created_feed_response = None
+        self.date_created_feed_response_status_code = None
+        self.date_created_feed_uri = None
         self.data_feed_response = None
         self.data_feed_response_status_code = None
         self.data_feed_uri = None
         self.maryland = "Maryland"
         self.metadata_feed_response = None
-        self.metadata_feed_uri = None
         self.metadata_feed_response_status_code = None
+        self.metadata_feed_uri = None
         self.metadata_key = None
         self.metadata_key_attribute = "directory"
         self.prov_json_class = ProviderJSON
@@ -33,9 +35,11 @@ class Provider:
 
     def build_output_dict(self, unique_key:str) -> dict:
         return {unique_key: {
-            f"data": self.data_feed_response_status_code,
-            f"date": self.date_created_response_status_code},
-            f"metadata": self.metadata_feed_response_status_code,
+            "data": self.data_feed_response_status_code,
+            "date": self.date_created_feed_response_status_code,
+            "metadata": self.metadata_feed_response_status_code,
+            "created": self.date_created,
+        }
         }
 
     def set_status_codes(self):
@@ -45,7 +49,7 @@ class Provider:
             # no data feed response
             pass
         try:
-            self.date_created_response_status_code = self.date_created_response.status_code
+            self.date_created_feed_response_status_code = self.date_created_feed_response.status_code
         except AttributeError as ae:
             # no date created response
             pass
@@ -57,7 +61,7 @@ class Provider:
         return
 
     @staticmethod
-    def build_data_feed_uri(metadata_key: str, data_feed_uri: str) -> str:
+    def build_feed_uri(metadata_key: str, data_feed_uri: str) -> str:
         return data_feed_uri.format(metadata_key=metadata_key)
 
     @staticmethod
@@ -87,8 +91,8 @@ class ProviderXML:
             exit()
 
     @staticmethod
-    def extract_metadata_attribute_value_from_xml_element(root_element: ET.Element) -> str:
-        return root_element[0].text
+    def extract_attribute_value_from_xml_element_by_index(root_element: ET.Element, index_position: int = 0) -> str:
+        return root_element[index_position].text
 
 
 class ProviderJSON:
@@ -99,11 +103,11 @@ class ProviderJSON:
         return json.loads(response_json_str)
 
     @staticmethod
-    def extract_attribute_from_dict(metadata_dict: dict, attribute_name: str) -> str:
+    def extract_attribute_from_dict(data_dict: dict, attribute_name: str) -> str:
         try:
-            return metadata_dict[attribute_name]
+            return data_dict[attribute_name]
         except KeyError as ke:
-            print(f"Unable to extract key from metadata response dict: {ke}")
+            print(f"Unable to extract key from data response dict: {ke}")
             exit()
 
 
