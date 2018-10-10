@@ -83,7 +83,7 @@ def main():
                     attribute_name=obj.metadata_key_attribute)
 
     # Need to make the date created requests and store the response.
-    print("Date created feed processing...")
+    print("Date Generated feed processing...")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
@@ -158,11 +158,19 @@ def main():
     print("Data processing...")
     #   parse xml to dom OR json to dict
     for key, obj in provider_objects.items():
-        if obj.data_feed_response_style == "JSON":
-            print(obj.data_feed_response.json())
+        print(key, obj.data_feed_response_style)
+        # continue
+        if key == "FES_County" and obj.data_feed_response_style == "JSON":
+            # print(key, obj.data_feed_response.json())
+            obj.extract_maryland_area_dict_from_county_response()
+            pass
         else:
-            xml = obj.prov_xml_class.parse_xml_response_to_element(obj.data_feed_response.text)
-            print(xml)
+            # xml = obj.prov_xml_class.parse_xml_response_to_element(obj.data_feed_response.text)
+            # print(key, xml)
+            pass
+
+
+
 
     #   get the outage count
     #   for each outage get

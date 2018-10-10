@@ -35,19 +35,22 @@ class Provider:
         self.web_func_class = WebFunc.WebFunctionality()
 
     def build_output_dict(self, unique_key:str) -> dict:
-        return {unique_key: {
-            "data": self.data_feed_response_status_code,
-            "date": self.date_created_feed_response_status_code,
-            "metadata": self.metadata_feed_response_status_code,
-            "created": self.date_created,
-        }
-        }
+        return {unique_key: {"data": self.data_feed_response_status_code,
+                             "date": self.date_created_feed_response_status_code,
+                             "metadata": self.metadata_feed_response_status_code,
+                             "created": self.date_created,
+                             }
+                }
 
     def detect_response_style(self):
         if "xml" in self.data_feed_response.headers["content-type"]:
             self.data_feed_response_style = "XML"
         else:
             self.data_feed_response_style = "JSON"
+        return
+
+    def extract_outage_count(self):
+        pass
 
     def set_status_codes(self):
         try:
@@ -114,7 +117,7 @@ class ProviderJSON:
         try:
             return data_dict[attribute_name]
         except KeyError as ke:
-            print(f"Unable to extract key from data response dict: {ke}")
+            print(f"KeyError: Unable to extract key from dict: {ke}")
             exit()
 
 
