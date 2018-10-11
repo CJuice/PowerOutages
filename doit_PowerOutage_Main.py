@@ -161,7 +161,7 @@ def main():
     for key, obj in provider_objects.items():
         print(key, obj.data_feed_response_style)
         # continue
-        if key == "FES_County" and obj.data_feed_response_style == "JSON":
+        if key in ("FES_County",):
             # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
@@ -172,7 +172,7 @@ def main():
                 pp.pprint(j)
             # TODO: At this point the county data is ready for the database stage
 
-        elif key == "FES_ZIP" and obj.data_feed_response_style == "JSON":
+        elif key in ("FES_ZIP",):
             # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
@@ -183,7 +183,7 @@ def main():
                 pp.pprint(j)
             # TODO: At this point the zip data is ready for the database stage
 
-        elif key == "DEL_County" or key == "PEP_County":
+        elif key in ("DEL_County", "PEP_County"):
             # continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
@@ -195,7 +195,7 @@ def main():
                 pp.pprint(j)
             # TODO: At this point the county data is ready for the database stage
 
-        elif key == "DEL_ZIP" or key == "PEP_ZIP":
+        elif key in ("DEL_ZIP", "PEP_ZIP"):
             # continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
