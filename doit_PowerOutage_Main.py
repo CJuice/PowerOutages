@@ -1,12 +1,13 @@
 """
 
 """
-
+# TODO: Refactor Outage data classes. Only need one implementation that can be passed and instantiated.
 
 def main():
     import configparser
     # import json
     import os
+    import pprint
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
     import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
@@ -17,7 +18,7 @@ def main():
     # import PowerOutages_V2.doit_PowerOutage_ProviderClasses as ProvMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_TestFunctions as TestMod
-    import PowerOutages_V2.doit_PowerOutage_UtilityClass as UtilMod
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
     # import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebMod
 
     # VARIABLES
@@ -29,6 +30,7 @@ def main():
     parser.read(filenames=[credentials_path, centralized_variables_path])
     outage_area_types = ("County", "ZIP")
     none_and_not_available = (None, "NA")
+    pp = pprint.PrettyPrinter(indent=4)
 
     # Need to set up objects for use
     provider_objects = {"BGE_County": BGEMod.BGE("BGE"),
@@ -72,13 +74,13 @@ def main():
             continue
         else:
             if "xml" in obj.metadata_feed_response.headers["content-type"]:
-                metadata_xml_element = obj.prov_xml_class.parse_xml_response_to_element(
+                metadata_xml_element = doit_util.parse_xml_response_to_element(
                     response_xml_str=obj.metadata_feed_response.text)
-                obj.metadata_key = obj.prov_xml_class.extract_attribute_value_from_xml_element_by_index(
+                obj.metadata_key = doit_util.extract_attribute_value_from_xml_element_by_index(
                     root_element=metadata_xml_element)
             else:
                 metadata_response_dict = obj.metadata_feed_response.json()
-                obj.metadata_key = obj.prov_json_class.extract_attribute_from_dict(
+                obj.metadata_key = doit_util.extract_attribute_from_dict(
                     data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
@@ -88,7 +90,7 @@ def main():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
         else:
-            obj.date_created_feed_uri = obj.build_feed_uri(metadata_key=obj.metadata_key,
+            obj.date_created_feed_uri = doit_util.build_feed_uri(metadata_key=obj.metadata_key,
                                                            data_feed_uri=obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
@@ -98,9 +100,9 @@ def main():
             continue
         else:
             if "xml" in obj.date_created_feed_response.headers["content-type"]:
-                date_created_xml_element = obj.prov_xml_class.parse_xml_response_to_element(
+                date_created_xml_element = doit_util.parse_xml_response_to_element(
                     response_xml_str=obj.date_created_feed_response.text)
-                obj.date_created = obj.prov_xml_class.extract_attribute_value_from_xml_element_by_index(
+                obj.date_created = doit_util.extract_attribute_value_from_xml_element_by_index(
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
@@ -108,12 +110,12 @@ def main():
                     # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data
                     #   dict containing the date. SME uses "summaryFileData" as the key to access the data dict
                     #   containing the date
-                    file_data = obj.prov_json_class.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                                attribute_name="summaryFileData")
+                    file_data = doit_util.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                      attribute_name="summaryFileData")
                 else:
-                    file_data = obj.prov_json_class.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                                attribute_name="file_data")
-                obj.date_created = obj.prov_json_class.extract_attribute_from_dict(
+                    file_data = doit_util.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                      attribute_name="file_data")
+                obj.date_created = doit_util.extract_attribute_from_dict(
                     data_dict=file_data,
                     attribute_name=obj.date_created_attribute)
 
@@ -149,14 +151,13 @@ def main():
         obj.set_status_codes()
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
-    UtilMod.Utility.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+    doit_util.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
     # TODO: Using response content, extract the outage data for each provider. Each provider does it differently
     # NOTE: STARTING WITH FES AS MY MODEL SINCE IT IS SIMPLE
 
     # Need to extract the outage data for each provider from the response.
     print("Data processing...")
-    #   parse xml to dom OR json to dict
     for key, obj in provider_objects.items():
         print(key, obj.data_feed_response_style)
         # continue
@@ -164,24 +165,48 @@ def main():
             # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_county)
             obj.change_county_name_case_to_title()
+            for j in obj.stats_objects_by_county:
+                pp.pprint(j)
             # TODO: At this point the county data is ready for the database stage
 
         elif key == "FES_ZIP" and obj.data_feed_response_style == "JSON":
             # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
-            obj.remove_commas_from_counts()
-            obj.process_outage_counts_to_integers()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_zip)
             obj.process_customer_counts_to_integers()
+            for j in obj.stats_objects_by_zip:
+                pp.pprint(j)
             # TODO: At this point the zip data is ready for the database stage
+
         elif key == "DEL_County" or key == "PEP_County":
-            print(obj.data_feed_response.json())
-            pass
+            # continue
+            obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
+            obj.extract_county_outage_lists_by_state()
+            obj.extract_outage_counts_by_county()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_county)
+            obj.revise_county_name_spellings_and_punctuation()
+            for j in obj.stats_objects_by_county:
+                pp.pprint(j)
+            # TODO: At this point the county data is ready for the database stage
+
         elif key == "DEL_ZIP" or key == "PEP_ZIP":
-            pass
+            # continue
+            obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
+            obj.extract_outage_counts_by_zip_desc()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_zip)
+            for j in obj.stats_objects_by_zip:
+                pp.pprint(j)
+            # TODO: At this point the zip data is ready for the database stage
+
         else:
-            # xml = obj.prov_xml_class.parse_xml_response_to_element(obj.data_feed_response.text)
+            # xml = doit_util.parse_xml_response_to_element(obj.data_feed_response.text)
             # print(key, xml)
             pass
 

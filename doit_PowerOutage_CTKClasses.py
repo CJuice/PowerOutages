@@ -2,8 +2,7 @@
 
 """
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-
-# from PowerOutages_V2.doit_PowerOutage_ProviderClasses import ProviderXML
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
 
 
 class CTK(Provider):

@@ -2,16 +2,15 @@
 
 """
 from datetime import datetime
-from dataclasses import dataclass
-# from xml.dom.minidom import parseString
-# import configparser
-import json
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
-# import xml.dom.minidom
-import xml.etree.ElementTree as ET
+# import PowerOutages_V2.doit_PowerOutage_UtilityClass as UtilFunc
 
 
 class Provider:
+    COUNTY_DB_DELETE_STATEMENT = """"exec RealTime_DeletePowerOutagesCounty '{prov_abbrev}', 'county'"""
+    COUNTY_DB_UPDATE_STATEMENT = """exec RealTime_UpdatePowerOutagesCounty {outage}, '{county}', '{prov_abbrev}', '{state}'"""
+    ZIP_DB_DELETE_STATEMENT = """"exec RealTime_DeletePowerOutagesCounty '{prov_abbrev}', 'zip'""" # Uses County proced.
+    ZIP_DB_UPDATE_STATEMENT = """exec RealTime_UpdatePowerOutagesZip {outage}, '{zip_code}', '{prov_abbrev}'"""
 
     def __init__(self, provider_abbrev: str):
         super(Provider, self).__init__()
@@ -31,9 +30,10 @@ class Provider:
         self.metadata_feed_uri = None
         self.metadata_key = None
         self.metadata_key_attribute = "directory"
-        self.prov_json_class = ProviderJSON
-        self.prov_xml_class = ProviderXML
-        self.web_func_class = WebFunc.WebFunctionality()
+        # self.util_class = UtilFunc.Utility
+        # self.prov_json_class = ProviderJSON
+        # self.prov_xml_class = ProviderXML
+        self.web_func_class = WebFunc.WebFunctionality
 
     def build_output_dict(self, unique_key:str) -> dict:
         return {unique_key: {"data": self.data_feed_response_status_code,
@@ -49,9 +49,6 @@ class Provider:
         else:
             self.data_feed_response_style = "JSON"
         return
-
-    # def extract_outage_count(self):
-    #     pass
 
     def set_status_codes(self):
         try:
@@ -89,45 +86,4 @@ class Provider:
         except Exception as e:  # TODO: Improve exception handling
             print(e)
             exit()
-
-
-class ProviderXML:
-
-    @staticmethod
-    def parse_xml_response_to_element(response_xml_str: str) -> ET.Element:
-        try:
-            return ET.fromstring(response_xml_str)
-        except Exception as e:  # TODO: Improve exception handling
-            print(f"Unable to process xml response to Element using ET.fromstring(): {e}")
-            exit()
-
-    @staticmethod
-    def extract_attribute_value_from_xml_element_by_index(root_element: ET.Element, index_position: int = 0) -> str:
-        return root_element[index_position].text
-
-
-class ProviderJSON:
-
-    @staticmethod
-    def process_json_response_to_dict(response_json_str: str) -> dict:
-        # raised JSONDecoder exception passes to higher handling that routes xml to separate functionality
-        return json.loads(response_json_str)
-
-    @staticmethod
-    def extract_attribute_from_dict(data_dict: dict, attribute_name: str):
-        try:
-            return data_dict[attribute_name]
-        except KeyError as ke:
-            print(f"KeyError: Unable to extract key from dict: {ke}")
-            exit()
-
-
-@dataclass
-class ProviderDetails:
-    """
-    store details on provider feed and process styles
-    dual_feed: indicates whether web response includes data for ZIP and County together (True) or separate (False)
-    """
-    dual_feed: bool
-    style: str
 
