@@ -3,7 +3,7 @@
 """
 from datetime import datetime
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
-# import PowerOutages_V2.doit_PowerOutage_UtilityClass as UtilFunc
+from dataclasses import dataclass
 
 
 class Provider:
@@ -87,3 +87,10 @@ class Provider:
             print(e)
             exit()
 
+
+@dataclass
+class Outage:
+    area: str
+    outages: int
+    customers: int
+    state: str

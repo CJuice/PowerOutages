@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -51,9 +51,9 @@ class FES(Provider):
         self.stats_objects_by_county = list_of_stats_objects_by_county
         return
 
-    def change_county_name_case_to_title(self):
-        for obj in self.stats_objects_by_county:
-            obj.area = obj.area.title()
+    # def change_county_name_case_to_title(self):
+    #     for obj in self.stats_objects_by_county:
+    #         obj.area = obj.area.title()
 
     def extract_events_from_zip_response(self):
         dict_as_json = self.data_feed_response.json()

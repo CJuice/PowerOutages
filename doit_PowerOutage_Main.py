@@ -153,27 +153,25 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     doit_util.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    # TODO: Using response content, extract the outage data for each provider. Each provider does it differently
-    # NOTE: STARTING WITH FES AS MY MODEL SINCE IT IS SIMPLE
-
     # Need to extract the outage data for each provider from the response.
     print("Data processing...")
     for key, obj in provider_objects.items():
+        # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
         print(key, obj.data_feed_response_style)
         # continue
         if key in ("FES_County",):
-            # continue
+            continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
             doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_county)
-            obj.change_county_name_case_to_title()
+            doit_util.change_case_to_title(stats_objects=obj.stats_objects_by_county)
             for j in obj.stats_objects_by_county:
                 pp.pprint(j)
             # TODO: At this point the county data is ready for the database stage
 
         elif key in ("FES_ZIP",):
-            # continue
+            continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
@@ -184,7 +182,7 @@ def main():
             # TODO: At this point the zip data is ready for the database stage
 
         elif key in ("DEL_County", "PEP_County"):
-            # continue
+            continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
@@ -196,7 +194,7 @@ def main():
             # TODO: At this point the county data is ready for the database stage
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            # continue
+            continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
@@ -205,19 +203,26 @@ def main():
                 pp.pprint(j)
             # TODO: At this point the zip data is ready for the database stage
 
+        elif key in ("SME_County", "SME_ZIP"):
+            obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
+            obj.extract_outage_counts_by_desc()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            doit_util.change_case_to_title(stats_objects=obj.stats_objects)
+            for j in obj.stats_objects:
+                pp.pprint(j)
+            # pp.pprint(obj.data_feed_response.json())
+            # for county
+            # transform data
+            # SME: Execute delete sql statement for existing records, not a store procedure call
+            # if data exists, then map and build sql statement
+            pass
+
         else:
             # xml = doit_util.parse_xml_response_to_element(obj.data_feed_response.text)
             # print(key, xml)
             pass
 
-
-
-
-    #   get the outage count
-    #   for each outage get
-    #       customer count
-    #       county
-    #       state
 
 
 

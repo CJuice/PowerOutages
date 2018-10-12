@@ -3,7 +3,7 @@
 """
 from dataclasses import dataclass
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 
 
 class PEPDELParent:
@@ -91,13 +91,6 @@ class PEPDELParent:
         self.zip_desc_list = doit_util.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
 
     def extract_outage_counts_by_zip_desc(self):
-        # @dataclass
-        # class ZIPOutage:
-        #     zip_code: str
-        #     outages: int
-        #     customers: int
-        #     state: str
-
         list_of_stats_objects_by_zip_desc = []
         for desc in self.zip_desc_list:
             zip_desc_dict, *rest = doit_util.extract_attribute_from_dict(data_dict=desc, attribute_name="desc")

@@ -1,7 +1,6 @@
 import json
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from dataclasses import dataclass
 
 
 class Utility:
@@ -80,10 +79,7 @@ class Utility:
                     obj.outages = -9999
         return
 
-
-@dataclass
-class Outage:
-    area: str
-    outages: int
-    customers: int
-    state: str
+    @staticmethod
+    def change_case_to_title(stats_objects):
+        for obj in stats_objects:
+            obj.area = obj.area.title()
