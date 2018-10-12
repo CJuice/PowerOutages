@@ -4,12 +4,12 @@
 from dataclasses import dataclass
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 
+class PEPDELParent(Provider):
 
-class PEPDELParent:
-
-    def __init__(self):
-        super(PEPDELParent, self).__init__()
+    def __init__(self, provider_abbrev, style):
+        super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_DEL_list = None
         self.area_DE_dict = None
         self.area_MD_dict = None
@@ -49,13 +49,6 @@ class PEPDELParent:
     #     self.delaware_outages_list =
 
     def extract_outage_counts_by_county(self):
-        # @dataclass
-        # class CountyOutage:
-        #     county: str
-        #     outages: int
-        #     customers: int
-        #     state: str
-
         list_of_stats_objects_by_county = []
         for state_abbrev, outages_list in self.state_to_data_list_dict.items():
             for county_dict in outages_list:
@@ -63,7 +56,9 @@ class PEPDELParent:
                 outages = doit_util.extract_attribute_from_dict(data_dict=county_dict, attribute_name="custs_out")
                 customers = doit_util.extract_attribute_from_dict(data_dict=county_dict,
                                                                   attribute_name="total_custs")
-                list_of_stats_objects_by_county.append(Outage(area=county,
+                list_of_stats_objects_by_county.append(Outage(abbrev=self.abbrev,
+                                                              style=self.style,
+                                                              area=county,
                                                               outages=outages,
                                                               customers=customers,
                                                               state=state_abbrev))
@@ -98,7 +93,9 @@ class PEPDELParent:
             outages = doit_util.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="custs_out")
             customers = doit_util.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="total_custs")
             state = doit_util.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="state")
-            list_of_stats_objects_by_zip_desc.append(Outage(area=zip_code,
+            list_of_stats_objects_by_zip_desc.append(Outage(abbrev=self.abbrev,
+                                                            style=self.style,
+                                                            area=zip_code,
                                                             outages=outages,
                                                             customers=customers,
                                                             state=state))

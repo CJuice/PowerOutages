@@ -7,8 +7,8 @@ from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 
 
 class SME(Provider):
-    def __init__(self, provider_abbrev):
-        super().__init__(provider_abbrev=provider_abbrev)
+    def __init__(self, provider_abbrev, style):
+        super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.area = None
         self.outage_events_list = None
         self.desc_list = None
@@ -25,7 +25,9 @@ class SME(Provider):
             cust_affected_dict = doit_util.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_a")
             outages = doit_util.extract_attribute_from_dict(data_dict=cust_affected_dict, attribute_name="val")
             customers = doit_util.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_s")
-            list_of_stats_objects.append(Outage(area=area,
+            list_of_stats_objects.append(Outage(abbrev=self.abbrev,
+                                                style=self.style,
+                                                area=area,
                                                 outages=outages,
                                                 customers=customers,
                                                 state="none given"))

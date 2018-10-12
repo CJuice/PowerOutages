@@ -31,22 +31,24 @@ def main():
     outage_area_types = ("County", "ZIP")
     none_and_not_available = (None, "NA")
     pp = pprint.PrettyPrinter(indent=4)
+    county_style = "County"
+    zip_style = "ZIP"
 
     # Need to set up objects for use
-    provider_objects = {"BGE_County": BGEMod.BGE("BGE"),
-                        "BGE_ZIP": BGEMod.BGE("BGE"),
-                        "CTK_County": CTKMod.CTK("CTK"),
-                        "CTK_ZIP": CTKMod.CTK("CTK"),
-                        "DEL_County": DELMod.DEL("DEL"),
-                        "DEL_ZIP": DELMod.DEL("DEL"),
-                        "EUC_County": EUCMod.EUC("EUC"),
-                        "EUC_ZIP": EUCMod.EUC("EUC"),
-                        "FES_County": FESMod.FES("FES"),
-                        "FES_ZIP": FESMod.FES("FES"),
-                        "PEP_County": PEPMod.PEP("PEP"),
-                        "PEP_ZIP": PEPMod.PEP("PEP"),
-                        "SME_County": SMEMod.SME("SME"),
-                        "SME_ZIP": SMEMod.SME("SME"),
+    provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=county_style),
+                        "BGE_ZIP": BGEMod.BGE(provider_abbrev="BGE", style=zip_style),
+                        "CTK_County": CTKMod.CTK(provider_abbrev="CTK", style=county_style),
+                        "CTK_ZIP": CTKMod.CTK(provider_abbrev="CTK", style=zip_style),
+                        "DEL_County": DELMod.DEL(provider_abbrev="DEL", style=county_style),
+                        "DEL_ZIP": DELMod.DEL(provider_abbrev="DEL", style=zip_style),
+                        "EUC_County": EUCMod.EUC(provider_abbrev="EUC", style=county_style),
+                        "EUC_ZIP": EUCMod.EUC(provider_abbrev="EUC", style=zip_style),
+                        "FES_County": FESMod.FES(provider_abbrev="FES", style=county_style),
+                        "FES_ZIP": FESMod.FES(provider_abbrev="FES", style=zip_style),
+                        "PEP_County": PEPMod.PEP(provider_abbrev="PEP", style=county_style),
+                        "PEP_ZIP": PEPMod.PEP(provider_abbrev="PEP", style=zip_style),
+                        "SME_County": SMEMod.SME(provider_abbrev="SME", style=county_style),
+                        "SME_ZIP": SMEMod.SME(provider_abbrev="SME", style=zip_style),
                         }
 
     # Need to get and store variables, as provider object attributes, from cfg file.
@@ -91,7 +93,7 @@ def main():
             continue
         else:
             obj.date_created_feed_uri = doit_util.build_feed_uri(metadata_key=obj.metadata_key,
-                                                           data_feed_uri=obj.date_created_feed_uri)
+                                                                 data_feed_uri=obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     # Need to extract the date created value and assign to provider object attribute
@@ -144,23 +146,14 @@ def main():
     for key, obj in provider_objects.items():
         obj.detect_response_style()
 
-    # Need to write json file containing status check on all feeds.
-    print("Writing feed check to json file...")
-    status_check_output_dict = {}
-    for key, obj in provider_objects.items():
-        obj.set_status_codes()
-    for key, obj in provider_objects.items():
-        status_check_output_dict.update(obj.build_output_dict(unique_key=key))
-    doit_util.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
-
-    # Need to extract the outage data for each provider from the response.
+        # Need to extract the outage data for each provider from the response.
     print("Data processing...")
     for key, obj in provider_objects.items():
         # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
         print(key, obj.data_feed_response_style)
         # continue
         if key in ("FES_County",):
-            continue
+            # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
@@ -168,10 +161,10 @@ def main():
             doit_util.change_case_to_title(stats_objects=obj.stats_objects_by_county)
             for j in obj.stats_objects_by_county:
                 pp.pprint(j)
-            # TODO: At this point the county data is ready for the database stage
+            # TODO: At this point the data is ready for the database stage
 
         elif key in ("FES_ZIP",):
-            continue
+            # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
@@ -179,10 +172,10 @@ def main():
             obj.process_customer_counts_to_integers()
             for j in obj.stats_objects_by_zip:
                 pp.pprint(j)
-            # TODO: At this point the zip data is ready for the database stage
+            # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_County", "PEP_County"):
-            continue
+            # continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
@@ -191,31 +184,51 @@ def main():
             obj.revise_county_name_spellings_and_punctuation()
             for j in obj.stats_objects_by_county:
                 pp.pprint(j)
-            # TODO: At this point the county data is ready for the database stage
+            # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            continue
+            # continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
             doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_zip)
             for j in obj.stats_objects_by_zip:
                 pp.pprint(j)
-            # TODO: At this point the zip data is ready for the database stage
+            # TODO: At this point the data is ready for the database stage
 
         elif key in ("SME_County", "SME_ZIP"):
+            # continue
             obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_desc()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
             doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             doit_util.change_case_to_title(stats_objects=obj.stats_objects)
+            # TODO: SME has some unique code for sql statement generation. That will need to be reproduced
+            #   SME: Execute delete sql statement for existing records, not a stored procedure call
+            #   if data exists, then map and build sql statement
+            # TODO: Update task tracking table with created date. May need to do this to more than just SME ???
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # pp.pprint(obj.data_feed_response.json())
-            # for county
-            # transform data
-            # SME: Execute delete sql statement for existing records, not a store procedure call
-            # if data exists, then map and build sql statement
+            # TODO: At this point the data is ready for the database stage
+
+        elif key in ("EUC_County", "EUC_ZIP"):
+            # continue
+            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
+            obj.extract_outage_counts()
+            obj.extract_date_created()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            # TODO: Assess the customer count tracking functionality. Don't see in any other script.
+            # TODO:
+            for j in obj.stats_objects:
+                pp.pprint(j)
+            # TODO: At this point the data is ready for the database stage
+
+        elif key in ("CTK_County", "CTK_ZIP"):
+            pass
+
+        elif key in ("BGE_County", "BGE_ZIP"):
             pass
 
         else:
@@ -223,9 +236,14 @@ def main():
             # print(key, xml)
             pass
 
-
-
-
+    # Need to write json file containing status check on all feeds.
+    print("Writing feed check to json file...")
+    status_check_output_dict = {}
+    for key, obj in provider_objects.items():
+        obj.set_status_codes()
+    for key, obj in provider_objects.items():
+        status_check_output_dict.update(obj.build_output_dict(unique_key=key))
+    doit_util.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
     exit()
     # Database actions

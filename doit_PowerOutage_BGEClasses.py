@@ -24,8 +24,8 @@ class BGE(Provider):
     </soapenv:Envelope>
     """
 
-    def __init__(self, provider_abbrev):
-        super().__init__(provider_abbrev=provider_abbrev)
+    def __init__(self, provider_abbrev, style):
+        super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.soap_header_uri = None
         self.post_uri = None
 

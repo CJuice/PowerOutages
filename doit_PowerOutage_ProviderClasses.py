@@ -12,7 +12,7 @@ class Provider:
     ZIP_DB_DELETE_STATEMENT = """"exec RealTime_DeletePowerOutagesCounty '{prov_abbrev}', 'zip'""" # Uses County proced.
     ZIP_DB_UPDATE_STATEMENT = """exec RealTime_UpdatePowerOutagesZip {outage}, '{zip_code}', '{prov_abbrev}'"""
 
-    def __init__(self, provider_abbrev: str):
+    def __init__(self, provider_abbrev: str, style: str):
         super(Provider, self).__init__()
         self.abbrev = provider_abbrev
         self.date_created = None
@@ -30,6 +30,7 @@ class Provider:
         self.metadata_feed_uri = None
         self.metadata_key = None
         self.metadata_key_attribute = "directory"
+        self.style = style
         # self.util_class = UtilFunc.Utility
         # self.prov_json_class = ProviderJSON
         # self.prov_xml_class = ProviderXML
@@ -90,6 +91,8 @@ class Provider:
 
 @dataclass
 class Outage:
+    abbrev: str
+    style: str
     area: str
     outages: int
     customers: int

@@ -24,6 +24,11 @@ class Utility:
     def extract_attribute_value_from_xml_element_by_index(root_element: ET.Element, index_position: int = 0) -> str:
         return root_element[index_position].text
 
+    @ staticmethod
+    def extract_xml_element_as_str(element: ET.Element):
+        print(element.text)
+        return element.text
+
     @staticmethod
     def extract_attribute_from_dict(data_dict: dict, attribute_name: str):
         try:
