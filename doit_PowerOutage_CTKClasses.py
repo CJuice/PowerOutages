@@ -27,10 +27,7 @@ class CTK(Provider):
         reports_element = doit_util.extract_feature_from_element(element=self.xml_element, tag_name="reports")
         report_elements = doit_util.extract_all_features_from_element(element=reports_element,tag_name="report")
         for report in report_elements:
-            id_lowered = (doit_util.extract_feature_from_element(element=report, tag_name="id")).lower()
-            # FIXME: Stopped here, broke it when refactored to use util function
-            # if report.attrib["id"].lower() == id.lower():
-            if id_lowered == id.lower():
+            if report.attrib["id"].lower() == id.lower():
                 self.outage_report = report
                 return
 
