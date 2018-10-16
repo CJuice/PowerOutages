@@ -24,10 +24,26 @@ class Utility:
     def extract_attribute_value_from_xml_element_by_index(root_element: ET.Element, index_position: int = 0) -> str:
         return root_element[index_position].text
 
-    @ staticmethod
-    def extract_xml_element_as_str(element: ET.Element):
-        print(element.text)
-        return element.text
+    @staticmethod
+    def extract_all_features_from_element(element: ET.Element, tag_name: str):
+        try:
+            return element.findall(tag_name)
+        except AttributeError as ae:
+            print(f"AttributeError: Unable to extract '{tag_name}' from {element.text}: {ae}")
+            exit()\
+
+    @staticmethod
+    def extract_feature_from_element(element: ET.Element, tag_name: str):
+        try:
+            return element.find(tag_name)
+        except AttributeError as ae:
+            print(f"AttributeError: Unable to extract '{tag_name}' from {element.text}: {ae}")
+            exit()
+
+    # @ staticmethod
+    # def extract_xml_element_as_str(element: ET.Element):
+    #     print(element.text)
+    #     return element.text
 
     @staticmethod
     def extract_attribute_from_dict(data_dict: dict, attribute_name: str):
@@ -82,6 +98,13 @@ class Utility:
                     obj.outages = replacement_values_dict[obj.outages]
                 except KeyError as ke:
                     obj.outages = -9999
+            try:
+                obj.customers = int(obj.customers)
+            except ValueError as ve:
+                try:
+                    obj.customers = replacement_values_dict[obj.customers]
+                except KeyError as ke:
+                    obj.customers = -9999
         return
 
     @staticmethod

@@ -153,7 +153,7 @@ def main():
         print(key, obj.data_feed_response_style)
         # continue
         if key in ("FES_County",):
-            # continue
+            continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
@@ -164,7 +164,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("FES_ZIP",):
-            # continue
+            continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
@@ -175,7 +175,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_County", "PEP_County"):
-            # continue
+            continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
@@ -187,7 +187,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            # continue
+            continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
@@ -197,7 +197,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("SME_County", "SME_ZIP"):
-            # continue
+            continue
             obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_desc()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -212,7 +212,6 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("EUC_County", "EUC_ZIP"):
-            # continue
             obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_counts()
@@ -220,12 +219,25 @@ def main():
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
             doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             # TODO: Assess the customer count tracking functionality. Don't see in any other script.
-            # TODO:
+            continue
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("CTK_County", "CTK_ZIP"):
+            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.extract_report_by_id(id=obj.style)
+            obj.extract_outage_dataset()
+            obj.extract_outage_counts_from_dataset()
+            obj.extract_date_created()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            # continue
+            for j in obj.stats_objects:
+                pp.pprint(j)
+
+            # TODO: CTK has some unique code for sql statement generation. That will need to be reproduced
+
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
