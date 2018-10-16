@@ -179,10 +179,10 @@ def main():
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_county)
-            obj.revise_county_name_spellings_and_punctuation()
-            for j in obj.stats_objects_by_county:
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
@@ -190,9 +190,9 @@ def main():
             continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_zip)
-            for j in obj.stats_objects_by_zip:
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
@@ -232,12 +232,11 @@ def main():
             obj.extract_date_created()
             doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
             doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            # continue
+            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            continue
             for j in obj.stats_objects:
                 pp.pprint(j)
-
             # TODO: CTK has some unique code for sql statement generation. That will need to be reproduced
-
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):

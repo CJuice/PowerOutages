@@ -111,3 +111,21 @@ class Utility:
     def change_case_to_title(stats_objects):
         for obj in stats_objects:
             obj.area = obj.area.title()
+
+    @staticmethod
+    def revise_county_name_spellings_and_punctuation(stats_objects_list):
+        corrections_dict = {"Prince George's": "Prince George",
+                            "Prince Georges": "Prince George",
+                            "Queen Anne's": "Queen Anne",
+                            "St Marys": "St. Mary",
+                            "Kent (MD)": "Kent"}
+        for obj in stats_objects_list:
+            if obj.area.isupper():
+                obj.area = obj.area.title()
+            else:
+                pass
+            try:
+                obj.area = corrections_dict[obj.area]
+            except KeyError as ke:
+                # No correction needed per the dict of items as seen above
+                continue
