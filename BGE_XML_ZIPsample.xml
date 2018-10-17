@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><soap:Envelope
-xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetZipCodeDataResponse
-xmlns="http://Constellation.BGE.com/OutageInfoWebService"><GetZipCodeDataResult
-xmlns="http://www.bge.com/BGEOutageInfo"><ResponseHeader
-xmlns=""><CreateDateTime>2018-10-17
-07:16</CreateDateTime><StatusCode>0</StatusCode><StatusMessage>SUCCESS</StatusMessage><Source><Application>BGENMSP</Application></Source><StormMode>N</StormMode></ResponseHeader><Outages
-xmlns=""><Outage><ZipCode>21012</ZipCode><CustomersOut>1</CustomersOut></Outage><Outage><ZipCode>21117</ZipCode><CustomersOut>1</CustomersOut></Outage><Outage><ZipCode>21208</ZipCode><CustomersOut>2</CustomersOut></Outage><Outage><ZipCode>21227</ZipCode><CustomersOut>10</CustomersOut></Outage><Outage><ZipCode>21237</ZipCode><CustomersOut>1</CustomersOut></Outage></Outages></GetZipCodeDataResult></GetZipCodeDataResponse></soap:Body></soap:Envelope>
