@@ -1,9 +1,9 @@
 """
 
 """
+from dataclasses import dataclass
 from datetime import datetime
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
-from dataclasses import dataclass
 
 
 class Provider:

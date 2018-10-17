@@ -1,15 +1,14 @@
+from datetime import datetime
 import json
 import xml.etree.ElementTree as ET
-from datetime import datetime
 
 
 class Utility:
 
     @staticmethod
-    def write_to_file(file, content):
+    def write_to_file(file: str, content):
         with open(file, 'w') as file_handler:
             file_handler.write(json.dumps(content))
-        # print(f"{file} written.")
         return
 
     @staticmethod
@@ -25,7 +24,7 @@ class Utility:
         return root_element[index_position].text
 
     @staticmethod
-    def extract_all_immediate_child_features_from_element(element: ET.Element, tag_name: str):
+    def extract_all_immediate_child_features_from_element(element: ET.Element, tag_name: str) -> ET.Element:
         try:
             return element.findall(tag_name)
         except AttributeError as ae:
@@ -33,7 +32,7 @@ class Utility:
             exit()
 
     @staticmethod
-    def extract_first_immediate_child_feature_from_element(element: ET.Element, tag_name: str):
+    def extract_first_immediate_child_feature_from_element(element: ET.Element, tag_name: str) -> ET.Element:
         try:
             return element.find(tag_name)
         except AttributeError as ae:
@@ -68,7 +67,7 @@ class Utility:
             exit()
 
     @staticmethod
-    def remove_commas_from_counts(objects_list):
+    def remove_commas_from_counts(objects_list: list):
         for obj in objects_list:
             try:
                 obj.outages = obj.outages.replace(",", "")
@@ -83,7 +82,7 @@ class Utility:
         return
 
     @staticmethod
-    def process_outage_counts_to_integers(objects_list):
+    def process_outage_counts_to_integers(objects_list: list):
         replacement_values_dict = {"Less than 5": 1, "<5": 1}
         for obj in objects_list:
             try:
@@ -103,12 +102,12 @@ class Utility:
         return
 
     @staticmethod
-    def change_case_to_title(stats_objects):
+    def change_case_to_title(stats_objects: list):
         for obj in stats_objects:
             obj.area = obj.area.title()
 
     @staticmethod
-    def revise_county_name_spellings_and_punctuation(stats_objects_list):
+    def revise_county_name_spellings_and_punctuation(stats_objects_list: list):
         corrections_dict = {"Prince George's": "Prince George",
                             "Prince Georges": "Prince George",
                             "Queen Anne's": "Queen Anne",
@@ -124,3 +123,4 @@ class Utility:
             except KeyError as ke:
                 # No correction needed per the dict of items as seen above
                 continue
+        return

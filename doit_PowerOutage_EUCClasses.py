@@ -1,9 +1,9 @@
 """
 
 """
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import json
 
 
@@ -12,18 +12,17 @@ class EUC(Provider):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.xml_element = None
         self.events_list = None
-        # self.stats_objects = None
 
-    def extract_outage_events_list_from_xml_str(self, content_list_as_str):
+    def extract_outage_events_list_from_xml_str(self, content_list_as_str: str):
         self.events_list = json.loads(content_list_as_str)
         return
 
     def extract_outage_counts(self):
         list_of_stats_objects = []
         for event in self.events_list:
-            outages = doit_util.extract_attribute_from_dict(data_dict=event, attribute_name="Count")
-            customers = doit_util.extract_attribute_from_dict(data_dict=event, attribute_name="AccountCount")
-            area = doit_util.extract_attribute_from_dict(data_dict=event, attribute_name="ZipCode")
+            outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="Count")
+            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="AccountCount")
+            area = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="ZipCode")
             list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                 style=self.style,
                                                 area=area,
@@ -36,5 +35,5 @@ class EUC(Provider):
 
     def extract_date_created(self):
         for event in self.events_list:
-            self.date_created = doit_util.extract_attribute_from_dict(data_dict=event, attribute_name="TimeStamp")
+            self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="TimeStamp")
         return

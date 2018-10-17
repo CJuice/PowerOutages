@@ -1,9 +1,9 @@
 """
 
 """
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
 
 class BGE(Provider):
@@ -30,10 +30,9 @@ class BGE(Provider):
         self.post_uri = None
         self.xml_element = None
         self.outages_list = None
-        # self.stats_objects = None
 
     def build_extra_header_for_SOAP_request(self):
-        return {"Content-Type": "text/xml","charset": "utf-8","SOAPAction": self.soap_header_uri, }
+        return {"Content-Type": "text/xml", "charset": "utf-8", "SOAPAction": self.soap_header_uri, }
 
     def extract_outage_elements(self):
         outage_elements_list = []
@@ -42,15 +41,19 @@ class BGE(Provider):
         self.outages_list = outage_elements_list
 
     def extract_outage_counts(self):
+        # NOTE: It appears that BGE does not provide a count of customers served for zip code areas. Set to -9999.
         substitution = {"County": "County", "ZIP": "ZipCode"}.get(self.style)
         stats_objects_list = []
         for outage in self.outages_list:
-            area, outages = outage.find(substitution).text, outage.find("CustomersOut").text
-            # customers = None
+            area = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
+                                                                                tag_name=substitution).text
+            outages = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
+                                                                                   tag_name="CustomersOut").text
             if self.style == "ZIP":
                 customers = -9999
             else:
-                customers = outage.find("CustomersServed").text
+                customers = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
+                                                                                         tag_name="CustomersServed").text
             stats_objects_list.append(Outage(abbrev=self.abbrev,
                                              style=self.style,
                                              area=area,

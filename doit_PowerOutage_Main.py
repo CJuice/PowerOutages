@@ -1,11 +1,10 @@
 """
 
 """
-# TODO: Refactor Outage data classes. Only need one implementation that can be passed and instantiated.
+
 
 def main():
     import configparser
-    # import json
     import os
     import pprint
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
@@ -15,23 +14,21 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_EUCClasses as EUCMod
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
-    # import PowerOutages_V2.doit_PowerOutage_ProviderClasses as ProvMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_TestFunctions as TestMod
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as doit_util
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     # import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebMod
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
+    county_style = "County"
     credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
+    none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
-    outage_area_types = ("County", "ZIP")
-    none_and_not_available = (None, "NA")
     pp = pprint.PrettyPrinter(indent=4)
-    county_style = "County"
     zip_style = "ZIP"
 
     # Need to set up objects for use
@@ -76,23 +73,23 @@ def main():
             continue
         else:
             if "xml" in obj.metadata_feed_response.headers["content-type"]:
-                metadata_xml_element = doit_util.parse_xml_response_to_element(
+                metadata_xml_element = DOIT_UTIL.parse_xml_response_to_element(
                     response_xml_str=obj.metadata_feed_response.text)
-                obj.metadata_key = doit_util.extract_attribute_value_from_xml_element_by_index(
+                obj.metadata_key = DOIT_UTIL.extract_attribute_value_from_xml_element_by_index(
                     root_element=metadata_xml_element)
             else:
                 metadata_response_dict = obj.metadata_feed_response.json()
-                obj.metadata_key = doit_util.extract_attribute_from_dict(
+                obj.metadata_key = DOIT_UTIL.extract_attribute_from_dict(
                     data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
-    # Need to make the date created requests and store the response.
+    # Need to make the date created requests, for providers with a date created service, and store the response.
     print("Date Generated feed processing...")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
         else:
-            obj.date_created_feed_uri = doit_util.build_feed_uri(metadata_key=obj.metadata_key,
+            obj.date_created_feed_uri = DOIT_UTIL.build_feed_uri(metadata_key=obj.metadata_key,
                                                                  data_feed_uri=obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
@@ -102,9 +99,9 @@ def main():
             continue
         else:
             if "xml" in obj.date_created_feed_response.headers["content-type"]:
-                date_created_xml_element = doit_util.parse_xml_response_to_element(
+                date_created_xml_element = DOIT_UTIL.parse_xml_response_to_element(
                     response_xml_str=obj.date_created_feed_response.text)
-                obj.date_created = doit_util.extract_attribute_value_from_xml_element_by_index(
+                obj.date_created = DOIT_UTIL.extract_attribute_value_from_xml_element_by_index(
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
@@ -112,12 +109,12 @@ def main():
                     # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data
                     #   dict containing the date. SME uses "summaryFileData" as the key to access the data dict
                     #   containing the date
-                    file_data = doit_util.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
                                                                       attribute_name="summaryFileData")
                 else:
-                    file_data = doit_util.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
                                                                       attribute_name="file_data")
-                obj.date_created = doit_util.extract_attribute_from_dict(
+                obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                     data_dict=file_data,
                     attribute_name=obj.date_created_attribute)
 
@@ -146,19 +143,19 @@ def main():
     for key, obj in provider_objects.items():
         obj.detect_response_style()
 
-        # Need to extract the outage data for each provider from the response.
+    # Need to extract the outage data for each provider from the response. Where applicable, extract the
+    #   date created/generated
     print("Data processing...")
     for key, obj in provider_objects.items():
         # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
         print(key, obj.data_feed_response_style)
-        # continue
         if key in ("FES_County",):
             continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            doit_util.change_case_to_title(stats_objects=obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
@@ -167,8 +164,8 @@ def main():
             continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             obj.process_customer_counts_to_integers()
             for j in obj.stats_objects:
                 pp.pprint(j)
@@ -179,9 +176,9 @@ def main():
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
@@ -190,8 +187,8 @@ def main():
             continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
@@ -200,9 +197,9 @@ def main():
             continue
             obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_desc()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            doit_util.change_case_to_title(stats_objects=obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
             # TODO: SME has some unique code for sql statement generation. That will need to be reproduced
             #   SME: Execute delete sql statement for existing records, not a stored procedure call
             #   if data exists, then map and build sql statement
@@ -212,12 +209,12 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("EUC_County", "EUC_ZIP"):
-            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_counts()
             obj.extract_date_created()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             # TODO: Assess the customer count tracking functionality. Don't see in any other script.
             continue
             for j in obj.stats_objects:
@@ -226,14 +223,14 @@ def main():
 
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK appears to not write any data when no outages are present. This means no zero values. The database wouldn't be updated when outages are resolved.
-            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
             obj.extract_date_created()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             continue
             for j in obj.stats_objects:
                 pp.pprint(j)
@@ -241,19 +238,17 @@ def main():
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
-            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
             obj.extract_date_created()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             continue
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
-
-
         else:
             pass
 
@@ -264,13 +259,14 @@ def main():
         obj.set_status_codes()
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
-    doit_util.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+    DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    exit()
     # Database actions
     #   establish connection
     db_obj = DbMod.DatabaseUtilities(parser=parser)
-    # db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
+    db_obj.create_database_connection_string()
+    exit()
+    db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
     # trigger stored procedure for deleting, then commit
     # trigger stored procedure for updating, then commit
 
