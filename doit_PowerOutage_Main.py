@@ -240,6 +240,22 @@ def main():
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
+            data_response_web_url_string = "{http://Constellation.BGE.com/OutageInfoWebService}"
+            data_result_web_url_string = "{http://www.bge.com/BGEOutageInfo}"
+            substitution = {"County": "County", "ZIP": "ZipCode"}.get(obj.style)
+            data_response_string = f"{data_response_web_url_string}Get{substitution}DataResponse"
+            data_result_string = f"{data_result_web_url_string}Get{substitution}DataResult"
+            obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.body_element = obj.xml_element.find("{http://schemas.xmlsoap.org/soap/envelope/}Body")
+            obj.data_response_element = obj.body_element.find(data_response_string)
+            print(obj.data_response_element)
+            obj.data_result_element = obj.data_response_element.find(data_result_string)
+            print(obj.data_result_element)
+            for child in obj.data_result_element:
+                print(child.tag, child.attrib)
+            # TODO: Got to be a better way to burrow down into this junk
+            print()
+            pp.pprint(obj.data_feed_response.text)
             pass
 
         else:

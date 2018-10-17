@@ -20,12 +20,12 @@ class CTK(Provider):
     def extract_date_created(self):
         date_generated = doit_util.extract_feature_from_element(element=self.xml_element, tag_name="generated")
         date_dict = date_generated.attrib
-        self.date_created = doit_util.extract_attribute_from_dict(data_dict=date_dict,attribute_name="date")
+        self.date_created = doit_util.extract_attribute_from_dict(data_dict=date_dict, attribute_name="date")
         return
 
     def extract_report_by_id(self, id):
         reports_element = doit_util.extract_feature_from_element(element=self.xml_element, tag_name="reports")
-        report_elements = doit_util.extract_all_features_from_element(element=reports_element,tag_name="report")
+        report_elements = doit_util.extract_all_features_from_element(element=reports_element, tag_name="report")
         for report in report_elements:
             if report.attrib["id"].lower() == id.lower():
                 self.outage_report = report

@@ -28,6 +28,10 @@ class BGE(Provider):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.soap_header_uri = None
         self.post_uri = None
+        self.xml_element = None
+        self.body_element = None
+        self.data_response_element = None
+        self.data_result_element = None
 
     def build_extra_header_for_SOAP_request(self):
         return {"Content-Type": "text/xml","charset": "utf-8","SOAPAction": self.soap_header_uri, }
