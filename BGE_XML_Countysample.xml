@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><soap:Envelope
+xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetCountyDataResponse
+xmlns="http://Constellation.BGE.com/OutageInfoWebService"><GetCountyDataResult
+xmlns="http://www.bge.com/BGEOutageInfo"><ResponseHeader
+xmlns=""><CreateDateTime>2018-10-17
+08:37</CreateDateTime><StatusCode>0</StatusCode><StatusMessage>SUCCESS</StatusMessage><Source><Application>BGENMSP</Application></Source><StormMode>N</StormMode><StormBegin
+/></ResponseHeader><Outages
+xmlns=""><Outage><FIPSCode>24003</FIPSCode><County>Anne
+Arundel</County><CustomersServed>249697</CustomersServed><CustomersOut>1</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24005</FIPSCode><County>Baltimore</County><CustomersServed>370448</CustomersServed><CustomersOut>75</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24510</FIPSCode><County>Baltimore
+City</County><CustomersServed>270176</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24009</FIPSCode><County>Calvert</County><CustomersServed>8022</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24013</FIPSCode><County>Carroll</County><CustomersServed>58845</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24025</FIPSCode><County>Harford</County><CustomersServed>104400</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24027</FIPSCode><County>Howard</County><CustomersServed>129617</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24031</FIPSCode><County>Montgomery</County><CustomersServed>14141</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage><Outage><FIPSCode>24033</FIPSCode><County>Prince
+George's</County><CustomersServed>84638</CustomersServed><CustomersOut>0</CustomersOut><CustomersRestored>0</CustomersRestored></Outage></Outages></GetCountyDataResult></GetCountyDataResponse></soap:Body></soap:Envelope>

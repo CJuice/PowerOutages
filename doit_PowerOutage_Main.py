@@ -156,10 +156,10 @@ def main():
             continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_county)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_county)
-            doit_util.change_case_to_title(stats_objects=obj.stats_objects_by_county)
-            for j in obj.stats_objects_by_county:
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            doit_util.change_case_to_title(stats_objects=obj.stats_objects)
+            for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
@@ -167,10 +167,10 @@ def main():
             continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
-            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects_by_zip)
-            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects_by_zip)
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             obj.process_customer_counts_to_integers()
-            for j in obj.stats_objects_by_zip:
+            for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
@@ -225,6 +225,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("CTK_County", "CTK_ZIP"):
+            # TODO: CTK appears to not write any data when no outages are present. This means no zero values. The database wouldn't be updated when outages are resolved.
             obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
             obj.extract_outage_dataset()
@@ -240,27 +241,20 @@ def main():
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
-            data_response_web_url_string = "{http://Constellation.BGE.com/OutageInfoWebService}"
-            data_result_web_url_string = "{http://www.bge.com/BGEOutageInfo}"
-            substitution = {"County": "County", "ZIP": "ZipCode"}.get(obj.style)
-            data_response_string = f"{data_response_web_url_string}Get{substitution}DataResponse"
-            data_result_string = f"{data_result_web_url_string}Get{substitution}DataResult"
             obj.xml_element = doit_util.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            obj.body_element = obj.xml_element.find("{http://schemas.xmlsoap.org/soap/envelope/}Body")
-            obj.data_response_element = obj.body_element.find(data_response_string)
-            print(obj.data_response_element)
-            obj.data_result_element = obj.data_response_element.find(data_result_string)
-            print(obj.data_result_element)
-            for child in obj.data_result_element:
-                print(child.tag, child.attrib)
-            # TODO: Got to be a better way to burrow down into this junk
-            print()
-            pp.pprint(obj.data_feed_response.text)
-            pass
+            obj.extract_outage_elements()
+            obj.extract_outage_counts()
+            obj.extract_date_created()
+            doit_util.remove_commas_from_counts(objects_list=obj.stats_objects)
+            doit_util.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+            doit_util.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+            continue
+            for j in obj.stats_objects:
+                pp.pprint(j)
+            # TODO: At this point the data is ready for the database stage
+
 
         else:
-            # xml = doit_util.parse_xml_response_to_element(obj.data_feed_response.text)
-            # print(key, xml)
             pass
 
     # Need to write json file containing status check on all feeds.

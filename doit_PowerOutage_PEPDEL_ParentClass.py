@@ -23,7 +23,7 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = None
         # self.stats_objects_by_county = None
         # self.stats_objects_by_zip = None
-        self.stats_objects = None
+        # self.stats_objects = None
         self.zip_desc_list = None
 
     def extract_areas_list_county_process(self, data_json):

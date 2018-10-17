@@ -29,9 +29,37 @@ class BGE(Provider):
         self.soap_header_uri = None
         self.post_uri = None
         self.xml_element = None
-        self.body_element = None
-        self.data_response_element = None
-        self.data_result_element = None
+        self.outages_list = None
+        # self.stats_objects = None
 
     def build_extra_header_for_SOAP_request(self):
         return {"Content-Type": "text/xml","charset": "utf-8","SOAPAction": self.soap_header_uri, }
+
+    def extract_outage_elements(self):
+        outage_elements_list = []
+        for outage in self.xml_element.iter("Outage"):
+            outage_elements_list.append(outage)
+        self.outages_list = outage_elements_list
+
+    def extract_outage_counts(self):
+        substitution = {"County": "County", "ZIP": "ZipCode"}.get(self.style)
+        stats_objects_list = []
+        for outage in self.outages_list:
+            area, outages = outage.find(substitution).text, outage.find("CustomersOut").text
+            # customers = None
+            if self.style == "ZIP":
+                customers = -9999
+            else:
+                customers = outage.find("CustomersServed").text
+            stats_objects_list.append(Outage(abbrev=self.abbrev,
+                                             style=self.style,
+                                             area=area,
+                                             outages=outages,
+                                             customers=customers,
+                                             state="MD"))
+        self.stats_objects = stats_objects_list
+
+    def extract_date_created(self):
+        for date_time in self.xml_element.iter("CreateDateTime"):
+            self.date_created = date_time.text
+            return

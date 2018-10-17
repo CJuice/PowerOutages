@@ -12,7 +12,7 @@ class EUC(Provider):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.xml_element = None
         self.events_list = None
-        self.stats_objects = None
+        # self.stats_objects = None
 
     def extract_outage_events_list_from_xml_str(self, content_list_as_str):
         self.events_list = json.loads(content_list_as_str)

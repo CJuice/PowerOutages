@@ -16,8 +16,8 @@ class FES(Provider):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.md_area_dict = None
         self.zip_events_list = None
-        self.stats_objects_by_county = None
-        self.stats_objects_by_zip = None
+        # self.stats_objects_by_county = None
+        # self.stats_objects_by_zip = None
 
     def extract_maryland_dict_from_county_response(self):
         dict_as_json = self.data_feed_response.json()
@@ -43,7 +43,7 @@ class FES(Provider):
                                                           outages=outages,
                                                           customers=customers,
                                                           state="MD"))
-        self.stats_objects_by_county = list_of_stats_objects_by_county
+        self.stats_objects = list_of_stats_objects_by_county
         return
 
     def extract_events_from_zip_response(self):
@@ -66,7 +66,7 @@ class FES(Provider):
                                                customers=customers,
                                                state="none given"))
 
-        self.stats_objects_by_zip = stats_objects_by_zip
+        self.stats_objects = stats_objects_by_zip
         return
 
     # def remove_commas_from_counts(self):
@@ -88,7 +88,7 @@ class FES(Provider):
     #     return
 
     def process_customer_counts_to_integers(self):
-        for obj in self.stats_objects_by_zip:
+        for obj in self.stats_objects:
             try:
                 obj.customers = int(obj.customers)
             except ValueError as ve:

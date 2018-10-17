@@ -31,6 +31,7 @@ class Provider:
         self.metadata_key = None
         self.metadata_key_attribute = "directory"
         self.style = style
+        self.stats_objects = None
         # self.util_class = UtilFunc.Utility
         # self.prov_json_class = ProviderJSON
         # self.prov_xml_class = ProviderXML

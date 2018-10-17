@@ -12,27 +12,25 @@ class CTK(Provider):
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.xml_element = None
-        self.date_created = None
         self.outage_report = None
         self.outage_dataset = None
-        self.stats_objects = None
 
     def extract_date_created(self):
-        date_generated = doit_util.extract_feature_from_element(element=self.xml_element, tag_name="generated")
+        date_generated = doit_util.extract_first_immediate_child_feature_from_element(element=self.xml_element, tag_name="generated")
         date_dict = date_generated.attrib
         self.date_created = doit_util.extract_attribute_from_dict(data_dict=date_dict, attribute_name="date")
         return
 
     def extract_report_by_id(self, id):
-        reports_element = doit_util.extract_feature_from_element(element=self.xml_element, tag_name="reports")
-        report_elements = doit_util.extract_all_features_from_element(element=reports_element, tag_name="report")
-        for report in report_elements:
+        for report in self.xml_element.iter("report"):
             if report.attrib["id"].lower() == id.lower():
                 self.outage_report = report
                 return
 
     def extract_outage_dataset(self):
         self.outage_dataset = self.outage_report.find("dataset")
+        if len(self.outage_dataset) == 0:
+            print(f"No {self.abbrev}_{self.style} dataset values in feed.")
         return
 
     def extract_outage_counts_from_dataset(self):

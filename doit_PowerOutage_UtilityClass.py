@@ -25,25 +25,20 @@ class Utility:
         return root_element[index_position].text
 
     @staticmethod
-    def extract_all_features_from_element(element: ET.Element, tag_name: str):
+    def extract_all_immediate_child_features_from_element(element: ET.Element, tag_name: str):
         try:
             return element.findall(tag_name)
         except AttributeError as ae:
             print(f"AttributeError: Unable to extract '{tag_name}' from {element.text}: {ae}")
-            exit()\
+            exit()
 
     @staticmethod
-    def extract_feature_from_element(element: ET.Element, tag_name: str):
+    def extract_first_immediate_child_feature_from_element(element: ET.Element, tag_name: str):
         try:
             return element.find(tag_name)
         except AttributeError as ae:
             print(f"AttributeError: Unable to extract '{tag_name}' from {element.text}: {ae}")
             exit()
-
-    # @ staticmethod
-    # def extract_xml_element_as_str(element: ET.Element):
-    #     print(element.text)
-    #     return element.text
 
     @staticmethod
     def extract_attribute_from_dict(data_dict: dict, attribute_name: str):
