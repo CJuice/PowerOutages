@@ -1,7 +1,7 @@
 """
 
 """
-
+# TODO: Add logging functionality at some level for this process
 
 def main():
     import configparser
