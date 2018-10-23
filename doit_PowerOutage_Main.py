@@ -209,6 +209,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("EUC_County", "EUC_ZIP"):
+            continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_counts()
@@ -216,13 +217,13 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             # TODO: Assess the customer count tracking functionality. Don't see in any other script.
-            continue
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK appears to not write any data when no outages are present. This means no zero values. The database wouldn't be updated when outages are resolved.
+            continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
             obj.extract_outage_dataset()
@@ -231,13 +232,13 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
-            continue
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: CTK has some unique code for sql statement generation. That will need to be reproduced
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
+            continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
@@ -245,7 +246,6 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
-            continue
             for j in obj.stats_objects:
                 pp.pprint(j)
             # TODO: At this point the data is ready for the database stage
@@ -263,11 +263,15 @@ def main():
 
     # Database actions
     #   establish connection
-    db_obj = DbMod.DatabaseUtilities(parser=parser)
-    db_obj.create_database_connection_string()
-    exit()
-    db_obj.establish_database_connection()  # TODO: Try this on MEMA box to see if connection code works.
-    # trigger stored procedure for deleting, then commit
+    # db_obj = DbMod.DatabaseUtilities(parser=parser)   # TODO
+    # db_obj.create_database_connection_string()    # TODO
+    # db_obj.establish_database_connection()    # TODO
+
+    # For all providers, trigger stored procedure for deleting, then commit
+    for key, obj in provider_objects.items():
+        print(obj.abbrev)
+    # TODO: Think about how to implement the delete and insert to include uniqueness of certain providers
+
     # trigger stored procedure for updating, then commit
 
     # TESTING CALLS
