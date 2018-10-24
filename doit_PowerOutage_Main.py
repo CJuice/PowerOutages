@@ -263,13 +263,38 @@ def main():
 
     # Database actions
     #   establish connection
-    # db_obj = DbMod.DatabaseUtilities(parser=parser)   # TODO
-    # db_obj.create_database_connection_string()    # TODO
-    # db_obj.establish_database_connection()    # TODO
+    db_obj = DbMod.DatabaseUtilities(parser=parser)   # TODO
+    db_obj.create_database_connection_string()    # TODO
+    db_obj.establish_database_connection()    # TODO
+
 
     # For all providers, trigger stored procedure for deleting, then commit
     for key, obj in provider_objects.items():
         print(obj.abbrev)
+        # db_obj.create_database_cursor()
+
+        # For TESTING Purposes. Using a SELECT statement in place of DELETE statement
+        # db_obj.select_records(style=obj.style, provider_abbrev=obj.abbrev)
+        # db_obj.fetch_all_from_selection()
+        # for row in db_obj.selection:
+        #     print(row)
+
+        # Delete existing records from database table
+        # db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
+
+        # Update database table with new records
+        try:
+            for data_obj in obj.stats_objects:
+                print("\t", data_obj)
+                # TODO: Provider specific SQL Statement generation for inserting records
+        except TypeError as te:
+            print(f"{obj.abbrev} appears to have no stats objects: {obj.stats_objects}")
+
+        # Clean up for next provider
+        db_obj.delete_cursor()
+
+
+
     # TODO: Think about how to implement the delete and insert to include uniqueness of certain providers
 
     # trigger stored procedure for updating, then commit
