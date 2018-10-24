@@ -32,10 +32,16 @@ class Provider:
         self.metadata_key_attribute = "directory"
         self.style = style
         self.stats_objects = None
+        self.sql_insert_record_county = """"INSERT INTO dbo.RealTime_PowerOutagesCounty(state, county, outage, provider, updated, created)
+        VALUES ({state},{county},{outages},{abbrev},{date_updated},{date_created})"""
+        self.sql_insert_record_zip = """"INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED)
+                VALUES ({area},{abbrev},{outages},{date_created},{date_updated})"""
         # self.util_class = UtilFunc.Utility
         # self.prov_json_class = ProviderJSON
         # self.prov_xml_class = ProviderXML
         self.web_func_class = WebFunc.WebFunctionality
+
+    # TODO: Convert the date created value, provided in/by the data feeds, to a datetime object. Needed for database entry and JSON output file format
 
     def build_output_dict(self, unique_key:str) -> dict:
         return {unique_key: {"data": self.data_feed_response_status_code,
@@ -88,6 +94,28 @@ class Provider:
         except Exception as e:  # TODO: Improve exception handling
             print(e)
             exit()
+
+    def insert_records_into_database_table(self, db_connection, db_cursor):
+        date_updated = Provider.current_date_time()
+        for obj in self.stats_objects:
+            if self.style == "ZIP":
+                sql = self.sql_insert_record_zip.format(area=obj.area,
+                                                        abbrev=obj.abbrev,
+                                                        outages=obj.outages,
+                                                        date_created=self.date_created,
+                                                        date_updated=date_updated
+                                                        )
+            else:
+                sql = self.sql_insert_record_county.format(state=obj.state,
+                                                           county=obj.area,
+                                                           outages=obj.outages,
+                                                           abbrev=self.abbrev,
+                                                           date_updated=date_updated,
+                                                           date_created=self.date_created
+                                                           )
+            db_cursor.execute(sql)
+        db_connection.commit()
+        return
 
 
 @dataclass

@@ -271,7 +271,8 @@ def main():
     # For all providers, trigger stored procedure for deleting, then commit
     for key, obj in provider_objects.items():
         print(obj.abbrev)
-        # db_obj.create_database_cursor()
+        print(obj.style)
+        db_obj.create_database_cursor()
 
         # For TESTING Purposes. Using a SELECT statement in place of DELETE statement
         # db_obj.select_records(style=obj.style, provider_abbrev=obj.abbrev)
@@ -287,15 +288,14 @@ def main():
             for data_obj in obj.stats_objects:
                 print("\t", data_obj)
                 # TODO: Provider specific SQL Statement generation for inserting records
+                obj.insert_records_into_database_table(db_connection=db_obj.connection, db_cursor=db_obj.cursor)
+
         except TypeError as te:
             print(f"{obj.abbrev} appears to have no stats objects: {obj.stats_objects}")
 
         # Clean up for next provider
         db_obj.delete_cursor()
 
-
-
-    # TODO: Think about how to implement the delete and insert to include uniqueness of certain providers
 
     # trigger stored procedure for updating, then commit
 
