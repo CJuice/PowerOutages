@@ -6,6 +6,10 @@ import xml.etree.ElementTree as ET
 class Utility:
 
     @staticmethod
+    def current_date_time() -> str:
+        return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
+
+    @staticmethod
     def write_to_file(file: str, content):
         with open(file, 'w') as file_handler:
             file_handler.write(json.dumps(content))

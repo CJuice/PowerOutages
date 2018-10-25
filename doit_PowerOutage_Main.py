@@ -150,7 +150,7 @@ def main():
         # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
         print(key, obj.data_feed_response_style)
         if key in ("FES_County",):
-            continue
+            # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -161,7 +161,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("FES_ZIP",):
-            continue
+            # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -172,7 +172,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_County", "PEP_County"):
-            continue
+            # continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
@@ -184,7 +184,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            continue
+            # continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -194,7 +194,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("SME_County", "SME_ZIP"):
-            continue
+            # continue
             obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -209,7 +209,7 @@ def main():
             # TODO: At this point the data is ready for the database stage
 
         elif key in ("EUC_County", "EUC_ZIP"):
-            continue
+            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_counts()
@@ -223,7 +223,7 @@ def main():
 
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK appears to not write any data when no outages are present. This means no zero values. The database wouldn't be updated when outages are resolved.
-            continue
+            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
             obj.extract_outage_dataset()
@@ -238,7 +238,7 @@ def main():
             pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
-            continue
+            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
@@ -252,6 +252,9 @@ def main():
         else:
             pass
 
+        # Need to groom the date created values
+        obj.groom_date_created()
+
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
@@ -262,16 +265,14 @@ def main():
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
     # Database actions
+    print("Database operations initiated...")
     #   establish connection
-    db_obj = DbMod.DatabaseUtilities(parser=parser)   # TODO
-    db_obj.create_database_connection_string()    # TODO
-    db_obj.establish_database_connection()    # TODO
+    db_obj = DbMod.DatabaseUtilities(parser=parser)
+    db_obj.create_database_connection_string()
+    db_obj.establish_database_connection()
 
-
-    # For all providers, trigger stored procedure for deleting, then commit
+    # For every provider object, need to delete existing records and update with new
     for key, obj in provider_objects.items():
-        print(obj.abbrev)
-        print(obj.style)
         db_obj.create_database_cursor()
 
         # For TESTING Purposes. Using a SELECT statement in place of DELETE statement
@@ -280,28 +281,42 @@ def main():
         # for row in db_obj.selection:
         #     print(row)
 
-        # Delete existing records from database table
-        # db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
+        # Need to delete existing records from database table for every/all provider. All the same wrt delete.
+        db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
-        # Update database table with new records
+        # For ZIP style, build a selection set of existing zips to check against and prevent duplicates
+        #   This seems really redundant given the full delete sql statement executed prior.
+        # TODO: Assess removal of this "check"
+        # if obj.style == "ZIP":
+        #     db_obj.select_records(style=obj.style, provider_abbrev=obj.abbrev, fields_string="zipcode")
+        #     obj.zip_selection = db_obj.fetch_all_from_selection()
+        #     obj.process_zip_selection_into_list()
+        #     # print(obj.zip_selection_list)
+
+        # Need to update database table with new records
         try:
-            for data_obj in obj.stats_objects:
-                print("\t", data_obj)
-                # TODO: Provider specific SQL Statement generation for inserting records
-                obj.insert_records_into_database_table(db_connection=db_obj.connection, db_cursor=db_obj.cursor)
-
+            # TODO: Provider specific SQL Statement generation for inserting records
+            insert_generator = obj.generate_insert_sql_statement()
+            for sql_statement in insert_generator:
+                print(sql_statement)
+                db_obj.insert_record_into_database(sql_statement=sql_statement)
         except TypeError as te:
-            print(f"{obj.abbrev} appears to have no stats objects: {obj.stats_objects}")
+            print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
 
-        # Clean up for next provider
-        db_obj.delete_cursor()
+        else:
+            db_obj.commit_changes()
+            print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+
+        finally:
+            # Clean up for next provider
+            db_obj.delete_cursor()
 
 
     # trigger stored procedure for updating, then commit
 
     # TESTING CALLS
-    exit()
-    TestMod.check_metadata_uri_presence_against_key_presence(obj_dict=provider_objects)
+    # exit()
+    # TestMod.check_metadata_uri_presence_against_key_presence(obj_dict=provider_objects)
 
 
 if __name__ == "__main__":

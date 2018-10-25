@@ -31,7 +31,7 @@ class CTK(Provider):
         self.outage_dataset = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.outage_report,
                                                                                            tag_name="dataset")
         if len(self.outage_dataset) == 0:
-            print(f"No {self.abbrev}_{self.style} dataset values in feed.")
+            print(f"No {self.abbrev}_{self.style} dataset values in feed.\n{self.data_feed_response}")
         return
 
     def extract_outage_counts_from_dataset(self):
