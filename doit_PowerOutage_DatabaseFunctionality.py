@@ -1,7 +1,6 @@
 """
 
 """
-# from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import pyodbc
 
 
@@ -14,12 +13,11 @@ class DatabaseUtilities:
         self.database_name = parser["DATABASE"]["NAME"]
         self.database_password = parser["DATABASE"]["PASSWORD"].format(money_sign="$")
         self.database_user = parser["DATABASE"]["USER"]
-        self.delete_statement = "DELETE FROM RealTime_PowerOutages{style} WHERE {provider_syntax} = '{provider_abbrev}'"
-        # self.database_server = parser["DATABASE"]["SERVER"]
+        self.delete_statement = "DELETE FROM RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
         self.full_connection_string = None
         self.selection = None
         self.select_all_zipcode_by_provider_abbrev_statement = "SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes WHERE PROVIDER = '{provider_abbrev}'"
-        self.select_by_provider_abbrev_statement = "SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE {provider_syntax} = '{provider_abbrev}'"
+        self.select_by_provider_abbrev_statement = "SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
 
     def create_database_connection_string(self):
         connection_string = self.connection_string.format(database_name=self.database_name,
@@ -39,9 +37,8 @@ class DatabaseUtilities:
 
     def delete_records(self, style: str, provider_abbrev: str):
         # TODO: the provider syntax may not matter to sql. Assess need.
-        table_name_style, provider_syntax = {"ZIP": ("Zipcodes", "PROVIDER"), "County": ("County", "provider")}.get(style)
+        table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
         sql_statement = self.delete_statement.format(style=table_name_style,
-                                                     provider_syntax=provider_syntax,
                                                      provider_abbrev=provider_abbrev)
         print(sql_statement)
         self.cursor.execute(sql_statement)
@@ -59,20 +56,11 @@ class DatabaseUtilities:
         self.selection = None
         return self.cursor.fetchall()
 
-    # def select_zip_records(self, provider_abbrev: str):
-    #     # table_name_style, provider_syntax = {"ZIP": ("Zipcodes", "PROVIDER"), "County": ("County", "provider")}.get(style)
-    #     sql_statement = self.select_all_zipcode_by_provider_abbrev_statement.format(provider_abbrev=provider_abbrev)
-    #     # print(sql_statement)
-    #     self.cursor.execute(sql_statement)
-    #     return
-
     def select_records(self, style: str, provider_abbrev: str, fields_string: str = "*"):
-        table_name_style, provider_syntax = {"ZIP": ("Zipcodes", "PROVIDER"), "County": ("County", "provider")}.get(style)
+        table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
         sql_statement = self.select_by_provider_abbrev_statement.format(fields=fields_string,
                                                                         style=table_name_style,
-                                                                        provider_syntax=provider_syntax,
                                                                         provider_abbrev=provider_abbrev)
-        # print(sql_statement)
         self.cursor.execute(sql_statement)
         return
 

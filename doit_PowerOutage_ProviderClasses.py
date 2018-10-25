@@ -7,11 +7,8 @@ from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
 import dateutil.parser
 
+
 class Provider:
-    # COUNTY_DB_DELETE_STATEMENT = """exec RealTime_DeletePowerOutagesCounty '{prov_abbrev}', 'county'"""
-    # COUNTY_DB_UPDATE_STATEMENT = """exec RealTime_UpdatePowerOutagesCounty {outage}, '{county}', '{prov_abbrev}', '{state}'"""
-    # ZIP_DB_DELETE_STATEMENT = """exec RealTime_DeletePowerOutagesCounty '{prov_abbrev}', 'zip'""" # Uses County proced.
-    # ZIP_DB_UPDATE_STATEMENT = """exec RealTime_UpdatePowerOutagesZip {outage}, '{zip_code}', '{prov_abbrev}'"""
 
     def __init__(self, provider_abbrev: str, style: str):
         super(Provider, self).__init__()
@@ -33,18 +30,11 @@ class Provider:
         self.metadata_feed_uri = None
         self.metadata_key = None
         self.metadata_key_attribute = "directory"
-        # self.zip_selection = None
-        # self.zip_selection_list = None
         self.style = style
         self.stats_objects = None
-        self.sql_insert_record_county = """INSERT INTO dbo.RealTime_PowerOutagesCounty(state, county, outage, provider, updated, created) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
+        self.sql_insert_record_county = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
         self.sql_insert_record_zip = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
-        # self.util_class = UtilFunc.Utility
-        # self.prov_json_class = ProviderJSON
-        # self.prov_xml_class = ProviderXML
         self.web_func_class = WebFunc.WebFunctionality
-
-    # TODO: Convert the date created value, provided in/by the data feeds, to a datetime object. Needed for database entry and JSON output file format
 
     def build_output_dict(self, unique_key:str) -> dict:
         return {unique_key: {"data": self.data_feed_response_status_code,
@@ -142,37 +132,6 @@ class Provider:
             difference = datetime.now() - date_create_datetime_object
             self.data_age_minutes = (difference.seconds / 60)
 
-    # def insert_records_into_database_table(self, db_connection, db_cursor, selection):
-    #     # At time of build, the following providers used a simple insert statement without conditions: BGE, PEP, EUC, FES
-    #     #   DEL, CTK, and SME required special handling
-    #     date_updated = DOIT_UTIL.current_date_time()
-    #     for obj in self.stats_objects:
-    #         if self.style == "ZIP":
-    #
-    #             sql = self.sql_insert_record_zip.format(area=obj.area,
-    #                                                     abbrev=obj.abbrev,
-    #                                                     outages=obj.outages,
-    #                                                     date_created=self.date_created,
-    #                                                     date_updated=date_updated
-    #                                                     )
-    #         else:
-    #             sql = self.sql_insert_record_county.format(state=obj.state,
-    #                                                        county=obj.area,
-    #                                                        outages=obj.outages,
-    #                                                        abbrev=self.abbrev,
-    #                                                        date_updated=date_updated,
-    #                                                        date_created=self.date_created
-    #                                                        )
-    #         db_cursor.execute(sql)
-    #     db_connection.commit()
-    #     return
-
-    # def process_zip_selection_into_list(self):
-    #     output = []
-    #     for item in self.zip_selection:
-    #         for zip in item:
-    #             output.append(zip)
-    #     self.zip_selection_list = output
 
 @dataclass
 class Outage:
