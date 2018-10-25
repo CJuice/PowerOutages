@@ -7,12 +7,16 @@ from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
 
 class CTK(Provider):
+
+    GROUPED_ZIPCODES_SQL_STRING = """SELECT * FROM dbo.RealTime_PowerOutagesZipcodes_Grouped"""
+
     # TODO: Refactor to use doit_util.extract_features_from_element()
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.xml_element = None
         self.outage_report = None
         self.outage_dataset = None
+        self.grouped_zipcodes_dict = None
 
     def extract_date_created(self):
         date_generated = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.xml_element,
@@ -49,3 +53,36 @@ class CTK(Provider):
                                                 state="MD"))
         self.stats_objects = list_of_stats_objects
         return
+
+    def create_grouped_zipcodes_dict(self, cursor):
+        record_dict = {}
+        for record in cursor.execute(CTK.GROUPED_ZIPCODES_SQL_STRING):
+            single_zip, zip_id = record
+            record_dict[single_zip] = zip_id
+        self.grouped_zipcodes_dict = record_dict
+        return
+
+    def generate_insert_sql_statement(self):
+        self.date_updated = DOIT_UTIL.current_date_time()
+        for stat_obj in self.stats_objects:
+            if self.style == "ZIP":
+                area_of_focus = stat_obj.area
+                try:
+                    area_value = self.grouped_zipcodes_dict[area_of_focus]
+                except KeyError as ke:
+                    area_value = area_of_focus
+                sql = self.sql_insert_record_zip.format(area=area_value,
+                                                        abbrev=stat_obj.abbrev,
+                                                        outages=stat_obj.outages,
+                                                        date_created=self.date_created,
+                                                        date_updated=self.date_updated
+                                                        )
+            else:
+                sql = self.sql_insert_record_county.format(state=stat_obj.state,
+                                                           county=stat_obj.area,
+                                                           outages=stat_obj.outages,
+                                                           abbrev=self.abbrev,
+                                                           date_updated=self.date_updated,
+                                                           date_created=self.date_created
+                                                           )
+            yield sql

@@ -276,27 +276,14 @@ def main():
     for key, obj in provider_objects.items():
         db_obj.create_database_cursor()
 
-        # For TESTING Purposes. Using a SELECT statement in place of DELETE statement
-        # db_obj.select_records(style=obj.style, provider_abbrev=obj.abbrev)
-        # db_obj.fetch_all_from_selection()
-        # for row in db_obj.selection:
-        #     print(row)
-
         # Need to delete existing records from database table for every/all provider. All the same wrt delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
-        # For ZIP style, build a selection set of existing zips to check against and prevent duplicates
-        #   This seems really redundant given the full delete sql statement executed prior.
-        # TODO: Assess removal of this "check"
-        # if obj.style == "ZIP":
-        #     db_obj.select_records(style=obj.style, provider_abbrev=obj.abbrev, fields_string="zipcode")
-        #     obj.zip_selection = db_obj.fetch_all_from_selection()
-        #     obj.process_zip_selection_into_list()
-        #     # print(obj.zip_selection_list)
+        # Need to update database table with new records and handle unique provider functionality
+        if key in ("CTK_ZIP",):
+            obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
 
-        # Need to update database table with new records
         try:
-            # TODO: Provider specific SQL Statement generation for inserting records
             insert_generator = obj.generate_insert_sql_statement()
             for sql_statement in insert_generator:
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
@@ -310,11 +297,6 @@ def main():
         finally:
             # Clean up for next provider
             db_obj.delete_cursor()
-
-
-    # TESTING CALLS
-    # exit()
-    # TestMod.check_metadata_uri_presence_against_key_presence(obj_dict=provider_objects)
 
 
 if __name__ == "__main__":

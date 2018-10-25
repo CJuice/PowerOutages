@@ -85,10 +85,6 @@ class Provider:
     def build_feed_uri(metadata_key: str, data_feed_uri: str) -> str:
         return data_feed_uri.format(metadata_key=metadata_key)
 
-    # @staticmethod
-    # def current_date_time() -> str:
-    #     return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
-
     @staticmethod
     def get_config_variable(parser, section: str, variable_name: str) -> str:
         try:
