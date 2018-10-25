@@ -252,8 +252,9 @@ def main():
         else:
             pass
 
-        # Need to groom the date created values
+        # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
+        obj.calculate_data_age_minutes()
 
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
@@ -264,14 +265,14 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    # Database actions
+    # Database Actions
     print("Database operations initiated...")
-    #   establish connection
+    #   Need to establish a connection
     db_obj = DbMod.DatabaseUtilities(parser=parser)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
-    # For every provider object, need to delete existing records and update with new
+    # For every provider object, need to delete existing records, and update with new. Need a cursor to do so.
     for key, obj in provider_objects.items():
         db_obj.create_database_cursor()
 
@@ -298,7 +299,6 @@ def main():
             # TODO: Provider specific SQL Statement generation for inserting records
             insert_generator = obj.generate_insert_sql_statement()
             for sql_statement in insert_generator:
-                print(sql_statement)
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
@@ -311,8 +311,6 @@ def main():
             # Clean up for next provider
             db_obj.delete_cursor()
 
-
-    # trigger stored procedure for updating, then commit
 
     # TESTING CALLS
     # exit()

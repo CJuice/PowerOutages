@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 
 class Utility:
 
+    ZERO_TIME_STRING = "00:00:00 00:00:00"
+
     @staticmethod
     def current_date_time() -> str:
         return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())

@@ -21,6 +21,8 @@ class Provider:
         self.date_created_feed_response = None
         self.date_created_feed_response_status_code = None
         self.date_created_feed_uri = None
+        self.date_updated = None
+        self.data_age_minutes = None
         self.data_feed_response = None
         self.data_feed_response_status_code = None
         self.data_feed_response_style = None
@@ -49,6 +51,7 @@ class Provider:
                              "date": self.date_created_feed_response_status_code,
                              "metadata": self.metadata_feed_response_status_code,
                              "created": self.date_created,
+                             "data age (min):": self.data_age_minutes,
                              }
                 }
 
@@ -98,21 +101,21 @@ class Provider:
             exit()
 
     def generate_insert_sql_statement(self):
-        date_updated = DOIT_UTIL.current_date_time()
+        self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
             if self.style == "ZIP":
                 sql = self.sql_insert_record_zip.format(area=stat_obj.area,
                                                         abbrev=stat_obj.abbrev,
                                                         outages=stat_obj.outages,
                                                         date_created=self.date_created,
-                                                        date_updated=date_updated
+                                                        date_updated=self.date_updated
                                                         )
             else:
                 sql = self.sql_insert_record_county.format(state=stat_obj.state,
                                                            county=stat_obj.area,
                                                            outages=stat_obj.outages,
                                                            abbrev=self.abbrev,
-                                                           date_updated=date_updated,
+                                                           date_updated=self.date_updated,
                                                            date_created=self.date_created
                                                            )
             yield sql
@@ -123,10 +126,25 @@ class Provider:
             datetime_object = dateutil.parser.parse(timestr=self.date_created)
         except ValueError as ve:
             print(f"ValueError while parsing date created string to datetime: {self.date_created}\n{ve}")
+            self.date_created = datetime.fromisoformat(DOIT_UTIL.ZERO_TIME_STRING)
         except OverflowError as oe:
             print(f"OverflowError while parsing date created string to datetime: {self.date_created}\n{oe}")
+            self.date_created = datetime.fromisoformat(DOIT_UTIL.ZERO_TIME_STRING)
         else:
             self.date_created = f"{datetime_object:%Y-%m-%d %H:%M}"
+
+    def calculate_data_age_minutes(self):
+        try:
+            date_create_datetime_object = dateutil.parser.parse(timestr=self.date_created)
+        except ValueError as ve:
+            print(f"ValueError while parsing date created string to datetime: {self.date_created}\n{ve}")
+            self.data_age_minutes = -9999
+        except OverflowError as oe:
+            print(f"OverflowError while parsing date created string to datetime: {self.date_created}\n{oe}")
+            self.data_age_minutes = -9999
+        else:
+            difference = datetime.now() - date_create_datetime_object
+            self.data_age_minutes = (difference.seconds / 60)
 
     # def insert_records_into_database_table(self, db_connection, db_cursor, selection):
     #     # At time of build, the following providers used a simple insert statement without conditions: BGE, PEP, EUC, FES
