@@ -158,7 +158,6 @@ def main():
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("FES_ZIP",):
             # continue
@@ -169,7 +168,6 @@ def main():
             obj.process_customer_counts_to_integers()
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_County", "PEP_County"):
             # continue
@@ -181,7 +179,6 @@ def main():
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             # continue
@@ -191,7 +188,6 @@ def main():
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("SME_County", "SME_ZIP"):
             # continue
@@ -200,13 +196,9 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
-            # TODO: SME has some unique code for sql statement generation. That will need to be reproduced
-            #   SME: Execute delete sql statement for existing records, not a stored procedure call
-            #   if data exists, then map and build sql statement
             # TODO: Update task tracking table with created date. May need to do this to more than just SME ???
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("EUC_County", "EUC_ZIP"):
             # continue
@@ -219,10 +211,9 @@ def main():
             # TODO: Assess the customer count tracking functionality. Don't see in any other script.
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
 
         elif key in ("CTK_County", "CTK_ZIP"):
-            # TODO: CTK appears to not write any data when no outages are present. This means no zero values. The database wouldn't be updated when outages are resolved.
+            # TODO: CTK appears to not write any data when no outages are present. This means no zero values.
             # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
@@ -234,8 +225,6 @@ def main():
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: CTK has some unique code for sql statement generation. That will need to be reproduced
-            pass
 
         elif key in ("BGE_County", "BGE_ZIP"):
             # continue
@@ -248,7 +237,7 @@ def main():
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-            # TODO: At this point the data is ready for the database stage
+
         else:
             pass
 
@@ -287,6 +276,7 @@ def main():
             insert_generator = obj.generate_insert_sql_statement()
             for sql_statement in insert_generator:
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
+
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
 

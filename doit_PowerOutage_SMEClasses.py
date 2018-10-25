@@ -12,7 +12,6 @@ class SME(Provider):
         self.area = None
         self.outage_events_list = None
         self.desc_list = None
-        # self.stats_objects = None
 
     def extract_outage_events_list(self, data_json):
         self.outage_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")

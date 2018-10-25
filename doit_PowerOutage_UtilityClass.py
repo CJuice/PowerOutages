@@ -58,10 +58,6 @@ class Utility:
         return data_feed_uri.format(metadata_key=metadata_key)
 
     @staticmethod
-    def current_date_time() -> str:
-        return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
-
-    @staticmethod
     def get_config_variable(parser, section: str, variable_name: str) -> str:
         try:
             return parser[section][variable_name]

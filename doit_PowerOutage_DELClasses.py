@@ -4,6 +4,7 @@
 from PowerOutages_V2.doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
+
 class DEL(PEPDELParent):
 
     SPECIAL_ZIP_VALUES_DICT = {"21921,21922": "21916,21920,21921"}
