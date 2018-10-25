@@ -15,9 +15,7 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
-    import PowerOutages_V2.doit_PowerOutage_TestFunctions as TestMod
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    # import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebMod
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
@@ -237,9 +235,6 @@ def main():
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
             for j in obj.stats_objects:
                 pp.pprint(j)
-
-        else:
-            pass
 
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
