@@ -192,7 +192,7 @@ def main():
 
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK company feed appears to not contain any data when no outages are present. This means there are
-            #   TODO: no values to show, rather than a zero value.
+            #   TODO: no values to show, rather than a zero value. So, database will have no CTK records when count=0
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
