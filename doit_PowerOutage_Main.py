@@ -2,7 +2,7 @@
 
 """
 # TODO: Add logging functionality at some level for this process
-# TODO: Check again for duplication. Saw duplicate records for SME Saint Marys county in db table
+# TODO: Check again for duplication. Saw duplicate records for SME in db table
 
 def main():
     import configparser
@@ -175,7 +175,6 @@ def main():
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
         elif key in ("SME_County", "SME_ZIP"):
-            # obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -185,7 +184,6 @@ def main():
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            # obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_events_list_from_xml_str()
             obj.extract_outage_counts()
             obj.extract_date_created()
@@ -196,7 +194,8 @@ def main():
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK appears to not write any data when no outages are present. This means no zero values.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            obj.extract_report_by_id(id=obj.style)
+            # obj.extract_report_by_id(id=obj.style)
+            obj.extract_report_by_id()
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
             obj.extract_date_created()

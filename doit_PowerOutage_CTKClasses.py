@@ -25,7 +25,8 @@ class CTK(Provider):
         self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_dict, attribute_name="date")
         return
 
-    def extract_report_by_id(self, id: str):
+    def extract_report_by_id(self):
+        id = self.style
         for report in self.xml_element.iter("report"):
             if report.attrib["id"].lower() == id.lower():
                 self.outage_report = report
