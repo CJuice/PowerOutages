@@ -2,7 +2,7 @@
 
 """
 # TODO: Add logging functionality at some level for this process
-
+# TODO: Check again for duplication. Saw duplicate records for SME Saint Marys county in db table
 
 def main():
     import configparser
@@ -185,7 +185,8 @@ def main():
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
+            # obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
+            obj.extract_outage_events_list_from_xml_str()
             obj.extract_outage_counts()
             obj.extract_date_created()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)

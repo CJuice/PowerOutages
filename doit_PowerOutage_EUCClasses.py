@@ -13,7 +13,8 @@ class EUC(Provider):
         self.xml_element = None
         self.events_list = None
 
-    def extract_outage_events_list_from_xml_str(self, content_list_as_str: str):
+    def extract_outage_events_list_from_xml_str(self):
+        content_list_as_str = self.xml_element.text
         self.events_list = json.loads(content_list_as_str)
         return
 
