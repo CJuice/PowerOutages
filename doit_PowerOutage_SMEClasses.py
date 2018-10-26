@@ -13,7 +13,8 @@ class SME(Provider):
         self.outage_events_list = None
         self.desc_list = None
 
-    def extract_outage_events_list(self, data_json):
+    def extract_outage_events_list(self):
+        data_json = self.data_feed_response.json()
         self.outage_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
 
     def extract_outage_counts_by_desc(self):

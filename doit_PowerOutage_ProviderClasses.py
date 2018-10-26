@@ -24,7 +24,7 @@ class Provider:
         self.data_feed_response_status_code = None
         self.data_feed_response_style = None
         self.data_feed_uri = None
-        self.maryland = "Maryland"
+        self.maryland = "MD"
         self.metadata_feed_response = None
         self.metadata_feed_response_status_code = None
         self.metadata_feed_uri = None
