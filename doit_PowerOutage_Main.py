@@ -161,7 +161,8 @@ def main():
             obj.process_customer_counts_to_integers()
 
         elif key in ("DEL_County", "PEP_County"):
-            obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
+            # obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
+            obj.extract_areas_list_county_process()
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
@@ -169,7 +170,8 @@ def main():
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
+            # obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
+            obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
