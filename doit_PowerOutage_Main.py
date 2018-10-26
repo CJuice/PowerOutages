@@ -4,6 +4,7 @@
 # TODO: Add logging functionality at some level for this process
 # TODO: Check again for duplication. Saw duplicate records for SME in db table
 
+
 def main():
     import configparser
     import os
@@ -144,8 +145,6 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print("Data processing...")
     for key, obj in provider_objects.items():
-        # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
-        # print(key, obj.data_feed_response_style)
         if key in ("FES_County",):
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
@@ -175,26 +174,26 @@ def main():
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
         elif key in ("SME_County", "SME_ZIP"):
+            # TODO: Update task tracking table with created date? May need to do this to more than just SME ???
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
-            # TODO: Update task tracking table with created date. May need to do this to more than just SME ???
 
         elif key in ("EUC_County", "EUC_ZIP"):
+            # TODO: Assess the customer count tracking functionality; Don't see in any other script.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str()
             obj.extract_outage_counts()
             obj.extract_date_created()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            # TODO: Assess the customer count tracking functionality. Don't see in any other script.
 
         elif key in ("CTK_County", "CTK_ZIP"):
-            # TODO: CTK appears to not write any data when no outages are present. This means no zero values.
+            # TODO: CTK company feed appears to not contain any data when no outages are present. This means there are
+            #   TODO: no values to show, rather than a zero value.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            # obj.extract_report_by_id(id=obj.style)
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
@@ -215,6 +214,7 @@ def main():
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
+
         # for j in obj.stats_objects:
         #     print(j)
 
