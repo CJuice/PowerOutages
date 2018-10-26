@@ -70,10 +70,8 @@ class Provider:
             pass
         return
 
-    # TODO: Does this need to be static? Why?
-    @staticmethod
-    def build_feed_uri(metadata_key: str, data_feed_uri: str) -> str:
-        return data_feed_uri.format(metadata_key=metadata_key)
+    def build_feed_uri(self):
+        self.data_feed_uri = self.data_feed_uri.format(metadata_key=self.metadata_key)
 
     @staticmethod
     def get_config_variable(parser, section: str, variable_name: str) -> str:

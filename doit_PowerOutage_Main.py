@@ -3,10 +3,10 @@
 """
 # TODO: Add logging functionality at some level for this process
 
+
 def main():
     import configparser
     import os
-    import pprint
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
     import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
@@ -20,16 +20,15 @@ def main():
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
     county_style = "County"
-    credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
+    credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
-    pp = pprint.PrettyPrinter(indent=4)
     zip_style = "ZIP"
 
-    # Need to set up objects for use
+    # Need to set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=county_style),
                         "BGE_ZIP": BGEMod.BGE(provider_abbrev="BGE", style=zip_style),
                         "CTK_County": CTKMod.CTK(provider_abbrev="CTK", style=county_style),
@@ -55,8 +54,8 @@ def main():
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [parser[key][item] for item in section_items]
 
-    # Need to make the metadata key requests and store the response, for those providers that use the metadata key.
-    #   Key used to access the data feeds and date created feeds.
+    # Need to make the metadata key requests, for those providers that use the metadata key, and store the response.
+    #   Key used in the uri for accessing the data feeds and date created feeds.
     print("Metadata feed processing...")
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in none_and_not_available:
@@ -104,9 +103,9 @@ def main():
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
                 if obj.abbrev == "SME":
-                    # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data
-                    #   dict containing the date. SME uses "summaryFileData" as the key to access the data dict
-                    #   containing the date
+                    # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data dict
+                    #   containing the date. SME uses "summaryFileData" as the key to access the data dict
+                    #   containing the date.
                     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
                                                                       attribute_name="summaryFileData")
                 else:
@@ -134,72 +133,56 @@ def main():
             if obj.metadata_key in none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
             else:
-                obj.data_feed_uri = obj.build_feed_uri(metadata_key=obj.metadata_key,
-                                                       data_feed_uri=obj.data_feed_uri)
+                obj.build_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-    # Need to detect style of response
+
+    # Need to detect the style of response
     for key, obj in provider_objects.items():
         obj.detect_response_style()
 
-    # Need to extract the outage data for each provider from the response. Where applicable, extract the
-    #   date created/generated
+    # Need to extract the outage data from the response, for each provider. Where applicable, extract the
+    #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print("Data processing...")
     for key, obj in provider_objects.items():
         # TODO: See what parts of below repeating code can be abstracted and performed once for all providers
-        print(key, obj.data_feed_response_style)
+        # print(key, obj.data_feed_response_style)
         if key in ("FES_County",):
-            # continue
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("FES_ZIP",):
-            # continue
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             obj.process_customer_counts_to_integers()
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("DEL_County", "PEP_County"):
-            # continue
             obj.extract_areas_list_county_process(data_json=obj.data_feed_response.json())
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            # continue
             obj.extract_zip_descriptions_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_zip_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("SME_County", "SME_ZIP"):
-            # continue
             obj.extract_outage_events_list(data_json=obj.data_feed_response.json())
             obj.extract_outage_counts_by_desc()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
             # TODO: Update task tracking table with created date. May need to do this to more than just SME ???
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("EUC_County", "EUC_ZIP"):
-            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str(content_list_as_str=obj.xml_element.text)
             obj.extract_outage_counts()
@@ -207,12 +190,9 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             # TODO: Assess the customer count tracking functionality. Don't see in any other script.
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("CTK_County", "CTK_ZIP"):
             # TODO: CTK appears to not write any data when no outages are present. This means no zero values.
-            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id(id=obj.style)
             obj.extract_outage_dataset()
@@ -221,11 +201,8 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         elif key in ("BGE_County", "BGE_ZIP"):
-            # continue
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
@@ -233,12 +210,12 @@ def main():
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
-            for j in obj.stats_objects:
-                pp.pprint(j)
 
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
+        # for j in obj.stats_objects:
+        #     print(j)
 
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
@@ -249,18 +226,17 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    # Database Actions
+    #   Need to prepare for database transactions and establish a connection.
     print("Database operations initiated...")
-    #   Need to establish a connection
     db_obj = DbMod.DatabaseUtilities(parser=parser)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
-    # For every provider object, need to delete existing records, and update with new. Need a cursor to do so.
+    # For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     for key, obj in provider_objects.items():
         db_obj.create_database_cursor()
 
-        # Need to delete existing records from database table for every/all provider. All the same wrt delete.
+        # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
         # Need to update database table with new records and handle unique provider functionality
@@ -280,8 +256,10 @@ def main():
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
         finally:
-            # Clean up for next provider
+            # Need to clean up for next provider
             db_obj.delete_cursor()
+
+    print("Process complete.")
 
 
 if __name__ == "__main__":
