@@ -128,7 +128,7 @@ class Provider:
             self.data_age_minutes = -9999
         else:
             difference = datetime.now() - date_create_datetime_object
-            self.data_age_minutes = (difference.seconds / 60)
+            self.data_age_minutes = round(number=(difference.seconds / 60), ndigits=1)
 
 
 @dataclass
