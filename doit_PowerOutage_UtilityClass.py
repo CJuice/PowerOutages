@@ -126,3 +126,11 @@ class Utility:
                 # No correction needed per the dict of items as seen above
                 continue
         return
+
+    @staticmethod
+    def exchange_state_abbrev_for_full_value(value):
+        state_abbrev_dict = {"DC": "District Of Columbia", "DE": "Delaware", "MD": "Maryland", }
+        try:
+            return state_abbrev_dict[value]
+        except KeyError as ke:
+            return value

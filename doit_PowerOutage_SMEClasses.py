@@ -30,6 +30,6 @@ class SME(Provider):
                                                 area=area,
                                                 outages=outages,
                                                 customers=customers,
-                                                state="MD"))
+                                                state=self.maryland))
         self.stats_objects = list_of_stats_objects
         return

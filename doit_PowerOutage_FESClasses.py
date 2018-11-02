@@ -35,7 +35,7 @@ class FES(Provider):
                                                           area=county,
                                                           outages=outages,
                                                           customers=customers,
-                                                          state="MD"))
+                                                          state=self.maryland))
         self.stats_objects = list_of_stats_objects_by_county
         return
 
@@ -57,7 +57,7 @@ class FES(Provider):
                                                area=zip_code,
                                                outages=outages,
                                                customers=customers,
-                                               state="none given"))
+                                               state=self.maryland))
         self.stats_objects = stats_objects_by_zip
         return
 
