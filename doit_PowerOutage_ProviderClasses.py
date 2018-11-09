@@ -130,6 +130,13 @@ class Provider:
             difference = datetime.now() - date_create_datetime_object
             self.data_age_minutes = round(number=(difference.seconds / 60), ndigits=1)
 
+    def purge_duplicate_stats_objects(self):
+        # NOTE: stat objects are mutable and can't be added to sets, so used this function to isolate uniques
+        temp_dict = {}
+        for outage in self.stats_objects:
+            temp_dict[outage.area] = outage
+        self.stats_objects = list(temp_dict.values())
+        return
 
 @dataclass
 class Outage:

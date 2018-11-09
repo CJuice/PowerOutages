@@ -148,6 +148,7 @@ def main():
         if key in ("FES_County",):
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
+            obj.purge_duplicate_stats_objects()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
@@ -155,6 +156,7 @@ def main():
         elif key in ("FES_ZIP",):
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
+            obj.purge_duplicate_stats_objects()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             obj.process_customer_counts_to_integers()
@@ -163,6 +165,7 @@ def main():
             obj.extract_areas_list_county_process()
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
+            obj.purge_duplicate_stats_objects()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
@@ -170,6 +173,7 @@ def main():
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
+            obj.purge_duplicate_stats_objects()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
@@ -177,6 +181,7 @@ def main():
             # TODO: Update task tracking table with created date? May need to do this to more than just SME ???
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
+            obj.purge_duplicate_stats_objects()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
@@ -186,6 +191,7 @@ def main():
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str()
             obj.extract_outage_counts()
+            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
@@ -197,6 +203,7 @@ def main():
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
+            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
@@ -206,6 +213,7 @@ def main():
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
+            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
             DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)

@@ -23,18 +23,6 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
 
-    # def extract_areas_list_county_process(self, data_json):
-    #     data_json = self.data_feed_response.json()
-    #     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
-    #                                                       attribute_name="file_data")
-    #     curr_custs_aff = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
-    #                                                            attribute_name="curr_custs_aff")
-    #     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=curr_custs_aff,
-    #                                                       attribute_name="areas")
-    #     area_DEL_dict, *rest = file_data  # Expecting dict len=1, *rest guards against len>1
-    #     self.area_DEL_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_DEL_dict,
-    #                                                                attribute_name="areas")
-
     def extract_areas_list_county_process(self):
         data_json = self.data_feed_response.json()
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
@@ -79,6 +67,7 @@ class PEPDELParent(Provider):
     def extract_zip_descriptions_list(self):
         data_json = self.data_feed_response.json()
         self.zip_desc_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
+        return
 
     def extract_outage_counts_by_zip_desc(self):
         list_of_stats_objects = []
