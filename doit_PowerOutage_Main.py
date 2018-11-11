@@ -2,7 +2,6 @@
 
 """
 # TODO: Add logging functionality at some level for this process
-# TODO: Check again for duplication. Saw duplicate records for SME in db table
 
 
 def main():
@@ -20,30 +19,28 @@ def main():
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
-    county_style = "County"
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
     credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
-    zip_style = "ZIP"
 
     # Need to set up provider objects for use. Later referred to as "key, obj" in iteration loops.
-    provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=county_style),
-                        "BGE_ZIP": BGEMod.BGE(provider_abbrev="BGE", style=zip_style),
-                        "CTK_County": CTKMod.CTK(provider_abbrev="CTK", style=county_style),
-                        "CTK_ZIP": CTKMod.CTK(provider_abbrev="CTK", style=zip_style),
-                        "DEL_County": DELMod.DEL(provider_abbrev="DEL", style=county_style),
-                        "DEL_ZIP": DELMod.DEL(provider_abbrev="DEL", style=zip_style),
-                        "EUC_County": EUCMod.EUC(provider_abbrev="EUC", style=county_style),
-                        "EUC_ZIP": EUCMod.EUC(provider_abbrev="EUC", style=zip_style),
-                        "FES_County": FESMod.FES(provider_abbrev="FES", style=county_style),
-                        "FES_ZIP": FESMod.FES(provider_abbrev="FES", style=zip_style),
-                        "PEP_County": PEPMod.PEP(provider_abbrev="PEP", style=county_style),
-                        "PEP_ZIP": PEPMod.PEP(provider_abbrev="PEP", style=zip_style),
-                        "SME_County": SMEMod.SME(provider_abbrev="SME", style=county_style),
-                        "SME_ZIP": SMEMod.SME(provider_abbrev="SME", style=zip_style),
+    provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
+                        "BGE_ZIP": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.ZIP),
+                        "CTK_County": CTKMod.CTK(provider_abbrev="CTK", style=DOIT_UTIL.COUNTY),
+                        "CTK_ZIP": CTKMod.CTK(provider_abbrev="CTK", style=DOIT_UTIL.ZIP),
+                        "DEL_County": DELMod.DEL(provider_abbrev="DEL", style=DOIT_UTIL.COUNTY),
+                        "DEL_ZIP": DELMod.DEL(provider_abbrev="DEL", style=DOIT_UTIL.ZIP),
+                        "EUC_County": EUCMod.EUC(provider_abbrev="EUC", style=DOIT_UTIL.COUNTY),
+                        "EUC_ZIP": EUCMod.EUC(provider_abbrev="EUC", style=DOIT_UTIL.ZIP),
+                        "FES_County": FESMod.FES(provider_abbrev="FES", style=DOIT_UTIL.COUNTY),
+                        "FES_ZIP": FESMod.FES(provider_abbrev="FES", style=DOIT_UTIL.ZIP),
+                        "PEP_County": PEPMod.PEP(provider_abbrev="PEP", style=DOIT_UTIL.COUNTY),
+                        "PEP_ZIP": PEPMod.PEP(provider_abbrev="PEP", style=DOIT_UTIL.ZIP),
+                        "SME_County": SMEMod.SME(provider_abbrev="SME", style=DOIT_UTIL.COUNTY),
+                        "SME_ZIP": SMEMod.SME(provider_abbrev="SME", style=DOIT_UTIL.ZIP),
                         }
 
     # Need to get and store variables, as provider object attributes, from cfg file.
@@ -178,7 +175,6 @@ def main():
             DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
         elif key in ("SME_County", "SME_ZIP"):
-            # TODO: Update task tracking table with created date? May need to do this to more than just SME ???
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
@@ -187,10 +183,9 @@ def main():
             DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
 
         elif key in ("EUC_County", "EUC_ZIP"):
-            # TODO: Assess the customer count tracking functionality; Don't see in any other script.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str()
-            # FIXME: the 21601 zip code value is written to the county table.
+            # FIXME: the 21601 zip code value is written to the county table. Adjusted code, needs testing (20181110).
             obj.extract_outage_counts()
             obj.purge_duplicate_stats_objects()
             obj.extract_date_created()

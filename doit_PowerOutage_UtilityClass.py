@@ -6,6 +6,8 @@ import xml.etree.ElementTree as ET
 class Utility:
 
     ZERO_TIME_STRING = "00:00:00 00:00:00"
+    COUNTY = "County"
+    ZIP = "ZIP"
 
     @staticmethod
     def current_date_time() -> str:
