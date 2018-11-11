@@ -134,7 +134,7 @@ class Provider:
         # NOTE: stat objects are mutable and can't be added to sets, so used this function to isolate uniques
         temp_dict = {}
         for outage in self.stats_objects:
-            temp_dict[outage.area] = outage
+            temp_dict[str(outage)] = outage
         self.stats_objects = list(temp_dict.values())
         return
 

@@ -190,6 +190,7 @@ def main():
             # TODO: Assess the customer count tracking functionality; Don't see in any other script.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str()
+            # FIXME: the 21601 zip code value is written to the county table.
             obj.extract_outage_counts()
             obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
