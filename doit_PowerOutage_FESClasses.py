@@ -61,10 +61,10 @@ class FES(Provider):
         self.stats_objects = stats_objects_by_zip
         return
 
-    def process_customer_counts_to_integers(self):
-        for obj in self.stats_objects:
-            try:
-                obj.customers = int(obj.customers)
-            except ValueError as ve:
-                obj.customers = -9999
-        return
+    # def process_customer_counts_to_integers(self):
+    #     for obj in self.stats_objects:
+    #         try:
+    #             obj.customers = int(obj.customers)
+    #         except ValueError as ve:
+    #             obj.customers = -9999
+    #     return

@@ -10,7 +10,6 @@ class CTK(Provider):
 
     GROUPED_ZIPCODES_SQL_STRING = """SELECT * FROM dbo.RealTime_PowerOutagesZipcodes_Grouped"""
 
-    # TODO: Refactor to use doit_util.extract_features_from_element()
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.xml_element = None
@@ -26,9 +25,9 @@ class CTK(Provider):
         return
 
     def extract_report_by_id(self):
-        id = self.style
+        style_id = self.style
         for report in self.xml_element.iter("report"):
-            if report.attrib["id"].lower() == id.lower():
+            if report.attrib["id"].lower() == style_id.lower():
                 self.outage_report = report
                 return
 
@@ -36,7 +35,7 @@ class CTK(Provider):
         self.outage_dataset = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.outage_report,
                                                                                            tag_name="dataset")
         if len(self.outage_dataset) == 0:
-            print(f"No {self.abbrev}_{self.style} dataset values in feed.\n{self.data_feed_response}")
+            print(f"No {self.abbrev}_{self.style} dataset values in feed.\nResponse value: {self.data_feed_response}")
         return
 
     def extract_outage_counts_from_dataset(self):

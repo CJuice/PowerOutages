@@ -7,6 +7,11 @@ class Utility:
 
     ZERO_TIME_STRING = "00:00:00 00:00:00"
     COUNTY = "County"
+    MARYLAND = "Maryland"
+    MARYLAND_COUNTIES = ["Allegany", "Anne Arundel", "Baltimore", "Baltimore City", "Calvert", "Caroline", "Carroll",
+                         "Cecil", "Charles", "Dorchester", "Frederick", "Garrett", "Harford", "Howard", "Kent",
+                         "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
+                         "Washington", "Wicomico", "Worcester"]
     ZIP = "ZIP"
 
     @staticmethod
@@ -96,6 +101,12 @@ class Utility:
                     obj.outages = replacement_values_dict[obj.outages]
                 except KeyError as ke:
                     obj.outages = -9999
+        return
+
+    @staticmethod
+    def process_customer_counts_to_integers(objects_list: list):
+        replacement_values_dict = {"Less than 5": 1, "<5": 1}
+        for obj in objects_list:
             try:
                 obj.customers = int(obj.customers)
             except ValueError as ve:
@@ -112,10 +123,11 @@ class Utility:
 
     @staticmethod
     def revise_county_name_spellings_and_punctuation(stats_objects_list: list):
-        corrections_dict = {"Prince George's": "Prince George",
-                            "Prince Georges": "Prince George",
-                            "Queen Anne's": "Queen Anne",
-                            "St Marys": "St. Mary",
+        corrections_dict = {"Prince Georges": "Prince George's",
+                            "St Marys": "St. Mary's",
+                            "St Mary's": "St. Mary's",
+                            "St. Marys": "St. Mary's",
+                            "Queen Annes": "Queen Anne's",
                             "Kent (MD)": "Kent"}
         for obj in stats_objects_list:
             if obj.area.isupper():
@@ -136,3 +148,16 @@ class Utility:
             return state_abbrev_dict[value]
         except KeyError as ke:
             return value
+
+    @staticmethod
+    def calculate_county_customer_counts(prov_objects):
+        # gather all county stats objects from all providers
+        master_stat_obj_list = []
+        county_objs = [obj for obj in prov_objects.values() if obj.style == Utility.COUNTY]
+        for obj in county_objs:
+            master_stat_obj_list.extend(obj.stats_objects)
+        county_counts_dict = {county: 0 for county in Utility.MARYLAND_COUNTIES}
+        for obj in master_stat_obj_list:
+            if obj.state == Utility.MARYLAND:
+                county_counts_dict[obj.area] += obj.customers
+        return county_counts_dict

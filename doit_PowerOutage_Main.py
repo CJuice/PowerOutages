@@ -146,41 +146,27 @@ def main():
             obj.extract_maryland_dict_from_county_response()
             obj.extract_outage_counts_by_county()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
 
         elif key in ("FES_ZIP",):
             obj.extract_events_from_zip_response()
             obj.extract_outage_counts_by_zip()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            obj.process_customer_counts_to_integers()
 
         elif key in ("DEL_County", "PEP_County"):
             obj.extract_areas_list_county_process()
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
         elif key in ("SME_County", "SME_ZIP"):
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -188,21 +174,16 @@ def main():
             obj.extract_outage_counts()
             obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
 
         elif key in ("CTK_County", "CTK_ZIP"):
-            # TODO: CTK company feed appears to not contain any data when no outages are present. This means there are
-            #   TODO: no values to show, rather than a zero value. So, database will have no CTK records when count=0
+            # TODO: CTK company feed appears to not contain any data when no outages are present in a zip code.
+            #   TODO: So, database will have no CTK records when count=0 for a zip code. Not so for county.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
             obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
 
         elif key in ("BGE_County", "BGE_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -210,17 +191,25 @@ def main():
             obj.extract_outage_counts()
             obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
-            DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-            DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-            DOIT_UTIL.revise_county_name_spellings_and_punctuation(obj.stats_objects)
+
+        # DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
+        DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
+        DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
+        DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
+        DOIT_UTIL.process_customer_counts_to_integers(objects_list=obj.stats_objects)
 
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-        # for j in obj.stats_objects:
-        #     print(j)
+        for j in obj.stats_objects:
+            # print(j)
+            if j.style == DOIT_UTIL.COUNTY:
+                print(f"{j.abbrev}: {j.area} - {j.outages} - {j.customers}")
+    customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
 
+
+    exit()
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
@@ -268,3 +257,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
