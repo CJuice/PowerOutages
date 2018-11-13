@@ -131,12 +131,13 @@ class Provider:
             self.data_age_minutes = round(number=(difference.seconds / 60), ndigits=1)
 
     def purge_duplicate_stats_objects(self):
-        # NOTE: stat objects are mutable and can't be added to sets, so used this function to isolate uniques
+        # Outage objects are mutable and can't be added to sets. Used dictionary unique key behavior to purge duplicates
         temp_dict = {}
         for outage in self.stats_objects:
             temp_dict[str(outage)] = outage
         self.stats_objects = list(temp_dict.values())
         return
+
 
 @dataclass
 class Outage:
