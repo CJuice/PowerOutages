@@ -207,9 +207,8 @@ def main():
             if j.style == DOIT_UTIL.COUNTY:
                 print(f"{j.abbrev}: {j.area} - {j.outages} - {j.customers}")
     customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
+    # TODO: Develop functionality for SME uniqueness and then write customer counts to live table
 
-
-    exit()
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}

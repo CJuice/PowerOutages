@@ -161,3 +161,4 @@ class Utility:
             if obj.state == Utility.MARYLAND:
                 county_counts_dict[obj.area] += obj.customers
         return county_counts_dict
+
