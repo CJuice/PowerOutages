@@ -78,8 +78,9 @@ class CTK(Provider):
                                                                  date_updated=self.date_updated
                                                                  )
             else:
+                database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
                 sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
-                                                                    county=stat_obj.area,
+                                                                    county=database_ready_area_name,
                                                                     outages=stat_obj.outages,
                                                                     abbrev=self.abbrev,
                                                                     date_updated=self.date_updated,
