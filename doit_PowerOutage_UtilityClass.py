@@ -1,7 +1,8 @@
 from datetime import datetime
+from decimal import Decimal
 import json
 import xml.etree.ElementTree as ET
-
+from dataclasses import dataclass
 
 class Utility:
 
@@ -162,3 +163,11 @@ class Utility:
                 county_counts_dict[obj.area] += obj.customers
         return county_counts_dict
 
+
+@dataclass
+class PowerOutagesViewForArchiveCountyData:
+    state: str
+    county: str
+    outage: int
+    updated: datetime
+    percentage: Decimal

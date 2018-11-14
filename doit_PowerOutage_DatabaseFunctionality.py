@@ -52,9 +52,10 @@ class DatabaseUtilities:
             self.connection = connection
         return
 
-    # def fetch_all_from_selection(self):
-    #     self.selection = None
-    #     return self.cursor.fetchall()
+    def fetch_all_from_selection(self):
+        self.selection = None
+        self.selection = self.cursor.fetchall()
+        return
 
     # def select_records(self, style: str, provider_abbrev: str, fields_string: str = "*"):
     #     table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
@@ -64,9 +65,9 @@ class DatabaseUtilities:
     #     self.cursor.execute(sql_statement)
     #     return
 
-    # def select_records(self, sql_statement):
-    #     self.cursor.execute(sql_statement)
-    #     return
+    def select_records(self, sql_statement):
+        self.cursor.execute(sql_statement)
+        return
 
     def insert_record_into_database(self, sql_statement):
         try:

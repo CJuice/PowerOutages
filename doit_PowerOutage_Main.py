@@ -16,12 +16,14 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import PowerOutagesViewForArchiveCountyData
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
     credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     none_and_not_available = (None, "NA")
+    sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive WHERE state is not Null"""
     OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     parser.read(filenames=[credentials_path, centralized_variables_path])
@@ -271,8 +273,31 @@ def main():
             db_obj.delete_cursor()
 
 
+    # TODO: Refactor, clean, etc to fit well with design
     # ARCHIVE: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
+    db_obj.create_database_cursor()
+    db_obj.select_records(sql_statement=sql_select_counties_viewforarchive)
+    db_obj.fetch_all_from_selection()
+    county_archive_record_objects_list = []
+    for record in db_obj.selection:
+        record_obj = PowerOutagesViewForArchiveCountyData(*record)
+        county_archive_record_objects_list.append(record_obj)
+    db_obj.delete_cursor()
+    db_obj.create_database_cursor()
+    for record_obj in county_archive_record_objects_list:
+        record_obj.county = record_obj.county.replace("'", "''")
+        statement = """INSERT INTO Archive_PowerOutagesCounty(STATE, COUNTY, Outage, updated, archived, percentage) VALUES ('{state}','{county}',{outage},'{updated}','{archived}','{percentage}')""".format(state=record_obj.state,
+                                                                                                                                                                                                       county=record_obj.county,
+                                                                                                                                                                                                       outage=record_obj.outage,
+                                                                                                                                                                                                       updated=record_obj.updated,
+                                                                                                                                                                                                       archived=record_obj.updated,
+                                                                                                                                                                                                       percentage=round(record_obj.percentage, 3))
 
+        db_obj.insert_record_into_database(sql_statement=statement)
+    db_obj.commit_changes()
+    db_obj.delete_cursor()
+    # for key, obj in provider_objects.items():
+    #     db_obj.create_database_cursor()
 
 
     print("Process complete.")

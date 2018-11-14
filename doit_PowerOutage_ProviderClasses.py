@@ -35,7 +35,6 @@ class Provider:
         self.sql_insert_record_county_realtime = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
         self.sql_insert_record_zip_realtime = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
         self.sql_insert_record_zip_archive = """INSERT INTO dbo.Archive_PowerOutagesZipcode(ZIPCODE, ID, PROVIDER, OUTAGE, CREATED, UPDATED, ARCHIVED) VALUES ('{area}','NULL','{abbrev}',{outages},'{date_created}','{date_updated}','{date_updated}')"""
-        # self.sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM dbo.PowerOutages_PowerOutagesViewForArchive"""
         self.web_func_class = WebFunc.WebFunctionality
 
     def build_output_dict(self, unique_key:str) -> dict:
