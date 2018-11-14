@@ -43,7 +43,7 @@ class Provider:
                              "date": self.date_created_feed_response_status_code,
                              "metadata": self.metadata_feed_response_status_code,
                              "created": self.date_created,
-                             "data age (min):": self.data_age_minutes,
+                             "data age (min)": self.data_age_minutes,
                              }
                 }
 
