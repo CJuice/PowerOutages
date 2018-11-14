@@ -32,9 +32,10 @@ class Provider:
         self.metadata_key_attribute = "directory"
         self.style = style
         self.stats_objects = None
-        self.sql_insert_record_county = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
-        self.sql_insert_record_zip = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
+        self.sql_insert_record_county_realtime = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
+        self.sql_insert_record_zip_realtime = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
         self.sql_insert_record_zip_archive = """INSERT INTO dbo.Archive_PowerOutagesZipcodes(ZIPCODE, ID, PROVIDER, OUTAGE, CREATED, UPDATED, ARCHIVED) VALUES ('{area}','NULL','{abbrev}',{outages},'{date_created}','{date_updated}','{date_updated}')"""
+        # self.sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM dbo.PowerOutages_PowerOutagesViewForArchive"""
         self.web_func_class = WebFunc.WebFunctionality
 
     def build_output_dict(self, unique_key:str) -> dict:
@@ -85,24 +86,46 @@ class Provider:
             print(e)
             exit()
 
-    def generate_insert_sql_statement(self):
+    def generate_insert_sql_statement_realtime(self):
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
             if self.style == "ZIP":
-                sql = self.sql_insert_record_zip.format(area=stat_obj.area,
-                                                        abbrev=stat_obj.abbrev,
-                                                        outages=stat_obj.outages,
-                                                        date_created=self.date_created,
-                                                        date_updated=self.date_updated
-                                                        )
+                sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
+                                                                 abbrev=stat_obj.abbrev,
+                                                                 outages=stat_obj.outages,
+                                                                 date_created=self.date_created,
+                                                                 date_updated=self.date_updated
+                                                                 )
             else:
-                sql = self.sql_insert_record_county.format(state=stat_obj.state,
-                                                           county=stat_obj.area,
-                                                           outages=stat_obj.outages,
-                                                           abbrev=self.abbrev,
-                                                           date_updated=self.date_updated,
-                                                           date_created=self.date_created
-                                                           )
+                sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
+                                                                    county=stat_obj.area,
+                                                                    outages=stat_obj.outages,
+                                                                    abbrev=self.abbrev,
+                                                                    date_updated=self.date_updated,
+                                                                    date_created=self.date_created
+                                                                    )
+            yield sql
+
+    def generate_insert_sql_statement_archive(self):
+        self.date_updated = DOIT_UTIL.current_date_time()
+        for stat_obj in self.stats_objects:
+            if self.style == "ZIP":
+                sql = self.sql_insert_record_zip_archive.format(area=stat_obj.area,
+                                                                abbrev=stat_obj.abbrev,
+                                                                outages=stat_obj.outages,
+                                                                date_created=self.date_created,
+                                                                date_updated=self.date_updated
+                                                                )
+            else:
+                sql = ""
+                continue
+            #     sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
+            #                                                         county=stat_obj.area,
+            #                                                         outages=stat_obj.outages,
+            #                                                         abbrev=self.abbrev,
+            #                                                         date_updated=self.date_updated,
+            #                                                         date_created=self.date_created
+            #                                                         )
             yield sql
 
     def groom_date_created(self):

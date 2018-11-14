@@ -62,7 +62,7 @@ class CTK(Provider):
         self.grouped_zipcodes_dict = record_dict
         return
 
-    def generate_insert_sql_statement(self):
+    def generate_insert_sql_statement_realtime(self):
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
             if self.style == "ZIP":
@@ -71,18 +71,18 @@ class CTK(Provider):
                     area_value = self.grouped_zipcodes_dict[area_of_focus]
                 except KeyError as ke:
                     area_value = area_of_focus
-                sql = self.sql_insert_record_zip.format(area=area_value,
-                                                        abbrev=stat_obj.abbrev,
-                                                        outages=stat_obj.outages,
-                                                        date_created=self.date_created,
-                                                        date_updated=self.date_updated
-                                                        )
+                sql = self.sql_insert_record_zip_realtime.format(area=area_value,
+                                                                 abbrev=stat_obj.abbrev,
+                                                                 outages=stat_obj.outages,
+                                                                 date_created=self.date_created,
+                                                                 date_updated=self.date_updated
+                                                                 )
             else:
-                sql = self.sql_insert_record_county.format(state=stat_obj.state,
-                                                           county=stat_obj.area,
-                                                           outages=stat_obj.outages,
-                                                           abbrev=self.abbrev,
-                                                           date_updated=self.date_updated,
-                                                           date_created=self.date_created
-                                                           )
+                sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
+                                                                    county=stat_obj.area,
+                                                                    outages=stat_obj.outages,
+                                                                    abbrev=self.abbrev,
+                                                                    date_updated=self.date_updated,
+                                                                    date_created=self.date_created
+                                                                    )
             yield sql

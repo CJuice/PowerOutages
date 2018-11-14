@@ -16,8 +16,8 @@ class DatabaseUtilities:
         self.delete_statement = "DELETE FROM RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
         self.full_connection_string = None
         self.selection = None
-        self.select_all_zipcode_by_provider_abbrev_statement = "SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes WHERE PROVIDER = '{provider_abbrev}'"
-        self.select_by_provider_abbrev_statement = "SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
+        self.select_zipcode_by_provider_abbrev_statement_realtime = """SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes WHERE PROVIDER = '{provider_abbrev}'"""
+        self.select_by_provider_abbrev_statement_realtime = """SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"""
 
     def create_database_connection_string(self):
         connection_string = self.connection_string.format(database_name=self.database_name,
@@ -52,17 +52,21 @@ class DatabaseUtilities:
             self.connection = connection
         return
 
-    def fetch_all_from_selection(self):
-        self.selection = None
-        return self.cursor.fetchall()
+    # def fetch_all_from_selection(self):
+    #     self.selection = None
+    #     return self.cursor.fetchall()
 
-    def select_records(self, style: str, provider_abbrev: str, fields_string: str = "*"):
-        table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
-        sql_statement = self.select_by_provider_abbrev_statement.format(fields=fields_string,
-                                                                        style=table_name_style,
-                                                                        provider_abbrev=provider_abbrev)
-        self.cursor.execute(sql_statement)
-        return
+    # def select_records(self, style: str, provider_abbrev: str, fields_string: str = "*"):
+    #     table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
+    #     sql_statement = self.select_by_provider_abbrev_statement_realtime.format(fields=fields_string,
+    #                                                                              style=table_name_style,
+    #                                                                              provider_abbrev=provider_abbrev)
+    #     self.cursor.execute(sql_statement)
+    #     return
+
+    # def select_records(self, sql_statement):
+    #     self.cursor.execute(sql_statement)
+    #     return
 
     def insert_record_into_database(self, sql_statement):
         try:

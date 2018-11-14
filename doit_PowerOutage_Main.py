@@ -225,7 +225,7 @@ def main():
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
-    # For every provider object need to delete existing records, and update with new. Need a cursor to do so.
+    # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     for key, obj in provider_objects.items():
         db_obj.create_database_cursor()
 
@@ -237,7 +237,7 @@ def main():
             obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
 
         try:
-            insert_generator = obj.generate_insert_sql_statement()
+            insert_generator = obj.generate_insert_sql_statement_realtime()
             for sql_statement in insert_generator:
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
 
@@ -251,6 +251,30 @@ def main():
         finally:
             # Need to clean up for next provider
             db_obj.delete_cursor()
+
+    # ARCHIVE: Append latest zip code records to the Archive_PowerOutagesZipcode table.
+    for key, obj in provider_objects.items():
+        db_obj.create_database_cursor()
+
+        try:
+            insert_generator = obj.generate_insert_sql_statement_archive()
+            for sql_statement in insert_generator:
+                db_obj.insert_record_into_database(sql_statement=sql_statement)
+        except TypeError as te:
+            print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
+
+        else:
+            db_obj.commit_changes()
+            print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+
+        finally:
+            # Need to clean up for next provider
+            db_obj.delete_cursor()
+
+
+    # ARCHIVE: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
+
+
 
     print("Process complete.")
 
