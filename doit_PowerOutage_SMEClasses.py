@@ -56,8 +56,7 @@ class SME(Provider):
             print(e)
             exit()
         else:
-            self.cust_count_memory_count_selection = db_curs.fetchall()
-            print(self.cust_count_memory_count_selection)
+            self.cust_count_memory_count_selection = db_curs.fetchall()  # returns a list of tuples
         finally:
             conn.close()
 
@@ -71,7 +70,7 @@ class SME(Provider):
         else:
             # This is important if the database does not exist. Builds and populates default database
             # As of 20181115 SME did not provide county data in data feed when outage count was zero. So no records built.
-            names_count_dict = {"Charles": 0, "St. Mary's": 0, "Queen Anne's": 0}
+            names_count_dict = {"Charles": 0, "Queen Anne's": 0, "St. Mary's": 0}
             outages = 0
             stat_objects_list = []
             for name, cust_count in names_count_dict.items():

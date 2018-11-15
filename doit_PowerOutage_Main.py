@@ -174,6 +174,10 @@ def main():
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
+            # If outage data actually in feed then real stat objects will exist. Resolve real with default
+            print("stats objects ", obj.stats_objects)
+            print("memory info ", obj.cust_count_memory_count_selection)
+            # Based on customer count in memory, if reported counts different then assign count value to stat object.
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
