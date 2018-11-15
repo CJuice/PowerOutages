@@ -167,28 +167,36 @@ def main():
             obj.purge_duplicate_stats_objects()
 
         elif key in ("SME_County", "SME_ZIP"):
-            def loop_and_poop(text, ls):
-                for item in ls:
-                    print(f"{text}: {item}")
+            # def loop_and_poop(text, ls):
+            #     for item in ls:
+            #         print(f"{text}: {item}")
 
             obj.county_customer_count_database_safety_check()
-            obj.get_current_county_customer_county_in_memory()
+            obj.get_current_county_customer_count_in_memory()
             obj.amend_default_stat_objects_with_cust_counts_from_memory()
 
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
             DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
-            if obj.style == DOIT_UTIL.COUNTY:
-                loop_and_poop("real stats objects ", obj.stats_objects)
-                loop_and_poop("memory database info ", obj.cust_count_memory_count_selection)
-                loop_and_poop("default stat objects", obj.default_zero_count_county_stat_objects)
-                loop_and_poop("amended stat objects", obj.memory_count_value_stat_objects)
+
+            # if obj.style == DOIT_UTIL.COUNTY:
+            #     loop_and_poop("real stats objects ", obj.stats_objects)
+            #     loop_and_poop("memory database info ", obj.cust_count_memory_count_selection)
+            #     loop_and_poop("default stat objects", obj.default_zero_count_county_stat_objects)
+            #     loop_and_poop("amended stat objects", obj.memory_count_value_stat_objects)
 
             obj.update_amended_cust_count_objects_from_live_data()
+            # if obj.style == DOIT_UTIL.COUNTY:
+            #     loop_and_poop("amended from live data stat objects", obj.updated_amend_objects_from_live_data)
 
-            if obj.style == DOIT_UTIL.COUNTY:
-                loop_and_poop("amended from live data stat objects", obj.updated_amend_objects_from_live_data)
+            obj.replace_data_feed_stat_objects_with_amended_objects()
+
+            # if obj.style == DOIT_UTIL.COUNTY:
+            #     loop_and_poop("updated stats objects: ", obj.stats_objects)
+
+            obj.update_sqlite3_cust_count_memory_database()
+
             # If outage data actually in feed then real stat objects will exist. Resolve real with default
 
             # Based on customer count in memory, if reported counts different then assign count value to stat object.

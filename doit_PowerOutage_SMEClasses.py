@@ -6,6 +6,7 @@ from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import sqlite3
 import os
+import copy
 
 
 class SME(Provider):
@@ -48,7 +49,7 @@ class SME(Provider):
             return
 
         # Need default objects either way
-        names_count_dict = {"Calvert": 11, "Charles": 22, "Queen Anne's": 33, "St. Mary's": 44}
+        names_count_dict = {"Calvert": 0, "Charles": 0, "Queen Anne's": 0, "St. Mary's": 0}
         outages = 0
         stat_objects_list = []
         for name, cust_count in names_count_dict.items():
@@ -95,7 +96,7 @@ class SME(Provider):
                 conn.close()
         return
 
-    def get_current_county_customer_county_in_memory(self):
+    def get_current_county_customer_count_in_memory(self):
         if self.style == DOIT_UTIL.ZIP:
             return
         # Need the previous customer counts
@@ -136,8 +137,6 @@ class SME(Provider):
                                              state=self.maryland)
                 amended_objects_list.append(amended_stat_object)
         self.memory_count_value_stat_objects = amended_objects_list
-        print("amended objects list: ", amended_objects_list)
-        print("first time: ", self.memory_count_value_stat_objects)
         return
 
     def update_amended_cust_count_objects_from_live_data(self):
@@ -145,10 +144,8 @@ class SME(Provider):
             return
         amended_dict = {}
         live_data_dict = {}
-        print("second time: ", self.memory_count_value_stat_objects)
-
         for amended_obj in self.memory_count_value_stat_objects:
-            amended_dict[amended_obj.area] = amended_obj
+            amended_dict[amended_obj.area] = copy.copy(amended_obj)
         for stat_obj in self.stats_objects:
             live_data_dict[stat_obj.area] = stat_obj
         # Need to connect the two realms through their key (county name)
@@ -160,5 +157,46 @@ class SME(Provider):
                 print(f"{county_amend_name} data must not be present in feed. Customer count data from memory will be used.")
             else:
                 obj_amended.customers = live_stat_obj.customers
+                obj_amended.outages = live_stat_obj.outages
         self.updated_amend_objects_from_live_data = amended_dict.values()
+        return
+
+    def replace_data_feed_stat_objects_with_amended_objects(self):
+        if self.style == DOIT_UTIL.ZIP:
+            return
+        self.stats_objects = self.updated_amend_objects_from_live_data
+        return
+
+    def update_sqlite3_cust_count_memory_database(self):
+        if self.style == DOIT_UTIL.ZIP:
+            return
+
+        # Need a dictionary with county name and customer count from value in database
+        memory_count_dict = {}
+        for obj in self.memory_count_value_stat_objects:
+            memory_count_dict[obj.area] = obj.customers
+        try:
+            conn = sqlite3.connect(database=self.database_path)
+            db_curs = conn.cursor()
+            for stat_obj in self.stats_objects:
+                if stat_obj.customers == memory_count_dict[stat_obj.area]:
+                    print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county. Memory = {memory_count_dict[stat_obj.area]}, Data Feed = {stat_obj.customers}")
+                else:
+                    database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
+                    statement = f"""UPDATE SME_Customer_Count_Memory SET Customer_Count = {stat_obj.customers}, Last_Updated = '{DOIT_UTIL.current_date_time()}' WHERE County_Name = '{database_ready_area_name}'"""
+                    db_curs.execute(statement)
+                    conn.commit()
+                    print(f"{stat_obj.abbrev} customer count value was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}")
+        except sqlite3.OperationalError as sqlOpErr:
+            print(sqlOpErr)
+            exit()
+        except Exception as e:
+            print(e)
+            exit()
+        else:
+            conn.commit()
+        finally:
+            conn.close()
+        print("SME customer count data updated from data feed.")
+
         return
