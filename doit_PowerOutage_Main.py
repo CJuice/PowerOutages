@@ -167,6 +167,10 @@ def main():
             obj.purge_duplicate_stats_objects()
 
         elif key in ("SME_County", "SME_ZIP"):
+            obj.county_customer_count_database_safety_check()
+            obj.get_current_county_customer_county_in_memory()
+            print(obj.cust_count_memory_count_selection)
+
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
@@ -200,6 +204,7 @@ def main():
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
         DOIT_UTIL.process_customer_counts_to_integers(objects_list=obj.stats_objects)
+        # TODO: Test out refactoring obj.purge_duplicate_stats_objects() to here
 
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
@@ -271,7 +276,7 @@ def main():
             db_obj.delete_cursor()
 
     # ARCHIVE: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
-    #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry
+    #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
     archive_county_obj = ArchiveCounty()
     try:
         db_obj.create_database_cursor()
@@ -283,7 +288,6 @@ def main():
         exit()
     else:
         archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
-        print(f"County archive data records gathered.")
     finally:
         db_obj.delete_cursor()
 
