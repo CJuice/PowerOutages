@@ -119,13 +119,6 @@ class Provider:
             else:
                 sql = ""
                 continue
-            #     sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
-            #                                                         county=stat_obj.area,
-            #                                                         outages=stat_obj.outages,
-            #                                                         abbrev=self.abbrev,
-            #                                                         date_updated=self.date_updated,
-            #                                                         date_created=self.date_created
-            #                                                         )
             yield sql
 
     def groom_date_created(self):

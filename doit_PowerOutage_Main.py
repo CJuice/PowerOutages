@@ -16,7 +16,8 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import PowerOutagesViewForArchiveCountyData
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import PowerOutagesViewForArchiveCountyData
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
@@ -204,10 +205,10 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-        for j in obj.stats_objects:
-            # print(j)
-            if j.style == DOIT_UTIL.COUNTY:
-                print(f"{j.abbrev}: {j.area} - {j.outages} - {j.customers}")
+        # for j in obj.stats_objects:
+        #     # print(j)
+        #     if j.style == DOIT_UTIL.COUNTY:
+        #         print(f"{j.abbrev}: {j.area} - {j.outages} - {j.customers}")
     customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
     # TODO: Develop functionality for SME uniqueness and then write customer counts to live table
 
@@ -228,15 +229,14 @@ def main():
 
     # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     for key, obj in provider_objects.items():
-        db_obj.create_database_cursor()
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
+        db_obj.create_database_cursor()
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
         # Need to update database table with new records and handle unique provider functionality
         if key in ("CTK_ZIP",):
             obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
-
         try:
             insert_generator = obj.generate_insert_sql_statement_realtime()
             for sql_statement in insert_generator:
@@ -254,50 +254,55 @@ def main():
             db_obj.delete_cursor()
 
     # ARCHIVE: Append latest zip code records to the Archive_PowerOutagesZipcode table.
+    print("Archive process initiated...")
     for key, obj in provider_objects.items():
-        db_obj.create_database_cursor()
-
         try:
+            db_obj.create_database_cursor()
             insert_generator = obj.generate_insert_sql_statement_archive()
             for sql_statement in insert_generator:
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
-
         else:
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
-
         finally:
             # Need to clean up for next provider
             db_obj.delete_cursor()
 
-
-    # TODO: Refactor, clean, etc to fit well with design
     # ARCHIVE: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
-    db_obj.create_database_cursor()
-    db_obj.select_records(sql_statement=sql_select_counties_viewforarchive)
-    db_obj.fetch_all_from_selection()
-    county_archive_record_objects_list = []
-    for record in db_obj.selection:
-        record_obj = PowerOutagesViewForArchiveCountyData(*record)
-        county_archive_record_objects_list.append(record_obj)
-    db_obj.delete_cursor()
-    db_obj.create_database_cursor()
-    for record_obj in county_archive_record_objects_list:
-        record_obj.county = record_obj.county.replace("'", "''")
-        statement = """INSERT INTO Archive_PowerOutagesCounty(STATE, COUNTY, Outage, updated, archived, percentage) VALUES ('{state}','{county}',{outage},'{updated}','{archived}','{percentage}')""".format(state=record_obj.state,
-                                                                                                                                                                                                       county=record_obj.county,
-                                                                                                                                                                                                       outage=record_obj.outage,
-                                                                                                                                                                                                       updated=record_obj.updated,
-                                                                                                                                                                                                       archived=record_obj.updated,
-                                                                                                                                                                                                       percentage=round(record_obj.percentage, 3))
+    #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry
+    archive_county_obj = ArchiveCounty()
+    try:
+        db_obj.create_database_cursor()
+        db_obj.select_records(sql_statement=sql_select_counties_viewforarchive)
+        db_obj.fetch_all_from_selection()
+    except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
+        print(e)
+        exit()
+    else:
+        archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
+        print(f"County archive data records gathered.")
+    finally:
+        db_obj.delete_cursor()
 
-        db_obj.insert_record_into_database(sql_statement=statement)
-    db_obj.commit_changes()
-    db_obj.delete_cursor()
-    # for key, obj in provider_objects.items():
-    #     db_obj.create_database_cursor()
+    #   Insertion into Archive_PowerOutagesCounty
+    try:
+        db_obj.create_database_cursor()
+        insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
+        for sql_statement in insert_generator:
+            db_obj.insert_record_into_database(sql_statement=sql_statement)
+    except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
+        print(e)
+        exit()
+    else:
+        db_obj.commit_changes()
+        print("County archive records inserted into Archive_PowerOutagesCounty.")
+    finally:
+        # Need to clean up for next provider
+        db_obj.delete_cursor()
 
 
     print("Process complete.")
