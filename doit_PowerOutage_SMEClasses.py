@@ -15,7 +15,9 @@ class SME(Provider):
         self.outage_events_list = None
         self.desc_list = None
         self.default_zero_count_county_stat_objects = None
+        self.memory_count_value_stat_objects = None
         self.cust_count_memory_count_selection = None
+        self.updated_amend_objects_from_live_data = None
         self.sme_customer_count_database_name = "SME_Customer_Count_Memory_DB.db"
         self.database_path = os.path.join(os.path.dirname(__file__), "SME_Customer_Count_Memory_DB", self.sme_customer_count_database_name)
         self.database_table_name = "SME_Customer_Count_Memory"
@@ -41,6 +43,58 @@ class SME(Provider):
         self.stats_objects = list_of_stats_objects
         return
 
+    def county_customer_count_database_safety_check(self):
+        if self.style == DOIT_UTIL.ZIP:
+            return
+
+        # Need default objects either way
+        names_count_dict = {"Calvert": 11, "Charles": 22, "Queen Anne's": 33, "St. Mary's": 44}
+        outages = 0
+        stat_objects_list = []
+        for name, cust_count in names_count_dict.items():
+            stat_objects_list.append(Outage(abbrev=self.abbrev,
+                                            style=self.style,
+                                            area=name,
+                                            outages=outages,
+                                            customers=cust_count,
+                                            state=self.maryland))
+        self.default_zero_count_county_stat_objects = stat_objects_list
+
+        # Need to check for database existence first, then create db if needed.
+        if os.path.exists(self.database_path):
+            return
+        else:
+            # This is important if the database does not exist. Builds and populates default database
+            # As of 20181115 SME did not provide county data in data feed when outage count was zero. So no records built.
+            try:
+                conn = sqlite3.connect(database=self.database_path)
+                db_curs = conn.cursor()
+                db_curs.execute(f"""CREATE TABLE {self.database_table_name} (
+                            County_ID integer primary key autoincrement,
+                            County_Name text,
+                            Customer_Count integer,
+                            Last_Updated text
+                            )""")
+                conn.commit()
+            except sqlite3.OperationalError as sqlOpErr:
+                print(sqlOpErr)
+                exit()
+            except Exception as e:
+                print(e)
+                exit()
+            else:
+                for default_county_stat_obj in self.default_zero_count_county_stat_objects:
+                    print(f"Default Object: {default_county_stat_obj}")
+                    db_curs.execute(f"""INSERT INTO {self.database_table_name} VALUES (Null, :county_name, :cust_count, :date_updated)""",
+                                    {"county_name": default_county_stat_obj.area,
+                                     "cust_count": default_county_stat_obj.customers,
+                                     "date_updated": DOIT_UTIL.current_date_time()})
+                conn.commit()
+                print(f"{self.database_path} did not appear to exist. A new zero count version has been created. Memory of previous SME customer counts has been lost.")
+            finally:
+                conn.close()
+        return
+
     def get_current_county_customer_county_in_memory(self):
         if self.style == DOIT_UTIL.ZIP:
             return
@@ -60,52 +114,51 @@ class SME(Provider):
         finally:
             conn.close()
 
-    def county_customer_count_database_safety_check(self):
+    def amend_default_stat_objects_with_cust_counts_from_memory(self):
         if self.style == DOIT_UTIL.ZIP:
             return
-
-        # check for database existence first, then create db if needed.
-        if os.path.exists(self.database_path):
-            return
-        else:
-            # This is important if the database does not exist. Builds and populates default database
-            # As of 20181115 SME did not provide county data in data feed when outage count was zero. So no records built.
-            names_count_dict = {"Charles": 0, "Queen Anne's": 0, "St. Mary's": 0}
-            outages = 0
-            stat_objects_list = []
-            for name, cust_count in names_count_dict.items():
-                stat_objects_list.append(Outage(abbrev=self.abbrev,
-                                                style=self.style,
-                                                area=name,
-                                                outages=outages,
-                                                customers=cust_count,
-                                                state=self.maryland))
-            self.default_zero_count_county_stat_objects = stat_objects_list
-
+        amended_objects_list = []
+        memory_county_cust_counts_dict = {name: count for id, name, count in self.cust_count_memory_count_selection}
+        for default_stat_obj in self.default_zero_count_county_stat_objects:
             try:
-                conn = sqlite3.connect(database=self.database_path)
-                db_curs = conn.cursor()
-                db_curs.execute(f"""CREATE TABLE {self.database_table_name} (
-                            County_ID integer primary key autoincrement,
-                            County_Name text,
-                            Customer_Count integer
-                            )""")
-                conn.commit()
-            except sqlite3.OperationalError as sqlOpErr:
-                print(sqlOpErr)
-                exit()
-            except Exception as e:
-                print(e)
-                exit()
+                # Use the default stat objects county name to pull the appropriate memory customer count value
+                memory_count_value = memory_county_cust_counts_dict[default_stat_obj.area]
+            except KeyError as ke:
+                # A spelling error mismatch between default county name and memory spelling of county name
+                print(f"Key [{default_stat_obj.area}] not found in county names in memory records: {ke}")
             else:
-                for default_county_stat_obj in self.default_zero_count_county_stat_objects:
-                    print(default_county_stat_obj)
-                    db_curs.execute(f"""INSERT INTO {self.database_table_name} VALUES (Null, :county_name, :cust_count)""",
-                                    {"county_name": default_county_stat_obj.area, "cust_count": default_county_stat_obj.customers})
-                conn.commit()
-                print(f"{self.database_path} did not appear to exist. A new zero count version has been created. Memory of previous SME customer counts has been lost.")
-            finally:
-                conn.close()
+                # Need to make a new object instead of modifying defaults. They should remain as built for clarity.
+                amended_stat_object = Outage(abbrev=self.abbrev,
+                                             style=self.style,
+                                             area=default_stat_obj.area,
+                                             outages=default_stat_obj.outages,
+                                             customers=memory_count_value,
+                                             state=self.maryland)
+                amended_objects_list.append(amended_stat_object)
+        self.memory_count_value_stat_objects = amended_objects_list
+        print("amended objects list: ", amended_objects_list)
+        print("first time: ", self.memory_count_value_stat_objects)
         return
 
+    def update_amended_cust_count_objects_from_live_data(self):
+        if self.style == DOIT_UTIL.ZIP:
+            return
+        amended_dict = {}
+        live_data_dict = {}
+        print("second time: ", self.memory_count_value_stat_objects)
 
+        for amended_obj in self.memory_count_value_stat_objects:
+            amended_dict[amended_obj.area] = amended_obj
+        for stat_obj in self.stats_objects:
+            live_data_dict[stat_obj.area] = stat_obj
+        # Need to connect the two realms through their key (county name)
+        for county_amend_name, obj_amended in amended_dict.items():
+            try:
+                live_stat_obj = live_data_dict[county_amend_name]
+            except KeyError as ke:
+                # live data doesn't have the object, means not reported
+                print(f"{county_amend_name} data must not be present in feed. Customer count data from memory will be used.")
+            else:
+                obj_amended.customers = live_stat_obj.customers
+        self.updated_amend_objects_from_live_data = amended_dict.values()
+        return
