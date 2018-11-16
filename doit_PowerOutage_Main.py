@@ -15,6 +15,7 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
+    import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     # from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import PowerOutagesViewForArchiveCountyData
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
@@ -249,7 +250,7 @@ def main():
         try:
             insert_generator = obj.generate_insert_sql_statement_realtime()
             for sql_statement in insert_generator:
-                db_obj.insert_record_into_database(sql_statement=sql_statement)
+                db_obj.execute_sql_statement(sql_statement=sql_statement)
 
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
@@ -263,10 +264,18 @@ def main():
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
     #   the customer counts table using live data feed values
-    # TODO: Update the customer count table based on "live" data values STOPPED HERE
-    customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
+    print("County customer count update process initiated...")
+    db_obj.create_database_cursor()
+    cust_obj = Customer.Customer()
+    cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
+    customer_count_update_generator = cust_obj.generate_insert_sql_statement_customer_count()
+    for statement in customer_count_update_generator:
+        # print("cust update sql: ", statement)
+        db_obj.execute_sql_statement(sql_statement=statement)
+    db_obj.commit_changes()
 
-
+    # Need to clean up for next provider
+    db_obj.delete_cursor()
 
     # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
     print("Archive process initiated...")
@@ -275,7 +284,7 @@ def main():
         try:
             insert_generator = obj.generate_insert_sql_statement_archive()
             for sql_statement in insert_generator:
-                db_obj.insert_record_into_database(sql_statement=sql_statement)
+                db_obj.execute_sql_statement(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
         else:
@@ -290,7 +299,7 @@ def main():
     archive_county_obj = ArchiveCounty()
     try:
         db_obj.create_database_cursor()
-        db_obj.select_records(sql_statement=sql_select_counties_viewforarchive)
+        db_obj.execute_sql_statement(sql_statement=sql_select_counties_viewforarchive)
         db_obj.fetch_all_from_selection()
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
@@ -306,7 +315,7 @@ def main():
         db_obj.create_database_cursor()
         insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
         for sql_statement in insert_generator:
-            db_obj.insert_record_into_database(sql_statement=sql_statement)
+            db_obj.execute_sql_statement(sql_statement=sql_statement)
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
         print(e)

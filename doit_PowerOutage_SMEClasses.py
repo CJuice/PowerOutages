@@ -164,7 +164,7 @@ class SME(Provider):
         return
 
     def update_sqlite3_cust_count_memory_database(self):
-
+        # TODO: Redesign sql statements to use dictionary syntax. Also extract to attribute
         # Need a dictionary with county name and customer count from value in database
         memory_count_dict = {}
         for obj in self.memory_count_value_stat_objects:

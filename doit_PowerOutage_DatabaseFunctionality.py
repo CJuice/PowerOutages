@@ -65,17 +65,24 @@ class DatabaseUtilities:
     #     self.cursor.execute(sql_statement)
     #     return
 
-    def select_records(self, sql_statement):
-        self.cursor.execute(sql_statement)
-        return
-
-    def insert_record_into_database(self, sql_statement):
+    def execute_sql_statement(self, sql_statement):
         try:
             self.cursor.execute(sql_statement)
         except pyodbc.DataError:
             print(f"A value in the sql exceeds the field length allowed in database table: {sql_statement}")
         return
 
+    # def insert_record_into_database(self, sql_statement):
+    #     try:
+    #         self.cursor.execute(sql_statement)
+    #     except pyodbc.DataError:
+    #         print(f"A value in the sql exceeds the field length allowed in database table: {sql_statement}")
+    #     return
+
     def commit_changes(self):
-        self.connection.commit()
+        try:
+            self.connection.commit()
+        except Exception as e:
+            print("Problem committing changes to database.")
+            exit()
         return

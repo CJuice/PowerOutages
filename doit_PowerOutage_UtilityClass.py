@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 
 
 class Utility:
@@ -149,18 +150,3 @@ class Utility:
             return state_abbrev_dict[value]
         except KeyError as ke:
             return value
-
-    @staticmethod
-    def calculate_county_customer_counts(prov_objects):
-
-        # gather all county stats objects from all providers
-        master_stat_obj_list = []
-        county_objs = [obj for obj in prov_objects.values() if obj.style == Utility.COUNTY]
-        for obj in county_objs:
-            master_stat_obj_list.extend(obj.stats_objects)
-        county_counts_dict = {county: 0 for county in Utility.MARYLAND_COUNTIES}
-        for obj in master_stat_obj_list:
-            if obj.state == Utility.MARYLAND:
-                county_counts_dict[obj.area] += obj.customers
-        return county_counts_dict
-
