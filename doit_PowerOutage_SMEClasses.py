@@ -44,11 +44,8 @@ class SME(Provider):
         self.stats_objects = list_of_stats_objects
         return
 
-    def county_customer_count_database_safety_check(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
+    def create_default_county_outage_stat_objects(self):
 
-        # Need default objects either way
         names_count_dict = {"Calvert": 0, "Charles": 0, "Queen Anne's": 0, "St. Mary's": 0}
         outages = 0
         stat_objects_list = []
@@ -60,7 +57,10 @@ class SME(Provider):
                                             customers=cust_count,
                                             state=self.maryland))
         self.default_zero_count_county_stat_objects = stat_objects_list
+        return
 
+    def county_customer_count_database_safety_check(self):
+        # TODO: extrac the sql statements to attributes and use formatting to fill them out
         # Need to check for database existence first, then create db if needed.
         if os.path.exists(self.database_path):
             return
@@ -70,12 +70,8 @@ class SME(Provider):
             try:
                 conn = sqlite3.connect(database=self.database_path)
                 db_curs = conn.cursor()
-                db_curs.execute(f"""CREATE TABLE {self.database_table_name} (
-                            County_ID integer primary key autoincrement,
-                            County_Name text,
-                            Customer_Count integer,
-                            Last_Updated text
-                            )""")
+                db_curs.execute("""CREATE TABLE :table_name (County_ID integer primary key autoincrement, County_Name text, Customer_Count integer, Last_Updated text)""",
+                                {"table_name": self.database_table_name})
                 conn.commit()
             except sqlite3.OperationalError as sqlOpErr:
                 print(sqlOpErr)
@@ -86,8 +82,9 @@ class SME(Provider):
             else:
                 for default_county_stat_obj in self.default_zero_count_county_stat_objects:
                     print(f"Default Object: {default_county_stat_obj}")
-                    db_curs.execute(f"""INSERT INTO {self.database_table_name} VALUES (Null, :county_name, :cust_count, :date_updated)""",
-                                    {"county_name": default_county_stat_obj.area,
+                    db_curs.execute("""INSERT INTO :table_name VALUES (Null, :county_name, :cust_count, :date_updated)""",
+                                    {"table_name": self.database_table_name,
+                                     "county_name": default_county_stat_obj.area,
                                      "cust_count": default_county_stat_obj.customers,
                                      "date_updated": DOIT_UTIL.current_date_time()})
                 conn.commit()
@@ -97,8 +94,7 @@ class SME(Provider):
         return
 
     def get_current_county_customer_count_in_memory(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
+
         # Need the previous customer counts
         try:
             conn = sqlite3.connect(database=self.database_path)
@@ -116,8 +112,6 @@ class SME(Provider):
             conn.close()
 
     def amend_default_stat_objects_with_cust_counts_from_memory(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
         amended_objects_list = []
         memory_county_cust_counts_dict = {name: count for id, name, count in self.cust_count_memory_count_selection}
         for default_stat_obj in self.default_zero_count_county_stat_objects:
@@ -128,7 +122,7 @@ class SME(Provider):
                 # A spelling error mismatch between default county name and memory spelling of county name
                 print(f"Key [{default_stat_obj.area}] not found in county names in memory records: {ke}")
             else:
-                # Need to make a new object instead of modifying defaults. They should remain as built for clarity.
+                # Need to make a new object instead of modifying defaults. Defaults should remain as-built for clarity.
                 amended_stat_object = Outage(abbrev=self.abbrev,
                                              style=self.style,
                                              area=default_stat_obj.area,
@@ -139,37 +133,37 @@ class SME(Provider):
         self.memory_count_value_stat_objects = amended_objects_list
         return
 
-    def update_amended_cust_count_objects_from_live_data(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
-        amended_dict = {}
-        live_data_dict = {}
+    def update_amended_cust_count_objects_using_live_data(self):
+        memory_amended_dict = {}
+        feed_data_dict = {}
         for amended_obj in self.memory_count_value_stat_objects:
-            amended_dict[amended_obj.area] = copy.copy(amended_obj)
+
+            # Copying objects, otherwise the memory_count_value_stat_objects are modified and this gets confusing
+            memory_amended_dict[amended_obj.area] = copy.copy(amended_obj)
         for stat_obj in self.stats_objects:
-            live_data_dict[stat_obj.area] = stat_obj
+            feed_data_dict[stat_obj.area] = stat_obj
+
         # Need to connect the two realms through their key (county name)
-        for county_amend_name, obj_amended in amended_dict.items():
+        for county_name_amended, obj_amended in memory_amended_dict.items():
             try:
-                live_stat_obj = live_data_dict[county_amend_name]
+                feed_stat_obj = feed_data_dict[county_name_amended]
             except KeyError as ke:
-                # live data doesn't have the object, means not reported
-                print(f"{county_amend_name} data must not be present in feed. Customer count data from memory will be used.")
+
+                # feed data dict doesn't have the county object which means it was not reported in the live data feed
+                print(f"{county_name_amended} data must not be present in feed. Customer count data from memory will be used.")
             else:
-                obj_amended.customers = live_stat_obj.customers
-                obj_amended.outages = live_stat_obj.outages
-        self.updated_amend_objects_from_live_data = amended_dict.values()
+
+                # using available feed data customer count value, update the amended objects customer count value
+                obj_amended.customers = feed_stat_obj.customers
+                obj_amended.outages = feed_stat_obj.outages
+        self.updated_amend_objects_from_live_data = memory_amended_dict.values()
         return
 
     def replace_data_feed_stat_objects_with_amended_objects(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
         self.stats_objects = self.updated_amend_objects_from_live_data
         return
 
     def update_sqlite3_cust_count_memory_database(self):
-        if self.style == DOIT_UTIL.ZIP:
-            return
 
         # Need a dictionary with county name and customer count from value in database
         memory_count_dict = {}

@@ -16,9 +16,10 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import PowerOutagesViewForArchiveCountyData
+    # from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import PowerOutagesViewForArchiveCountyData
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
 
+    print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
     centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
@@ -167,39 +168,25 @@ def main():
             obj.purge_duplicate_stats_objects()
 
         elif key in ("SME_County", "SME_ZIP"):
-            # def loop_and_poop(text, ls):
-            #     for item in ls:
-            #         print(f"{text}: {item}")
-
-            obj.county_customer_count_database_safety_check()
-            obj.get_current_county_customer_count_in_memory()
-            obj.amend_default_stat_objects_with_cust_counts_from_memory()
-
+            # SME is unique. They do not provide zero count outages in their data feed. The customer count accompanies
+            #   the outage report for a county so when no report is provided a customer count is unavailable. For this
+            #   reason, a sqlite3 database is created/used to store a customer count value for the four counties that
+            #   SME served as of 20181115. The database provides count values and is updated when/if a outage report
+            #   contains a customer count that is different that what is stored in memory. The memory values are used
+            #   to populate the stat objects with customers count value, in the absence of a data feed outage report.
+            if obj.style == DOIT_UTIL.COUNTY:
+                obj.create_default_county_outage_stat_objects()  # Creates default objects.
+                obj.county_customer_count_database_safety_check()   # Checks if DB exist? If not then create.
+                obj.get_current_county_customer_count_in_memory()   # Get customer count values stored in sqlite3 DB
+                obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
             obj.purge_duplicate_stats_objects()
-            DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
-
-            # if obj.style == DOIT_UTIL.COUNTY:
-            #     loop_and_poop("real stats objects ", obj.stats_objects)
-            #     loop_and_poop("memory database info ", obj.cust_count_memory_count_selection)
-            #     loop_and_poop("default stat objects", obj.default_zero_count_county_stat_objects)
-            #     loop_and_poop("amended stat objects", obj.memory_count_value_stat_objects)
-
-            obj.update_amended_cust_count_objects_from_live_data()
-            # if obj.style == DOIT_UTIL.COUNTY:
-            #     loop_and_poop("amended from live data stat objects", obj.updated_amend_objects_from_live_data)
-
-            obj.replace_data_feed_stat_objects_with_amended_objects()
-
-            # if obj.style == DOIT_UTIL.COUNTY:
-            #     loop_and_poop("updated stats objects: ", obj.stats_objects)
-
-            obj.update_sqlite3_cust_count_memory_database()
-
-            # If outage data actually in feed then real stat objects will exist. Resolve real with default
-
-            # Based on customer count in memory, if reported counts different then assign count value to stat object.
+            if obj.style == DOIT_UTIL.COUNTY:
+                DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
+                obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
+                obj.replace_data_feed_stat_objects_with_amended_objects()   # Substitute amended for stat_objects
+                obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 database with any updated values
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -209,8 +196,6 @@ def main():
             obj.extract_date_created()
 
         elif key in ("CTK_County", "CTK_ZIP"):
-            # TODO: CTK company feed appears to not contain any data when no outages are present in a zip code.
-            #   TODO: So, database will have no CTK records when count=0 for a zip code. Not so for county.
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
@@ -236,13 +221,6 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-        # for j in obj.stats_objects:
-        #     # print(j)
-        #     if j.style == DOIT_UTIL.COUNTY:
-        #         print(f"{j.abbrev}: {j.area} - {j.outages} - {j.customers}")
-    customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
-    # TODO: Develop functionality for SME uniqueness and then write customer counts to live table
-
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
@@ -259,10 +237,10 @@ def main():
     db_obj.establish_database_connection()
 
     # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
+    db_obj.create_database_cursor()
     for key, obj in provider_objects.items():
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
-        db_obj.create_database_cursor()
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
         # Need to update database table with new records and handle unique provider functionality
@@ -280,15 +258,21 @@ def main():
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
-        finally:
-            # Need to clean up for next provider
-            db_obj.delete_cursor()
+    # Need to clean up for next provider
+    db_obj.delete_cursor()
 
-    # ARCHIVE: Append latest zip code records to the Archive_PowerOutagesZipcode table.
+    # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
+    #   the customer counts table using live data feed values
+    # TODO: Update the customer count table based on "live" data values STOPPED HERE
+    customer_counts_by_county_dict = DOIT_UTIL.calculate_county_customer_counts(provider_objects)
+
+
+
+    # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
     print("Archive process initiated...")
+    db_obj.create_database_cursor()
     for key, obj in provider_objects.items():
         try:
-            db_obj.create_database_cursor()
             insert_generator = obj.generate_insert_sql_statement_archive()
             for sql_statement in insert_generator:
                 db_obj.insert_record_into_database(sql_statement=sql_statement)
@@ -297,11 +281,11 @@ def main():
         else:
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
-        finally:
-            # Need to clean up for next provider
-            db_obj.delete_cursor()
 
-    # ARCHIVE: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
+    # Need to clean up for next provider
+    db_obj.delete_cursor()
+
+    # ARCHIVE County: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
     #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
     archive_county_obj = ArchiveCounty()
     try:
@@ -334,8 +318,7 @@ def main():
         # Need to clean up for next provider
         db_obj.delete_cursor()
 
-
-    print("Process complete.")
+    print(f"Process complete @ {DOIT_UTIL.current_date_time()}")
 
 
 if __name__ == "__main__":

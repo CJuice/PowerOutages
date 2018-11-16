@@ -137,6 +137,7 @@ class Utility:
             try:
                 obj.area = corrections_dict[obj.area]
             except KeyError as ke:
+
                 # No correction needed per the dict of items as seen above
                 continue
         return
@@ -151,6 +152,7 @@ class Utility:
 
     @staticmethod
     def calculate_county_customer_counts(prov_objects):
+
         # gather all county stats objects from all providers
         master_stat_obj_list = []
         county_objs = [obj for obj in prov_objects.values() if obj.style == Utility.COUNTY]
