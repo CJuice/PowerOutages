@@ -147,15 +147,14 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print("Data processing...")
     for key, obj in provider_objects.items():
-        if key in ("FES_County",):
-            obj.extract_maryland_dict_from_county_response()
-            obj.extract_outage_counts_by_county()
-            obj.purge_duplicate_stats_objects()
 
-        elif key in ("FES_ZIP",):
-            obj.extract_events_from_zip_response()
-            obj.extract_outage_counts_by_zip()
+        if key in ("FES_County", "FES_ZIP"):
+            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
+            obj.extract_area_outage_elements()
+            obj.extract_outage_counts()
+            obj.create_stats_objects()
             obj.purge_duplicate_stats_objects()
+            obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
             obj.extract_areas_list_county_process()
@@ -221,7 +220,7 @@ def main():
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-
+    exit()
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
