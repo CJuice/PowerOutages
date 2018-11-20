@@ -220,7 +220,7 @@ def main():
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-    exit()
+
     # Need to write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
