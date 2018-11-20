@@ -21,7 +21,6 @@ class FES(Provider):
         date_created = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=response_header_element,
                                                                                     tag_name="CreateDateTime")
         self.date_created = date_created.text
-        print(self.date_created)
         return
 
     def extract_area_outage_elements(self):
