@@ -2,27 +2,28 @@
 
 """
 import pyodbc
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class DatabaseUtilities:
 
     def __init__(self, parser):
         self.connection = None
-        self.connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
+        self.database_connection_string = VARS.database_connection_string
         self.cursor = None
         self.database_name = parser["DATABASE"]["NAME"]
         self.database_password = parser["DATABASE"]["PASSWORD"].format(money_sign="$")
         self.database_user = parser["DATABASE"]["USER"]
-        self.delete_statement = "DELETE FROM RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
+        self.sql_delete_statement = VARS.sql_delete_statement
         self.full_connection_string = None
         self.selection = None
-        self.select_zipcode_by_provider_abbrev_statement_realtime = """SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes WHERE PROVIDER = '{provider_abbrev}'"""
-        self.select_by_provider_abbrev_statement_realtime = """SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"""
+        self.sql_select_zipcode_by_provider_abbrev_statement_realtime = VARS.sql_select_zip_by_provider_abbrev_realtime
+        self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_statement_realtime
 
     def create_database_connection_string(self):
-        connection_string = self.connection_string.format(database_name=self.database_name,
-                                                          database_user=self.database_user,
-                                                          database_password=self.database_password)
+        connection_string = self.database_connection_string.format(database_name=self.database_name,
+                                                                   database_user=self.database_user,
+                                                                   database_password=self.database_password)
         self.full_connection_string = connection_string
         return
 
@@ -38,8 +39,8 @@ class DatabaseUtilities:
     def delete_records(self, style: str, provider_abbrev: str):
         # TODO: the provider syntax may not matter to sql. Assess need.
         table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
-        sql_statement = self.delete_statement.format(style=table_name_style,
-                                                     provider_abbrev=provider_abbrev)
+        sql_statement = self.sql_delete_statement.format(style=table_name_style,
+                                                         provider_abbrev=provider_abbrev)
         print(sql_statement)
         self.cursor.execute(sql_statement)
         print(f"{provider_abbrev} {style} records deleted: {self.cursor.rowcount}")

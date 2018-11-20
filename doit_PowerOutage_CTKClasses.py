@@ -4,11 +4,12 @@
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class CTK(Provider):
 
-    GROUPED_ZIPCODES_SQL_STRING = """SELECT * FROM dbo.RealTime_PowerOutagesZipcodes_Grouped"""
+    SQL_SELECT_GROUPED_ZIPCODES = VARS.sql_select_grouped_zipcodes
 
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
@@ -56,7 +57,7 @@ class CTK(Provider):
 
     def create_grouped_zipcodes_dict(self, cursor):
         record_dict = {}
-        for record in cursor.execute(CTK.GROUPED_ZIPCODES_SQL_STRING):
+        for record in cursor.execute(CTK.SQL_SELECT_GROUPED_ZIPCODES):
             single_zip, zip_id = record
             record_dict[single_zip] = zip_id
         self.grouped_zipcodes_dict = record_dict
