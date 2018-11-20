@@ -71,7 +71,7 @@ class SME(Provider):
             try:
                 conn = sqlite3.connect(database=self.database_path)
                 db_curs = conn.cursor()
-                db_curs.execute("""CREATE TABLE :table_name (County_ID integer primary key autoincrement, County_Name text, Customer_Count integer, Last_Updated text)""",
+                db_curs.execute(VARS.sql_create_county_table_sme_sqlite3,
                                 {"table_name": self.database_table_name})
                 conn.commit()
             except sqlite3.OperationalError as sqlOpErr:
@@ -83,7 +83,7 @@ class SME(Provider):
             else:
                 for default_county_stat_obj in self.default_zero_count_county_stat_objects:
                     print(f"Default Object: {default_county_stat_obj}")
-                    db_curs.execute("""INSERT INTO :table_name VALUES (Null, :county_name, :cust_count, :date_updated)""",
+                    db_curs.execute(VARS.sql_insert_into_county_table_sme_sqlite3,
                                     {"table_name": self.database_table_name,
                                      "county_name": default_county_stat_obj.area,
                                      "cust_count": default_county_stat_obj.customers,
@@ -100,7 +100,7 @@ class SME(Provider):
         try:
             conn = sqlite3.connect(database=self.database_path)
             db_curs = conn.cursor()
-            db_curs.execute("""SELECT County_ID, County_Name, Customer_Count FROM SME_Customer_Count_Memory""")
+            db_curs.execute(VARS.sql_select_county_data_sme_sqlite3)
         except sqlite3.OperationalError as sqlOpErr:
             print(sqlOpErr)
             exit()
@@ -181,8 +181,14 @@ class SME(Provider):
                     print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county.")
                 else:
                     database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
-                    statement = f"""UPDATE SME_Customer_Count_Memory SET Customer_Count = {stat_obj.customers}, Last_Updated = '{DOIT_UTIL.current_date_time()}' WHERE County_Name = '{database_ready_area_name}'"""
-                    db_curs.execute(statement)
+                    # statement = VARS.sql_update_customers_table_sme_sqlite3, {"customers": stat_obj.customers,
+                    #              "date": DOIT_UTIL.current_date_time(),
+                    #              "area": database_ready_area_name}
+                    # statement = f"""UPDATE SME_Customer_Count_Memory SET Customer_Count = {stat_obj.customers}, Last_Updated = '{DOIT_UTIL.current_date_time()}' WHERE County_Name = '{database_ready_area_name}'"""
+                    db_curs.execute(VARS.sql_update_customers_table_sme_sqlite3,
+                                    {"customers": stat_obj.customers,
+                                     "date": DOIT_UTIL.current_date_time(),
+                                     "area": database_ready_area_name})
                     conn.commit()
                     print(f"{stat_obj.abbrev} customer count value changed. Value in memory was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}.")
         except sqlite3.OperationalError as sqlOpErr:

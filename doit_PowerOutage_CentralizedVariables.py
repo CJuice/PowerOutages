@@ -14,3 +14,7 @@ database_connection_string = "DSN={database_name};UID={database_user};PWD={datab
 sme_customer_count_database_location_and_name = "SME_Customer_Count_Memory_DB\SME_Customer_Count_Memory_DB.db"
 sme_database_table_name = "SME_Customer_Count_Memory"
 less_than_five = "Less than 5"
+sql_create_county_table_sme_sqlite3 = """CREATE TABLE :table_name (County_ID integer primary key autoincrement, County_Name text, Customer_Count integer, Last_Updated text)"""
+sql_insert_into_county_table_sme_sqlite3 = """INSERT INTO :table_name VALUES (Null, :county_name, :cust_count, :date_updated)"""
+sql_select_county_data_sme_sqlite3 = """SELECT County_ID, County_Name, Customer_Count FROM SME_Customer_Count_Memory"""
+sql_update_customers_table_sme_sqlite3 = """UPDATE SME_Customer_Count_Memory SET Customer_Count = :customers, Last_Updated = ':date' WHERE County_Name = ':area'"""
