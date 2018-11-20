@@ -93,7 +93,7 @@ class SME(Provider):
                 conn.close()
         return
 
-    def get_current_county_customer_count_in_memory(self):
+    def get_current_county_customer_counts_in_memory(self):
 
         # Need the previous customer counts
         try:
@@ -140,6 +140,8 @@ class SME(Provider):
 
             # Copying objects, otherwise the memory_count_value_stat_objects are modified and this gets confusing
             memory_amended_dict[amended_obj.area] = copy.copy(amended_obj)
+
+        # Need dictionary with county name and corresponding stat object, for those counties actually available in feed
         for stat_obj in self.stats_objects:
             feed_data_dict[stat_obj.area] = stat_obj
 
@@ -147,10 +149,11 @@ class SME(Provider):
         for county_name_amended, obj_amended in memory_amended_dict.items():
             try:
                 feed_stat_obj = feed_data_dict[county_name_amended]
+                print(f"SME County Data Feed: {county_name_amended} was present. Customer Count: {feed_stat_obj.customers}")
             except KeyError as ke:
 
-                # feed data dict doesn't have the county object which means it was not reported in the live data feed
-                print(f"{county_name_amended} data must not be present in feed. Customer count data from memory will be used.")
+                # feed data dict doesn't have the county object, which means that county was not in the data feed
+                print(f"{county_name_amended} data must NOT have be present. Customer Count: {obj_amended.customers} *MEMORY.")
             else:
 
                 # using available feed data customer count value, update the amended objects customer count value
@@ -174,13 +177,13 @@ class SME(Provider):
             db_curs = conn.cursor()
             for stat_obj in self.stats_objects:
                 if stat_obj.customers == memory_count_dict[stat_obj.area]:
-                    print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county. Memory = {memory_count_dict[stat_obj.area]}, Data Feed = {stat_obj.customers}")
+                    print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county.")
                 else:
                     database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
                     statement = f"""UPDATE SME_Customer_Count_Memory SET Customer_Count = {stat_obj.customers}, Last_Updated = '{DOIT_UTIL.current_date_time()}' WHERE County_Name = '{database_ready_area_name}'"""
                     db_curs.execute(statement)
                     conn.commit()
-                    print(f"{stat_obj.abbrev} customer count value was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}")
+                    print(f"{stat_obj.abbrev} customer count value changed. Value in memory was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}.")
         except sqlite3.OperationalError as sqlOpErr:
             print(sqlOpErr)
             exit()

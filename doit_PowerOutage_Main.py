@@ -177,7 +177,7 @@ def main():
             if obj.style == DOIT_UTIL.COUNTY:
                 obj.create_default_county_outage_stat_objects()  # Creates default objects.
                 obj.county_customer_count_database_safety_check()   # Checks if DB exist? If not then create.
-                obj.get_current_county_customer_count_in_memory()   # Get customer count values stored in sqlite3 DB
+                obj.get_current_county_customer_counts_in_memory()   # Get customer count values stored in sqlite3 DB
                 obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
