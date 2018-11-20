@@ -153,7 +153,7 @@ class SME(Provider):
             except KeyError as ke:
 
                 # feed data dict doesn't have the county object, which means that county was not in the data feed
-                print(f"{county_name_amended} data must NOT have be present. Customer Count: {obj_amended.customers} *MEMORY.")
+                print(f"SME County Data Feed: {county_name_amended} was NOT present. Customer Count: {obj_amended.customers} *MEMORY.")
             else:
 
                 # using available feed data customer count value, update the amended objects customer count value
@@ -194,6 +194,4 @@ class SME(Provider):
             conn.commit()
         finally:
             conn.close()
-        print("SME customer count data updated from data feed.")
-
         return
