@@ -316,7 +316,7 @@ def main():
     finally:
         # Need to clean up for next step
         db_obj.delete_cursor()
-    
+
     print(f"Process complete @ {DOIT_UTIL.current_date_time()}")
 
 
