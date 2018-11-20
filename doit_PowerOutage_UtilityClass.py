@@ -14,6 +14,7 @@ class Utility:
                          "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
                          "Washington", "Wicomico", "Worcester"]
     ZIP = "ZIP"
+    LESS_THAN_FIVE = "Less than 5"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 
     @staticmethod
@@ -94,7 +95,7 @@ class Utility:
 
     @staticmethod
     def process_outage_counts_to_integers(objects_list: list):
-        replacement_values_dict = {"Less than 5": 1, "<5": 1}
+        replacement_values_dict = {Utility.LESS_THAN_FIVE: 1, "<5": 1}
         for obj in objects_list:
             try:
                 obj.outages = int(obj.outages)
@@ -107,7 +108,7 @@ class Utility:
 
     @staticmethod
     def process_customer_counts_to_integers(objects_list: list):
-        replacement_values_dict = {"Less than 5": 1, "<5": 1}
+        replacement_values_dict = {Utility.LESS_THAN_FIVE: 1, "<5": 1}
         for obj in objects_list:
             try:
                 obj.customers = int(obj.customers)

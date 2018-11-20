@@ -21,10 +21,9 @@ class DatabaseUtilities:
         self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_statement_realtime
 
     def create_database_connection_string(self):
-        connection_string = self.database_connection_string.format(database_name=self.database_name,
-                                                                   database_user=self.database_user,
-                                                                   database_password=self.database_password)
-        self.full_connection_string = connection_string
+        self.full_connection_string = self.database_connection_string.format(database_name=self.database_name,
+                                                                             database_user=self.database_user,
+                                                                             database_password=self.database_password)
         return
 
     def create_database_cursor(self):

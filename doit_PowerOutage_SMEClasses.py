@@ -4,6 +4,8 @@
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+
 import sqlite3
 import os
 import copy
@@ -19,9 +21,8 @@ class SME(Provider):
         self.memory_count_value_stat_objects = None
         self.cust_count_memory_count_selection = None
         self.updated_amend_objects_from_live_data = None
-        self.sme_customer_count_database_name = "SME_Customer_Count_Memory_DB.db"
-        self.database_path = os.path.join(os.path.dirname(__file__), "SME_Customer_Count_Memory_DB", self.sme_customer_count_database_name)
-        self.database_table_name = "SME_Customer_Count_Memory"
+        self.database_path = os.path.join(os.path.dirname(__file__), VARS.sme_customer_count_database_location_and_name)
+        self.database_table_name = VARS.sme_database_table_name
 
     def extract_outage_events_list(self):
         data_json = self.data_feed_response.json()

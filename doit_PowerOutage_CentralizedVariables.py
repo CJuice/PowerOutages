@@ -11,3 +11,6 @@ sql_select_zip_by_provider_abbrev_realtime = """SELECT zipcode FROM dbo.RealTime
 sql_select_by_provider_abbrev_statement_realtime = """SELECT {fields} FROM dbo.RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"""
 sql_delete_statement = "DELETE FROM RealTime_PowerOutages{style} WHERE PROVIDER = '{provider_abbrev}'"
 database_connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
+sme_customer_count_database_location_and_name = "SME_Customer_Count_Memory_DB\SME_Customer_Count_Memory_DB.db"
+sme_database_table_name = "SME_Customer_Count_Memory"
+less_than_five = "Less than 5"
