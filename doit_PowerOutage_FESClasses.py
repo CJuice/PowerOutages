@@ -31,18 +31,6 @@ class FES(Provider):
         self.area_elements = area_elements_list
         return
 
-    # def extract_md_county_outage_stats(self):
-    #     stats_tuples_list = []
-    #     for element in self.area_elements:
-    #         county = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=element, tag_name="County").text
-    #         customers_served = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=element, tag_name="CustomersServed").text
-    #         outages = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=element, tag_name="CustomersOut").text
-    #         if "(MD)" in county:
-    #             county = county.replace("(MD)", "")
-    #             stats_tuples_list.append((county, customers_served, outages))
-    #     self.stats_data_tuples_list = stats_tuples_list
-    #     return
-
     def create_stats_objects(self):
         list_of_stats_objects = []
         for stat_tup in self.stats_data_tuples_list:
@@ -55,11 +43,6 @@ class FES(Provider):
                                                 state=self.maryland))
         self.stats_objects = list_of_stats_objects
         return
-
-    # def extract_events_from_zip_response(self):
-    #     dict_as_json = self.data_feed_response.json()
-    #     self.zip_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=dict_as_json, attribute_name="file_data")
-    #     return
 
     def extract_outage_counts(self):
         stats_tuples_list = []
