@@ -153,19 +153,16 @@ def main():
             obj.extract_area_outage_elements()
             obj.extract_outage_counts()
             obj.create_stats_objects()
-            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
             obj.extract_areas_list_county_process()
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
-            obj.purge_duplicate_stats_objects()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
-            obj.purge_duplicate_stats_objects()
 
         elif key in ("SME_County", "SME_ZIP"):
             # SME is unique. They do not provide zero count outages in their data feed. The customer count accompanies
@@ -181,7 +178,6 @@ def main():
                 obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
             obj.extract_outage_events_list()
             obj.extract_outage_counts_by_desc()
-            obj.purge_duplicate_stats_objects()
             if obj.style == DOIT_UTIL.COUNTY:
                 DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
                 obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
@@ -192,7 +188,6 @@ def main():
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_events_list_from_xml_str()
             obj.extract_outage_counts()
-            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
 
         elif key in ("CTK_County", "CTK_ZIP"):
@@ -200,22 +195,19 @@ def main():
             obj.extract_report_by_id()
             obj.extract_outage_dataset()
             obj.extract_outage_counts_from_dataset()
-            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
 
         elif key in ("BGE_County", "BGE_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
             obj.extract_outage_counts()
-            obj.purge_duplicate_stats_objects()
             obj.extract_date_created()
 
-        # DOIT_UTIL.change_case_to_title(stats_objects=obj.stats_objects)
+        obj.purge_duplicate_stats_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
         DOIT_UTIL.process_customer_counts_to_integers(objects_list=obj.stats_objects)
-        # TODO: Test out refactoring obj.purge_duplicate_stats_objects() to here
 
         # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
@@ -258,22 +250,21 @@ def main():
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
-    # Need to clean up for next provider
+    # Need to clean up for next step
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
-    #   the customer counts table using live data feed values
+    #   the customer counts table using data feed values
     print("County customer count update process initiated...")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
     cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
     customer_count_update_generator = cust_obj.generate_insert_sql_statement_customer_count()
     for statement in customer_count_update_generator:
-        # print("cust update sql: ", statement)
         db_obj.execute_sql_statement(sql_statement=statement)
     db_obj.commit_changes()
 
-    # Need to clean up for next provider
+    # Need to clean up for next step
     db_obj.delete_cursor()
 
     # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
@@ -290,7 +281,7 @@ def main():
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
-    # Need to clean up for next provider
+    # Need to clean up for next step
     db_obj.delete_cursor()
 
     # ARCHIVE County: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
@@ -323,9 +314,9 @@ def main():
         db_obj.commit_changes()
         print("County archive records inserted into Archive_PowerOutagesCounty.")
     finally:
-        # Need to clean up for next provider
+        # Need to clean up for next step
         db_obj.delete_cursor()
-
+    
     print(f"Process complete @ {DOIT_UTIL.current_date_time()}")
 
 

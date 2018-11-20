@@ -117,10 +117,11 @@ class Utility:
                     obj.customers = -9999
         return
 
-    @staticmethod
-    def change_case_to_title(stats_objects: list):
-        for obj in stats_objects:
-            obj.area = obj.area.title()
+    # @staticmethod
+    # def change_case_to_title(stats_objects: list):
+    #     # Removed use. Causes case errors in apostrophe containing county names. St. Mary's -> St. Mary'S
+    #     for obj in stats_objects:
+    #         obj.area = obj.area.title()
 
     @staticmethod
     def revise_county_name_spellings_and_punctuation(stats_objects_list: list):

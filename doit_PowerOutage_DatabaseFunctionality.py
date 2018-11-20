@@ -57,27 +57,12 @@ class DatabaseUtilities:
         self.selection = self.cursor.fetchall()
         return
 
-    # def select_records(self, style: str, provider_abbrev: str, fields_string: str = "*"):
-    #     table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
-    #     sql_statement = self.select_by_provider_abbrev_statement_realtime.format(fields=fields_string,
-    #                                                                              style=table_name_style,
-    #                                                                              provider_abbrev=provider_abbrev)
-    #     self.cursor.execute(sql_statement)
-    #     return
-
     def execute_sql_statement(self, sql_statement):
         try:
             self.cursor.execute(sql_statement)
         except pyodbc.DataError:
             print(f"A value in the sql exceeds the field length allowed in database table: {sql_statement}")
         return
-
-    # def insert_record_into_database(self, sql_statement):
-    #     try:
-    #         self.cursor.execute(sql_statement)
-    #     except pyodbc.DataError:
-    #         print(f"A value in the sql exceeds the field length allowed in database table: {sql_statement}")
-    #     return
 
     def commit_changes(self):
         try:
