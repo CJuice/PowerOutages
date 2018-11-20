@@ -1,7 +1,7 @@
 
 def main():
     import os
-    features_list = [r"doit_PowerOutage_CentralizedVariables.cfg",
+    features_list = [r"doit_PowerOutage_ProviderURI.cfg",
                      r"doit_PowerOutage_Credentials.cfg",
                      r"doit_PowerOutage_DatabaseFunctionality.py",
                      r"doit_PowerOutage_Main.py",

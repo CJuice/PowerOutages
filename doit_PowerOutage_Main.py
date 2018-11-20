@@ -8,6 +8,7 @@ def main():
     import configparser
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
+    import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
     import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
     import PowerOutages_V2.doit_PowerOutage_DELClasses as DELMod
@@ -15,21 +16,21 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
-    import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    # from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import PowerOutagesViewForArchiveCountyData
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
+
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
-    centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_CentralizedVariables.cfg")
+    centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_ProviderURI.cfg")
     credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
     none_and_not_available = (None, "NA")
-    sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive WHERE state is not Null"""
     OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
-    parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-    parser.read(filenames=[credentials_path, centralized_variables_path])
+    # parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    DOIT_UTIL.parser.read(filenames=[credentials_path, centralized_variables_path])
+    sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive WHERE state is not Null"""
+
 
     # Need to set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
@@ -51,11 +52,11 @@ def main():
     # Need to get and store variables, as provider object attributes, from cfg file.
     print("Gathering variables...")
     for key, obj in provider_objects.items():
-        section_items = [item for item in parser[key]]
+        section_items = [item for item in DOIT_UTIL.parser[key]]
         if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = [parser[key][item] for item in section_items]
+            obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.parser[key][item] for item in section_items]
         else:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [parser[key][item] for item in section_items]
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.parser[key][item] for item in section_items]
 
     # Need to make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
@@ -125,7 +126,7 @@ def main():
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
             bge_extra_header = obj.build_extra_header_for_SOAP_request()
-            bge_username, bge_password = [parser["BGE"][item] for item in parser["BGE"]]
+            bge_username, bge_password = [DOIT_UTIL.parser["BGE"][item] for item in DOIT_UTIL.parser["BGE"]]
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
                                                                          payload=obj.POST_DATA_XML_STRING.format(
                                                                              username=bge_username,
@@ -156,7 +157,7 @@ def main():
             obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
-            obj.extract_areas_list_county_process()
+            obj.extract_areas_list_county()
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
 
@@ -173,7 +174,7 @@ def main():
             #   to populate the stat objects with customers count value, in the absence of a data feed outage report.
             if obj.style == DOIT_UTIL.COUNTY:
                 obj.create_default_county_outage_stat_objects()  # Creates default objects.
-                obj.county_customer_count_database_safety_check()   # Checks if DB exist? If not then create.
+                obj.county_customer_count_database_safety_check()   # Checks if DB exist. If not, then create.
                 obj.get_current_county_customer_counts_in_memory()   # Get customer count values stored in sqlite3 DB
                 obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
             obj.extract_outage_events_list()
@@ -182,7 +183,7 @@ def main():
                 DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
                 obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
                 obj.replace_data_feed_stat_objects_with_amended_objects()   # Substitute amended for stat_objects
-                obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 database with any updated values
+                obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 DB with any updated values
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -203,13 +204,12 @@ def main():
             obj.extract_outage_counts()
             obj.extract_date_created()
 
+        # Need to remove duplicates, correct spelling & punctuation, convert str counts to int, and process date/time
         obj.purge_duplicate_stats_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
         DOIT_UTIL.process_customer_counts_to_integers(objects_list=obj.stats_objects)
-
-        # Need to groom the date created values, and calculate the data age for each provider
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
@@ -222,9 +222,9 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    #   Need to prepare for database transactions and establish a connection.
+    # Need to prepare for database transactions and establish a connection.
     print("Database operations initiated...")
-    db_obj = DbMod.DatabaseUtilities(parser=parser)
+    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.parser)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
@@ -244,7 +244,7 @@ def main():
                 db_obj.execute_sql_statement(sql_statement=sql_statement)
 
         except TypeError as te:
-            print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
+            print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
 
         else:
             db_obj.commit_changes()
@@ -254,14 +254,18 @@ def main():
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
-    #   the customer counts table using data feed values
+    #   the customer counts table using data feed values. Use feed when present and memory when not present.
     print("County customer count update process initiated...")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
     cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
     customer_count_update_generator = cust_obj.generate_insert_sql_statement_customer_count()
-    for statement in customer_count_update_generator:
-        db_obj.execute_sql_statement(sql_statement=statement)
+    try:
+        for statement in customer_count_update_generator:
+            db_obj.execute_sql_statement(sql_statement=statement)
+    except Exception as e:
+        print(f"CUSTOMER COUNT sqlite3 process. Database operation error. {e}")
+
     db_obj.commit_changes()
 
     # Need to clean up for next step
@@ -277,6 +281,9 @@ def main():
                 db_obj.execute_sql_statement(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
+        except Exception as e:
+            print(f"ARCHIVE ZIP process. Database insertion operation error. {e}")
+            exit()
         else:
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
@@ -293,7 +300,7 @@ def main():
         db_obj.fetch_all_from_selection()
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
-        print(e)
+        print(f"ARCHIVE County process. Database selection operation error. {e}")
         exit()
     else:
         archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
@@ -308,6 +315,7 @@ def main():
             db_obj.execute_sql_statement(sql_statement=sql_statement)
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
+        print(f"ARCHIVE County process. Database insertion operation error. {e}")
         print(e)
         exit()
     else:

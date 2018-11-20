@@ -23,7 +23,7 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
 
-    def extract_areas_list_county_process(self):
+    def extract_areas_list_county(self):
         data_json = self.data_feed_response.json()
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")

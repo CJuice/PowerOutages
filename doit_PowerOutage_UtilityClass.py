@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+import configparser
 
 
 class Utility:
@@ -14,6 +14,7 @@ class Utility:
                          "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
                          "Washington", "Wicomico", "Worcester"]
     ZIP = "ZIP"
+    parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 
     @staticmethod
     def current_date_time() -> str:
