@@ -181,10 +181,6 @@ class SME(Provider):
                     print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county.")
                 else:
                     database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
-                    # statement = VARS.sql_update_customers_table_sme_sqlite3, {"customers": stat_obj.customers,
-                    #              "date": DOIT_UTIL.current_date_time(),
-                    #              "area": database_ready_area_name}
-                    # statement = f"""UPDATE SME_Customer_Count_Memory SET Customer_Count = {stat_obj.customers}, Last_Updated = '{DOIT_UTIL.current_date_time()}' WHERE County_Name = '{database_ready_area_name}'"""
                     db_curs.execute(VARS.sql_update_customers_table_sme_sqlite3,
                                     {"customers": stat_obj.customers,
                                      "date": DOIT_UTIL.current_date_time(),
