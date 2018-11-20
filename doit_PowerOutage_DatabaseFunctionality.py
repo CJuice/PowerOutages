@@ -18,7 +18,7 @@ class DatabaseUtilities:
         self.full_connection_string = None
         self.selection = None
         self.sql_select_zipcode_by_provider_abbrev_statement_realtime = VARS.sql_select_zip_by_provider_abbrev_realtime
-        self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_statement_realtime
+        self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_realtime
 
     def create_database_connection_string(self):
         self.full_connection_string = self.database_connection_string.format(database_name=self.database_name,
