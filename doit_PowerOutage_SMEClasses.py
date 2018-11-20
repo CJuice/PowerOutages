@@ -40,7 +40,7 @@ class SME(Provider):
                                                 area=area,
                                                 outages=outages,
                                                 customers=customers,
-                                                state=self.maryland))
+                                                state=DOIT_UTIL.MARYLAND))
         self.stats_objects = list_of_stats_objects
         return
 
@@ -55,7 +55,7 @@ class SME(Provider):
                                             area=name,
                                             outages=outages,
                                             customers=cust_count,
-                                            state=self.maryland))
+                                            state=DOIT_UTIL.MARYLAND))
         self.default_zero_count_county_stat_objects = stat_objects_list
         return
 
@@ -128,7 +128,7 @@ class SME(Provider):
                                              area=default_stat_obj.area,
                                              outages=default_stat_obj.outages,
                                              customers=memory_count_value,
-                                             state=self.maryland)
+                                             state=DOIT_UTIL.MARYLAND)
                 amended_objects_list.append(amended_stat_object)
         self.memory_count_value_stat_objects = amended_objects_list
         return

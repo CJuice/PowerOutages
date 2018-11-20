@@ -50,7 +50,7 @@ class CTK(Provider):
                                                 area=e_list[area_index].text,
                                                 outages=e_list[affected_index].text,
                                                 customers=e_list[customers_index].text,
-                                                state=self.maryland))
+                                                state=DOIT_UTIL.MARYLAND))
         self.stats_objects = list_of_stats_objects
         return
 

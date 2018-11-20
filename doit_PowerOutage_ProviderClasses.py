@@ -4,6 +4,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+
 import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
 import dateutil.parser
 
@@ -24,7 +26,6 @@ class Provider:
         self.data_feed_response_status_code = None
         self.data_feed_response_style = None
         self.data_feed_uri = None
-        self.maryland = "Maryland"
         self.metadata_feed_response = None
         self.metadata_feed_response_status_code = None
         self.metadata_feed_uri = None
@@ -32,9 +33,9 @@ class Provider:
         self.metadata_key_attribute = "directory"
         self.style = style
         self.stats_objects = None
-        self.sql_insert_record_county_realtime = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
-        self.sql_insert_record_zip_realtime = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
-        self.sql_insert_record_zip_archive = """INSERT INTO dbo.Archive_PowerOutagesZipcode(ZIPCODE, ID, PROVIDER, OUTAGE, CREATED, UPDATED, ARCHIVED) VALUES ('{area}','NULL','{abbrev}',{outages},'{date_created}','{date_updated}','{date_updated}')"""
+        self.sql_insert_record_county_realtime = VARS.sql_insert_record_county_realtime
+        self.sql_insert_record_zip_realtime = VARS.sql_insert_record_zip_realtime
+        self.sql_insert_record_zip_archive = VARS.sql_insert_record_zip_archive
 
         self.web_func_class = WebFunc.WebFunctionality
 

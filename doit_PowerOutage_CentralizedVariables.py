@@ -1,0 +1,7 @@
+sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive WHERE state is not Null"""
+provider_uri_cfg_file = "doit_PowerOutage_ProviderURI.cfg"
+credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
+json_file_local_location_and_name = "JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
+sql_insert_record_county_realtime = """INSERT INTO dbo.RealTime_PowerOutagesCounty(STATE, COUNTY, OUTAGE, PROVIDER, UPDATED, CREATED) VALUES ('{state}','{county}',{outages},'{abbrev}','{date_updated}','{date_created}')"""
+sql_insert_record_zip_realtime = """INSERT INTO dbo.RealTime_PowerOutagesZipcodes(ZIPCODE, PROVIDER, OUTAGE, CREATED, UPDATED) VALUES ('{area}','{abbrev}',{outages},'{date_created}','{date_updated}')"""
+sql_insert_record_zip_archive = """INSERT INTO dbo.Archive_PowerOutagesZipcode(ZIPCODE, ID, PROVIDER, OUTAGE, CREATED, UPDATED, ARCHIVED) VALUES ('{area}','NULL','{abbrev}',{outages},'{date_created}','{date_updated}','{date_updated}')"""

@@ -5,7 +5,6 @@
 
 
 def main():
-    import configparser
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
@@ -16,6 +15,7 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
+    import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
@@ -23,14 +23,11 @@ def main():
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
-    centralized_variables_path = os.path.join(_root_project_path, "doit_PowerOutage_ProviderURI.cfg")
-    credentials_path = os.path.join(_root_project_path, "doit_PowerOutage_Credentials.cfg")
+    centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
+    credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
     none_and_not_available = (None, "NA")
-    OUTPUT_JSON_FILE = f"{_root_project_path}\JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
-    # parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
     DOIT_UTIL.parser.read(filenames=[credentials_path, centralized_variables_path])
-    sql_select_counties_viewforarchive = """SELECT state, county, outage, updated, percentage FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive WHERE state is not Null"""
-
 
     # Need to set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
@@ -296,7 +293,7 @@ def main():
     archive_county_obj = ArchiveCounty()
     try:
         db_obj.create_database_cursor()
-        db_obj.execute_sql_statement(sql_statement=sql_select_counties_viewforarchive)
+        db_obj.execute_sql_statement(sql_statement=VARS.sql_select_counties_viewforarchive)
         db_obj.fetch_all_from_selection()
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be

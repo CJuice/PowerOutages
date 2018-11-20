@@ -34,7 +34,7 @@ class EUC(Provider):
                                                 area=area,
                                                 outages=outages,
                                                 customers=customers,
-                                                state=self.maryland)
+                                                state=DOIT_UTIL.MARYLAND)
                                          )
         self.stats_objects = list_of_stats_objects
         return
