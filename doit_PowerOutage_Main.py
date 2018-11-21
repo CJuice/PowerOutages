@@ -32,6 +32,8 @@ The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folde
 def main():
 
     # IMPORTS
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
@@ -43,8 +45,6 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
-    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
 
@@ -52,7 +52,7 @@ def main():
     _root_project_path = os.path.dirname(__file__)
     centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
     credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
-    DOIT_UTIL.parser.read(filenames=[credentials_path, centralized_variables_path])
+    DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
     none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
 
@@ -76,11 +76,11 @@ def main():
     #   Get and store variables, as provider object attributes, from cfg file.
     print("Gathering variables...")
     for key, obj in provider_objects.items():
-        section_items = [item for item in DOIT_UTIL.parser[key]]
+        section_items = [item for item in DOIT_UTIL.PARSER[key]]
         if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.parser[key][item] for item in section_items]
+            obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
         else:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.parser[key][item] for item in section_items]
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
 
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
@@ -151,7 +151,7 @@ def main():
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
             bge_extra_header = obj.build_extra_header_for_SOAP_request()
-            bge_username, bge_password = [DOIT_UTIL.parser["BGE"][item] for item in DOIT_UTIL.parser["BGE"]]
+            bge_username, bge_password = [DOIT_UTIL.PARSER["BGE"][item] for item in DOIT_UTIL.PARSER["BGE"]]
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
                                                                          payload=obj.POST_DATA_XML_STRING.format(
                                                                              username=bge_username,
@@ -252,7 +252,7 @@ def main():
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
     print("Database operations initiated...")
-    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.parser)
+    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
