@@ -12,6 +12,7 @@ import copy
 
 
 class SME(Provider):
+
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.area = None

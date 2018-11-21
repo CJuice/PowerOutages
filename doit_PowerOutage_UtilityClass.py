@@ -9,10 +9,10 @@ class Utility:
     ZERO_TIME_STRING = "00:00:00 00:00:00"
     COUNTY = "County"
     MARYLAND = "Maryland"
-    MARYLAND_COUNTIES = ["Allegany", "Anne Arundel", "Baltimore", "Baltimore City", "Calvert", "Caroline", "Carroll",
+    MARYLAND_COUNTIES = ("Allegany", "Anne Arundel", "Baltimore", "Baltimore City", "Calvert", "Caroline", "Carroll",
                          "Cecil", "Charles", "Dorchester", "Frederick", "Garrett", "Harford", "Howard", "Kent",
                          "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
-                         "Washington", "Wicomico", "Worcester"]
+                         "Washington", "Wicomico", "Worcester")
     ZIP = "ZIP"
     LESS_THAN_FIVE = "Less than 5"
     parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())

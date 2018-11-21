@@ -7,17 +7,16 @@ from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
 class DEL(PEPDELParent):
 
-    SPECIAL_ZIP_VALUES_DICT = {"21921,21922": "21916,21920,21921"}
-
     def __init__(self, provider_abbrev, style):
         super(DEL, self).__init__(provider_abbrev=provider_abbrev, style=style)
+        self.SPECIAL_ZIP_VALUES_DICT = {"21921,21922": "21916,21920,21921"}
 
     def generate_insert_sql_statement_realtime(self):
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
             if self.style == "ZIP":
                 try:
-                    stat_obj.area = DEL.SPECIAL_ZIP_VALUES_DICT[stat_obj.area]
+                    stat_obj.area = self.SPECIAL_ZIP_VALUES_DICT[stat_obj.area]
                 except KeyError as ke:
                     pass
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
