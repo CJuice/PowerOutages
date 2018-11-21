@@ -20,15 +20,18 @@ by methods in child classes.
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
 variables and sql statements. It is not intended to be used by Utility class.
-A Web Related Functionality class exists for web related functionility and is accessed by the Provider exclusively.
+A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 To track historic customer count values for provider SME, a local sqlite3 database was built. This database is consulted
 for values and written to when necessary. It is named SME_Customer_Count_Memory_DB.db and is stored in a folder named
 SME_Customer_Count_Memory_DB.
+The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 """
 # TODO: Add logging functionality at some level for this process
 
 
 def main():
+
+    # IMPORTS
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
@@ -49,11 +52,11 @@ def main():
     _root_project_path = os.path.dirname(__file__)
     centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
     credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
+    DOIT_UTIL.parser.read(filenames=[credentials_path, centralized_variables_path])
     none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
-    DOIT_UTIL.parser.read(filenames=[credentials_path, centralized_variables_path])
 
-    # Need to set up provider objects for use. Later referred to as "key, obj" in iteration loops.
+    #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
                         "BGE_ZIP": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.ZIP),
                         "CTK_County": CTKMod.CTK(provider_abbrev="CTK", style=DOIT_UTIL.COUNTY),
@@ -70,7 +73,7 @@ def main():
                         "SME_ZIP": SMEMod.SME(provider_abbrev="SME", style=DOIT_UTIL.ZIP),
                         }
 
-    # Need to get and store variables, as provider object attributes, from cfg file.
+    #   Get and store variables, as provider object attributes, from cfg file.
     print("Gathering variables...")
     for key, obj in provider_objects.items():
         section_items = [item for item in DOIT_UTIL.parser[key]]
@@ -79,7 +82,8 @@ def main():
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.parser[key][item] for item in section_items]
 
-    # Need to make the metadata key requests, for those providers that use the metadata key, and store the response.
+    # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
+    #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
     print("Metadata feed processing...")
     for key, obj in provider_objects.items():
@@ -89,7 +93,7 @@ def main():
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
 
-    # Need to extract the metadata key and assign to provider object attribute for later use.
+    #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in none_and_not_available:
             continue
@@ -105,7 +109,7 @@ def main():
                     data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
-    # Need to make the date created requests, for providers with a date created service, and store the response.
+    #   Make the date created requests, for providers with a date created service, and store the response.
     print("Date Generated feed processing...")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
@@ -115,7 +119,7 @@ def main():
                                                                  data_feed_uri=obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
-    # Need to extract the date created value and assign to provider object attribute
+    #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
@@ -140,7 +144,7 @@ def main():
                     data_dict=file_data,
                     attribute_name=obj.date_created_attribute)
 
-    # Need to make the data feed requests and store the response.
+    #   Make the data feed requests and store the response.
     print("Data feed processing...")
     for key, obj in provider_objects.items():
         if "BGE" in key:
@@ -161,11 +165,12 @@ def main():
                 obj.build_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
 
-    # Need to detect the style of response
+    # Detect the style of response
     for key, obj in provider_objects.items():
         obj.detect_response_style()
 
-    # Need to extract the outage data from the response, for each provider. Where applicable, extract the
+    # PROCESS RESPONSE DATA
+    #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print("Data processing...")
     for key, obj in provider_objects.items():
@@ -234,7 +239,8 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-    # Need to write json file containing status check on all feeds.
+    # JSON FILE OUTPUT
+    #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
@@ -243,7 +249,8 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    # Need to prepare for database transactions and establish a connection.
+    # DATABASE TRANSACTIONS
+    #   Prepare for database transactions and establish a connection.
     print("Database operations initiated...")
     db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.parser)
     db_obj.create_database_connection_string()
@@ -271,7 +278,7 @@ def main():
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
-    # Need to clean up for next step
+    # Clean up for next step
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
@@ -289,7 +296,7 @@ def main():
 
     db_obj.commit_changes()
 
-    # Need to clean up for next step
+    # Clean up for next step
     db_obj.delete_cursor()
 
     # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
@@ -309,7 +316,7 @@ def main():
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
-    # Need to clean up for next step
+    # Clean up for next step
     db_obj.delete_cursor()
 
     # ARCHIVE County: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
@@ -343,7 +350,7 @@ def main():
         db_obj.commit_changes()
         print("County archive records inserted into Archive_PowerOutagesCounty.")
     finally:
-        # Need to clean up for next step
+        # Clean up for next step
         db_obj.delete_cursor()
 
     print(f"Process complete @ {DOIT_UTIL.current_date_time()}")
