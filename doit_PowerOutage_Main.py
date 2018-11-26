@@ -333,6 +333,7 @@ def main():
     else:
         archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
     finally:
+        # Clean up for next step
         db_obj.delete_cursor()
 
     #   Insertion into Archive_PowerOutagesCounty

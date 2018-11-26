@@ -1,7 +1,7 @@
 from datetime import datetime
-import json
-import xml.etree.ElementTree as ET
 import configparser
+import xml.etree.ElementTree as ET
+import json
 
 
 class Utility:
