@@ -128,6 +128,13 @@ sql_update_customer_counts_table = textwrap.dedent(
 )
 sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
     """UPDATE SME_Customer_Count_Memory 
-    SET Customer_Count = :customers, Last_Updated = ':date' 
-    WHERE County_Name = ':area'"""
+    SET Customer_Count = {customers}, Last_Updated = '{date}' 
+    WHERE County_Name = '{area}'"""
 )
+
+# NOTE: Named style was not working, execute did not succeed. Switched to using .format for ease.
+# sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
+#     """UPDATE SME_Customer_Count_Memory
+#     SET Customer_Count = :customers, Last_Updated = ':date'
+#     WHERE County_Name = ':area'"""
+# )

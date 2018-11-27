@@ -181,13 +181,15 @@ class SME(Provider):
                 if stat_obj.customers == memory_count_dict[stat_obj.area]:
                     print(f"{stat_obj.abbrev} customer count value did not change for {stat_obj.area} county.")
                 else:
-                    database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
-                    db_curs.execute(VARS.sql_update_customers_table_sme_sqlite3,
-                                    {"customers": stat_obj.customers,
-                                     "date": DOIT_UTIL.current_date_time(),
-                                     "area": database_ready_area_name})
+                    database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep names with apostrophe for DB
+
+                    # NOTE: Named style was not working, execute did not succeed. Switched to using .format for ease.
+                    statement = VARS.sql_update_customers_table_sme_sqlite3.format(customers=stat_obj.customers,
+                                                                                   date=DOIT_UTIL.current_date_time(),
+                                                                                   area=database_ready_area_name)
+                    db_curs.execute(statement)
                     conn.commit()
-                    print(f"{stat_obj.abbrev} customer count value changed. Value in memory was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}.")
+                    print(f"{stat_obj.abbrev} customer count value changed for {stat_obj.area} county. Count was updated from {memory_count_dict[stat_obj.area]} to {stat_obj.customers}.\n\tTotal database rows changed: {conn.total_changes}")
         except sqlite3.OperationalError as sqlOpErr:
             print(sqlOpErr)
             exit()
