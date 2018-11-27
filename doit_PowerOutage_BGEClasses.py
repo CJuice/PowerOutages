@@ -9,7 +9,7 @@ from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 
 class BGE(Provider):
     """
-    BGE specific functionality and variables for handling BGE feed data.
+    BGE specific functionality and variables for handling BGE feed data. Inherits from Provider.
     BGE uses a POST rather than GET for retrieving feed data, unlike the other providers. This requires unique
     functionality that this class provides.
     """

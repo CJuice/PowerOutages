@@ -12,6 +12,16 @@ import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class SME(Provider):
+    """
+    SME specific functionality and variables for handling SME feed data. Inherits from Provider.
+    SME requires special functionality because the data feed does not contain county information when the outage count
+    is equal to zero. When zero, no data is passed for counties so the customer count value is unavailable for
+    use in calculating the percent outages. For this reason, special functionality was developed. This functionality
+    involves a local sqlite3 database that holds the last known customer count value. When data for a county is passed
+    in the outage data feed the customer count value is compared with the value stored in the local database. If the
+    new value is different than the value in memory, the database is updated. If the value is the same, no action is
+    taken. If no value is passed in the data feed then the database value is used.
+    """
 
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
@@ -26,10 +36,19 @@ class SME(Provider):
         self.database_table_name = VARS.sme_database_table_name
 
     def extract_outage_events_list(self):
+        """
+        Extract the outage counts from json.
+        :return:
+        """
         data_json = self.data_feed_response.json()
         self.outage_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
+        return
 
     def extract_outage_counts_by_desc(self):
+        """
+        Extract outage and customer counts and build stat object.
+        :return: none
+        """
         list_of_stats_objects = []
         for obj in self.outage_events_list:
             desc_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=obj, attribute_name="desc")
@@ -47,7 +66,10 @@ class SME(Provider):
         return
 
     def create_default_county_outage_stat_objects(self):
-
+        """
+        Create default, zero count, county stat objects for the three counties that SME serves.
+        :return: none
+        """
         names_count_dict = {"Calvert": 0, "Charles": 0, "St. Mary's": 0}
         outages = 0
         stat_objects_list = []
@@ -62,7 +84,10 @@ class SME(Provider):
         return
 
     def county_customer_count_database_safety_check(self):
-
+        """
+        Check if the database exists and create the database and build the main table if it does not.
+        :return: none
+        """
         # Need to check for database existence first, then create db if needed.
         if os.path.exists(self.database_path):
             return
@@ -98,7 +123,10 @@ class SME(Provider):
         return
 
     def get_current_county_customer_counts_in_memory(self):
-
+        """
+        Retrieve the customer count records from the local sqlite3 database.
+        :return: none
+        """
         # Need the previous customer counts
         try:
             conn = sqlite3.connect(database=self.database_path)
@@ -116,6 +144,10 @@ class SME(Provider):
             conn.close()
 
     def amend_default_stat_objects_with_cust_counts_from_memory(self):
+        """
+        Revise the default stat objects with the customer count data pulled from the local sqlite3 database.
+        :return:
+        """
         amended_objects_list = []
         memory_county_cust_counts_dict = {name: count for id, name, count in self.cust_count_memory_count_selection}
         for default_stat_obj in self.default_zero_count_county_stat_objects:
@@ -141,6 +173,10 @@ class SME(Provider):
         return
 
     def update_amended_cust_count_objects_using_live_data(self):
+        """
+        Copy the amended default objects and overwrite the memory values with live data values, if available.
+        :return:
+        """
         memory_amended_dict = {}
         feed_data_dict = {}
         for amended_obj in self.memory_count_value_stat_objects:
@@ -170,10 +206,18 @@ class SME(Provider):
         return
 
     def replace_data_feed_stat_objects_with_amended_objects(self):
+        """
+        Replace the data feed stat objects with the amended and update stat objects.
+        :return:
+        """
         self.stats_objects = self.updated_amend_objects_from_live_data
         return
 
     def update_sqlite3_cust_count_memory_database(self):
+        """
+        Use the stat objects to update, if necessary, the values in the county customer counts sqlite3 database.
+        :return: none
+        """
 
         # Need a dictionary with county name and customer count from value in database
         memory_count_dict = {}
