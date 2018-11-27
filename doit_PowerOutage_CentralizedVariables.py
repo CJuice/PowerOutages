@@ -1,3 +1,10 @@
+"""
+Module containing variables and no functionality. Mostly serves as repository for sql variables that are very long and
+exceed the PEP line length guideline, and other values that may need to be edited in the future. The intent is to make
+editing easier for non-developers by having a single location for the variables so that they do not need to search
+through and interact with the code. This avoids introduction of errors and also makes life easier for those who do not
+enjoy mucking about in the code.
+"""
 import textwrap
 
 credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
@@ -112,9 +119,8 @@ sql_select_county_data_sme_sqlite3 = textwrap.dedent(
     """SELECT County_ID, County_Name, Customer_Count 
     FROM SME_Customer_Count_Memory"""
 )
-# TODO: replace * with field names to avoid errors in future if fields are added etc. Be specific in selection!
 sql_select_grouped_zipcodes = textwrap.dedent(
-    """SELECT * 
+    """SELECT ZIPCODE, ID 
     FROM dbo.RealTime_PowerOutagesZipcodes_Grouped"""
 )
 sql_select_zip_by_provider_abbrev_realtime = textwrap.dedent(
