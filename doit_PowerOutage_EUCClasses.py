@@ -1,13 +1,18 @@
 """
-
+Module contains a EUC class that inherits from Provider class. EUC class is an implementation specific to the
+peculiarities of the EUC feeds and the processing they require that is not common to all providers.
 """
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import json
 
 
 class EUC(Provider):
+    """
+    EUC specific functionality and variables for handling EUC feed data. Inherits from Provider.
+    EUC is unique in that the provider only serves a single zip code and does not provide feed data by county.
+    """
 
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
@@ -16,11 +21,20 @@ class EUC(Provider):
         self.zip_to_county = {"21601": "Talbot"}
 
     def extract_outage_events_list_from_xml_str(self):
+        """
+        Extract outage events from xml response
+        :return: none
+        """
         content_list_as_str = self.xml_element.text
         self.events_list = json.loads(content_list_as_str)
         return
 
     def extract_outage_counts(self):
+        """
+        Extract outage counts, customer counts, and area from events list, exchange zip for county, then
+        build stat objects.
+        :return: none
+        """
         list_of_stats_objects = []
         for event in self.events_list:
             outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="Count")
@@ -41,6 +55,11 @@ class EUC(Provider):
         return
 
     def extract_date_created(self):
+        """
+        Extract the date created from the events list.
+        :return:
+        """
         for event in self.events_list:
             self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="TimeStamp")
         return
+    
