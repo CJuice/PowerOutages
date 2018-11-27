@@ -62,4 +62,3 @@ class EUC(Provider):
         for event in self.events_list:
             self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="TimeStamp")
         return
-    
