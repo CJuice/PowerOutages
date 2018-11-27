@@ -1,6 +1,6 @@
 """
 Module contains a BGE class that inherits from Provider class. BGE class is an implementation specific to the
-peculiarities of the BGE feeds and the processing thoy require that is not common to all providers.
+peculiarities of the BGE feeds and the processing they require that is not common to all providers.
 """
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
@@ -37,7 +37,7 @@ class BGE(Provider):
         self.xml_element = None
         self.outages_list = None
 
-    def build_extra_header_for_SOAP_request(self):
+    def build_extra_header_for_SOAP_request(self) -> dict:
         """
         Build the extra header required for the SOAP request
         :return: dictionary

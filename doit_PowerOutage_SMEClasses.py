@@ -1,14 +1,14 @@
 """
-
+Module contains a SME class that inherits from Provider class. SME class is an implementation specific to the
+peculiarities of the SME feeds and the processing they require that is not common to all providers.
 """
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
-
-import sqlite3
-import os
 import copy
+import os
+import sqlite3
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class SME(Provider):
@@ -48,7 +48,7 @@ class SME(Provider):
 
     def create_default_county_outage_stat_objects(self):
 
-        names_count_dict = {"Calvert": 0, "Charles": 0, "Queen Anne's": 0, "St. Mary's": 0}
+        names_count_dict = {"Calvert": 0, "Charles": 0, "St. Mary's": 0}
         outages = 0
         stat_objects_list = []
         for name, cust_count in names_count_dict.items():
@@ -62,18 +62,19 @@ class SME(Provider):
         return
 
     def county_customer_count_database_safety_check(self):
-        # TODO: extrac the sql statements to attributes and use formatting to fill them out
+
         # Need to check for database existence first, then create db if needed.
         if os.path.exists(self.database_path):
             return
         else:
+
             # This is important if the database does not exist. Builds and populates default database
             # As of 20181115 SME did not provide county data in data feed when outage count was zero. So no records built.
             try:
                 conn = sqlite3.connect(database=self.database_path)
                 db_curs = conn.cursor()
-                db_curs.execute(VARS.sql_create_county_table_sme_sqlite3,
-                                {"table_name": self.database_table_name})
+                statement = VARS.sql_create_county_table_sme_sqlite3.format(table_name=self.database_table_name)
+                db_curs.execute(statement)
                 conn.commit()
             except sqlite3.OperationalError as sqlOpErr:
                 print(sqlOpErr)
@@ -84,11 +85,12 @@ class SME(Provider):
             else:
                 for default_county_stat_obj in self.default_zero_count_county_stat_objects:
                     print(f"Default Object: {default_county_stat_obj}")
-                    db_curs.execute(VARS.sql_insert_into_county_table_sme_sqlite3,
-                                    {"table_name": self.database_table_name,
-                                     "county_name": default_county_stat_obj.area,
-                                     "cust_count": default_county_stat_obj.customers,
-                                     "date_updated": DOIT_UTIL.current_date_time()})
+                    database_ready_area_name = default_county_stat_obj.area.replace("'", "''")  # Prep names with apostrophe for DB
+                    statement = VARS.sql_insert_into_county_table_sme_sqlite3.format(table_name=self.database_table_name,
+                                                                                     county_name=database_ready_area_name,
+                                                                                     cust_count=default_county_stat_obj.customers,
+                                                                                     date_updated=DOIT_UTIL.current_date_time())
+                    db_curs.execute(statement)
                 conn.commit()
                 print(f"{self.database_path} did not appear to exist. A new zero count version has been created. Memory of previous SME customer counts has been lost.")
             finally:
@@ -118,12 +120,15 @@ class SME(Provider):
         memory_county_cust_counts_dict = {name: count for id, name, count in self.cust_count_memory_count_selection}
         for default_stat_obj in self.default_zero_count_county_stat_objects:
             try:
+
                 # Use the default stat objects county name to pull the appropriate memory customer count value
                 memory_count_value = memory_county_cust_counts_dict[default_stat_obj.area]
             except KeyError as ke:
+
                 # A spelling error mismatch between default county name and memory spelling of county name
                 print(f"Key [{default_stat_obj.area}] not found in county names in memory records: {ke}")
             else:
+
                 # Need to make a new object instead of modifying defaults. Defaults should remain as-built for clarity.
                 amended_stat_object = Outage(abbrev=self.abbrev,
                                              style=self.style,
@@ -169,7 +174,7 @@ class SME(Provider):
         return
 
     def update_sqlite3_cust_count_memory_database(self):
-        # TODO: Redesign sql statements to use dictionary syntax. Also extract to attribute
+
         # Need a dictionary with county name and customer count from value in database
         memory_count_dict = {}
         for obj in self.memory_count_value_stat_objects:

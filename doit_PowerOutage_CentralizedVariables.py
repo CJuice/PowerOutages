@@ -15,7 +15,7 @@ provider_uri_cfg_file = "doit_PowerOutage_ProviderURI.cfg"
 sme_customer_count_database_location_and_name = "SME_Customer_Count_Memory_DB\SME_Customer_Count_Memory_DB.db"
 sme_database_table_name = "SME_Customer_Count_Memory"
 sql_create_county_table_sme_sqlite3 = textwrap.dedent(
-    """CREATE TABLE :table_name (
+    """CREATE TABLE {table_name} (
         County_ID integer primary key autoincrement, 
         County_Name text, 
         Customer_Count integer, 
@@ -27,11 +27,11 @@ sql_delete_statement = textwrap.dedent(
     WHERE PROVIDER = '{provider_abbrev}'"""
 )
 sql_insert_into_county_table_sme_sqlite3 = textwrap.dedent(
-    """INSERT INTO :table_name VALUES (
+    """INSERT INTO {table_name} VALUES (
         Null,
-        :county_name, 
-        :cust_count, 
-        :date_updated
+        '{county_name}', 
+        {cust_count}, 
+        '{date_updated}'
     )"""
 )
 sql_insert_record_county_archive = textwrap.dedent(
@@ -138,7 +138,8 @@ sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
     WHERE County_Name = '{area}'"""
 )
 
-# NOTE: Named style was not working, execute did not succeed. Switched to using .format for ease.
+# NOTE: Named style was not working, execute did not succeed. Switched to using .format for sqlite3 db statements.
+#Example:
 # sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
 #     """UPDATE SME_Customer_Count_Memory
 #     SET Customer_Count = :customers, Last_Updated = ':date'
