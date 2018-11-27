@@ -47,7 +47,7 @@ class BGE(Provider):
     def extract_date_created(self):
         """
         Extract the date created from the xml response content
-        :return:
+        :return: none
         """
         for date_time in self.xml_element.iter("CreateDateTime"):
             self.date_created = date_time.text
