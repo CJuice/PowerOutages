@@ -1,12 +1,18 @@
 """
-
+Module contains a BGE class that inherits from Provider class. BGE class is an implementation specific to the
+peculiarities of the BGE feeds and the processing thoy require that is not common to all providers.
 """
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 
 
 class BGE(Provider):
+    """
+    BGE specific functionality and variables for handling BGE feed data.
+    BGE uses a POST rather than GET for retrieving feed data, unlike the other providers. This requires unique
+    functionality that this class provides.
+    """
 
     POST_DATA_XML_STRING = """<?xml version="1.0" encoding="utf-8"?>\n
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:out="http://Constellation.BGE.com/OutageInfoWebService">\n
@@ -32,16 +38,27 @@ class BGE(Provider):
         self.outages_list = None
 
     def build_extra_header_for_SOAP_request(self):
+        """
+        Build the extra header required for the SOAP request
+        :return: dictionary
+        """
         return {"Content-Type": "text/xml", "charset": "utf-8", "SOAPAction": self.soap_header_uri, }
 
-    def extract_outage_elements(self):
-        outage_elements_list = []
-        for outage in self.xml_element.iter("Outage"):
-            outage_elements_list.append(outage)
-        self.outages_list = outage_elements_list
+    def extract_date_created(self):
+        """
+        Extract the date created from the xml response content
+        :return:
+        """
+        for date_time in self.xml_element.iter("CreateDateTime"):
+            self.date_created = date_time.text
+            return
 
     def extract_outage_counts(self):
-        # NOTE: It appears that BGE does not provide a count of customers served for zip code areas. Set to -9999.
+        """
+        Extract the outage counts from xml.
+        NOTE: It appears that BGE does not provide a count of customers served for zip code areas. Set to -9999.
+        :return:
+        """
         substitution = {"County": "County", "ZIP": "ZipCode"}.get(self.style)
         stats_objects_list = []
         for outage in self.outages_list:
@@ -61,8 +78,15 @@ class BGE(Provider):
                                              customers=customers,
                                              state=DOIT_UTIL.MARYLAND))
         self.stats_objects = stats_objects_list
+        return
 
-    def extract_date_created(self):
-        for date_time in self.xml_element.iter("CreateDateTime"):
-            self.date_created = date_time.text
-            return
+    def extract_outage_elements(self):
+        """
+        Extract the outage elements from the response content
+        :return: none
+        """
+        outage_elements_list = []
+        for outage in self.xml_element.iter("Outage"):
+            outage_elements_list.append(outage)
+        self.outages_list = outage_elements_list
+        return
