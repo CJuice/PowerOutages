@@ -260,12 +260,22 @@ def main():
     db_obj.create_database_cursor()
     for key, obj in provider_objects.items():
 
+        # # FIXME: TESTING: troubleshooting grouped zip codes issue
+        # if obj.style == DOIT_UTIL.ZIP:
+        #     print(obj.abbrev, obj.style)
+        #     for stat_obj in obj.stats_objects:
+        #         print(stat_obj.area)
+
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
         # Need to update database table with new records and handle unique provider functionality
         if key in ("CTK_ZIP",):
             obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
+            obj.process_grouped_zip_code_values()
+        elif key in ("DEL_ZIP",):
+            obj.process_grouped_zip_code_values()
+
         try:
             insert_generator = obj.generate_insert_sql_statement_realtime()
             for sql_statement in insert_generator:

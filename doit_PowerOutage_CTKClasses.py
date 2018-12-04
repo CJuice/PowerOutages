@@ -91,33 +91,14 @@ class CTK(Provider):
         self.grouped_zipcodes_dict = record_dict
         return
 
-    def generate_insert_sql_statement_realtime(self):
-        """
-        Generate insert sql statements and yield the string
-        Overrides method in Provider
-        :return: none
-        """
-        self.date_updated = DOIT_UTIL.current_date_time()
+    def process_grouped_zip_code_values(self):
         for stat_obj in self.stats_objects:
             if self.style == "ZIP":
-                area_of_focus = stat_obj.area
+
+                # Substitute comma separated strings of zipcodes from grouped values dict, if single zip value found.
                 try:
-                    area_value = self.grouped_zipcodes_dict[area_of_focus]
+                    area_value = self.grouped_zipcodes_dict[stat_obj.area]
+                    print(f"{self.abbrev} - FOUND: {area_value}")
                 except KeyError as ke:
-                    area_value = area_of_focus
-                sql = self.sql_insert_record_zip_realtime.format(area=area_value,
-                                                                 abbrev=stat_obj.abbrev,
-                                                                 outages=stat_obj.outages,
-                                                                 date_created=self.date_created,
-                                                                 date_updated=self.date_updated
-                                                                 )
-            else:
-                database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
-                sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
-                                                                    county=database_ready_area_name,
-                                                                    outages=stat_obj.outages,
-                                                                    abbrev=self.abbrev,
-                                                                    date_updated=self.date_updated,
-                                                                    date_created=self.date_created
-                                                                    )
-            yield sql
+                    print(f"{self.abbrev} - NOT FOUND: {stat_obj.area}")
+        return

@@ -120,7 +120,7 @@ class Provider:
     def generate_insert_sql_statement_realtime(self):
         """
         Build the insert sql statement for real time data and yield the statement.
-        Overridden by subclasses. For both County and ZIP data.
+        For both County and ZIP data.
         :return: none
         """
         self.date_updated = DOIT_UTIL.current_date_time()
