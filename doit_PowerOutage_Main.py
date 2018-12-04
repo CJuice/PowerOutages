@@ -272,8 +272,10 @@ def main():
         # Need to update database table with new records and handle unique provider functionality
         if key in ("CTK_ZIP",):
             obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
+            print("Processing CTK grouped zips")
             obj.process_grouped_zip_code_values()
         elif key in ("DEL_ZIP",):
+            print("Processing DEL grouped zips")
             obj.process_grouped_zip_code_values()
 
         try:
