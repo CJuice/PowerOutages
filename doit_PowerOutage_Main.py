@@ -258,13 +258,8 @@ def main():
 
     # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     db_obj.create_database_cursor()
-    for key, obj in provider_objects.items():
 
-        # # FIXME: TESTING: troubleshooting grouped zip codes issue
-        # if obj.style == DOIT_UTIL.ZIP:
-        #     print(obj.abbrev, obj.style)
-        #     for stat_obj in obj.stats_objects:
-        #         print(stat_obj.area)
+    for key, obj in provider_objects.items():
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
@@ -282,10 +277,8 @@ def main():
             insert_generator = obj.generate_insert_sql_statement_realtime()
             for sql_statement in insert_generator:
                 db_obj.execute_sql_statement(sql_statement=sql_statement)
-
         except TypeError as te:
             print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
-
         else:
             db_obj.commit_changes()
             print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")

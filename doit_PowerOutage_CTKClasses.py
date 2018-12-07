@@ -98,7 +98,7 @@ class CTK(Provider):
                 # Substitute comma separated strings of zipcodes from grouped values dict, if single zip value found.
                 try:
                     area_value = self.grouped_zipcodes_dict[stat_obj.area]
-                    print(f"{self.abbrev} - FOUND: {area_value}")
+                    stat_obj.area = area_value
+
                 except KeyError as ke:
-                    print(f"{self.abbrev} - NOT FOUND: {stat_obj.area}")
         return
