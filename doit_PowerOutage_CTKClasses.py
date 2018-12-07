@@ -99,6 +99,6 @@ class CTK(Provider):
                 try:
                     area_value = self.grouped_zipcodes_dict[stat_obj.area]
                     stat_obj.area = area_value
-
                 except KeyError as ke:
+                    pass
         return
