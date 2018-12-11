@@ -143,6 +143,8 @@ class Provider:
                                                                     )
             yield sql
 
+    # TODO: Need to develop zip code outage count sum functionality to deal with overlapping zip code reports
+
     def generate_insert_sql_statement_archive(self):
         """
         Build the insert sql statement for archive data and yield the statement.
