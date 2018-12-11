@@ -125,13 +125,18 @@ class Provider:
         """
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
-            if self.style == DOIT_UTIL.ZIP and stat_obj.state == "MD":
-                sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
-                                                                 abbrev=stat_obj.abbrev,
-                                                                 outages=stat_obj.outages,
-                                                                 date_created=self.date_created,
-                                                                 date_updated=self.date_updated
-                                                                 )
+            if self.style == DOIT_UTIL.ZIP:
+                if stat_obj.state == DOIT_UTIL.MARYLAND:
+
+                    # Isolate Maryland zips, according to provider, before inserting to RealTime Table
+                    sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
+                                                                     abbrev=stat_obj.abbrev,
+                                                                     outages=stat_obj.outages,
+                                                                     date_created=self.date_created,
+                                                                     date_updated=self.date_updated
+                                                                     )
+                else:
+                    continue
             else:
                 database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
                 sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
