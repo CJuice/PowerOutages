@@ -243,12 +243,6 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-        #TESTING
-        # if obj.abbrev in ("PEP", "DEL") and obj.style == "ZIP":
-        #     for statobjs in obj.stats_objects:
-        #         if "," in statobjs.area:
-        #             print("MULTI: ", statobjs.abbrev, statobjs.area)
-
     exit()
     # JSON FILE OUTPUT
     #   Write json file containing status check on all feeds.

@@ -113,12 +113,7 @@ class PEPDELParent(Provider):
         # Inspect every stat object
         stat_objs_to_delete = []
         new_stat_objs_to_append = []
-        # print("BEFORE: ", self.stats_objects)
         for stat_obj in self.stats_objects:
-
-            # Limit to MD or would need to have master list of zips for Delaware and DC
-            # if stat_obj.state != "MD":
-            #     continue
 
             # If the delimiter, currently a comma, is in the area then it is multi-value and needs to be processed
             if PEPDELParent.MULTI_ZIP_CODE_VALUE_DELIMITER in stat_obj.area:
@@ -136,22 +131,18 @@ class PEPDELParent(Provider):
 
                 # Check the master dictionary, try the key, if it's there it will work and if not it will throw
                 try:
+
                     # if in dict then no error
                     _ = VARS.maryland_master_inventory_zip_codes_with_geometry[zipcode]
-                    # print(f"Found: {zipcode}")
                 except KeyError as ke:
-                    # print(f"{zipcode} triggered keyerror. not seen as being in master geometry dict")
-                    # print(f"Added to non-geometry zips: {zipcode}")
                     non_geometry_zips.append(zipcode)
                     continue
                 else:
                     singles_geom_only.append(zipcode)
 
-            # print(non_geometry_zips)
-            # print(singles_geom_only)
-
             # Attempt to build stat objects for singles but protect against case where all singles are no-geometry zips
             if len(singles_geom_only) > 0:
+
                 # Calculate the portion and the fraction of outages based on the number of singles remaining
                 portion = stat_obj.outages // len(singles_geom_only)  # Truncation division
                 fraction = stat_obj.outages % len(singles_geom_only)  # Finding remainder
@@ -169,7 +160,7 @@ class PEPDELParent(Provider):
                                                      ) for value in singles_geom_only]
 
             else:
-                print(f"WARNING: Multi-value zip string ({stat_obj.area}) ({stat_obj.abbrev}, state={stat_obj.state}) all registered as 'no-geometry' so count value ({stat_obj.outages}) could not be applied for MD map display.")
+                print(f"WARNING: Multi-value zip string ({stat_obj.area}) (prov={stat_obj.abbrev}, state={stat_obj.state}) all registered as 'no-geometry' so count value ({stat_obj.outages}) could not be applied for MD map display.")
                 continue
 
             # Apply the fraction until no more counts to distribute
@@ -179,6 +170,10 @@ class PEPDELParent(Provider):
                         old_obj.outages += 1
                         fraction -= 1
 
+            print(f"Multi: {stat_obj}")
+            for new_obj in singles_stats_objects_list:
+                print(f"\tSingle: {new_obj}")
+
             # track old stats objects that have become new singles and new singles to be added to original list.
             new_stat_objs_to_append = new_stat_objs_to_append + singles_stats_objects_list
 
@@ -187,5 +182,5 @@ class PEPDELParent(Provider):
             self.stats_objects.remove(old_obj)
 
         self.stats_objects = self.stats_objects + new_stat_objs_to_append
-        # print("AFTER: ", self.stats_objects)
+
         return
