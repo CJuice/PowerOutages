@@ -120,23 +120,18 @@ class Provider:
     def generate_insert_sql_statement_realtime(self):
         """
         Build the insert sql statement for real time data and yield the statement.
-        For both County and ZIP data.
+        For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
         :return: none
         """
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP:
-                if stat_obj.state == DOIT_UTIL.MARYLAND:
-
-                    # Isolate Maryland zips, according to provider, before inserting to RealTime Table
-                    sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
-                                                                     abbrev=stat_obj.abbrev,
-                                                                     outages=stat_obj.outages,
-                                                                     date_created=self.date_created,
-                                                                     date_updated=self.date_updated
-                                                                     )
-                else:
-                    continue
+                sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
+                                                                 abbrev=stat_obj.abbrev,
+                                                                 outages=stat_obj.outages,
+                                                                 date_created=self.date_created,
+                                                                 date_updated=self.date_updated
+                                                                 )
             else:
                 database_ready_area_name = stat_obj.area.replace("'", "''")  # Prep apostrophe containing names for DB
                 sql = self.sql_insert_record_county_realtime.format(state=stat_obj.state,
@@ -167,6 +162,16 @@ class Provider:
                 sql = ""
                 continue
             yield sql
+
+    def remove_non_maryland_zip_stat_objects(self):
+
+        non_maryland_stat_objects = []
+        for stat_obj in self.stats_objects:
+            if self.style == DOIT_UTIL.ZIP and stat_obj.state != DOIT_UTIL.MARYLAND:
+                non_maryland_stat_objects.append(stat_obj)
+        for obj in non_maryland_stat_objects:
+            self.stats_objects.remove(obj)
+        return
 
     def groom_date_created(self):
         """
