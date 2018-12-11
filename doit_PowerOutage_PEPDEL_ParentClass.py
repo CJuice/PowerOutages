@@ -98,13 +98,14 @@ class PEPDELParent(Provider):
             zip_code = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="area_name")
             outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="custs_out")
             customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="total_custs")
-            state = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="state")
+            state_raw = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="state")
+            state_groomed = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_raw)
             list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                 style=self.style,
                                                 area=zip_code,
                                                 outages=outages,
                                                 customers=customers,
-                                                state=state))
+                                                state=state_groomed))
         self.stats_objects = list_of_stats_objects
         return
 
@@ -175,12 +176,11 @@ class PEPDELParent(Provider):
                 print(f"\tSingle: {new_obj}")
 
             # track old stats objects that have become new singles and new singles to be added to original list.
-            new_stat_objs_to_append = new_stat_objs_to_append + singles_stats_objects_list
+            new_stat_objs_to_append.extend(singles_stats_objects_list)
 
         # Delete old stats objects and add the new ones, from original list
         for old_obj in stat_objs_to_delete:
             self.stats_objects.remove(old_obj)
-
-        self.stats_objects = self.stats_objects + new_stat_objs_to_append
+        self.stats_objects.extend(new_stat_objs_to_append)
 
         return

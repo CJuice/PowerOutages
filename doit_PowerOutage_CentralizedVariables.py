@@ -328,10 +328,6 @@ sql_select_county_data_sme_sqlite3 = textwrap.dedent(
     """SELECT County_ID, County_Name, Customer_Count 
     FROM SME_Customer_Count_Memory"""
 )
-sql_select_grouped_zipcodes = textwrap.dedent(
-    """SELECT ZIPCODE, ID 
-    FROM dbo.RealTime_PowerOutagesZipcodes_Grouped"""
-)
 sql_select_zip_by_provider_abbrev_realtime = textwrap.dedent(
     """SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes 
     WHERE PROVIDER = '{provider_abbrev}'"""

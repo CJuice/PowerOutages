@@ -125,7 +125,7 @@ class Provider:
         """
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
-            if self.style == "ZIP":
+            if self.style == DOIT_UTIL.ZIP and stat_obj.state == "MD":
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
                                                                  abbrev=stat_obj.abbrev,
                                                                  outages=stat_obj.outages,

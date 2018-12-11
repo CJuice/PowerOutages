@@ -243,7 +243,6 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-    exit()
     # JSON FILE OUTPUT
     #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")
@@ -268,15 +267,6 @@ def main():
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
-
-        # Need to update database table with new records and handle unique provider functionality
-        if key in ("CTK_ZIP",):
-            obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
-            print("Processing CTK grouped zips")
-            obj.process_grouped_zip_code_values()
-        elif key in ("DEL_ZIP",):
-            print("Processing DEL grouped zips")
-            obj.process_grouped_zip_code_values()
 
         try:
             insert_generator = obj.generate_insert_sql_statement_realtime()
@@ -309,7 +299,7 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
-    # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
+    # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table. SUM outage counts by Zip
     print("Archive process initiated...")
     db_obj.create_database_cursor()
     for key, obj in provider_objects.items():
