@@ -190,6 +190,10 @@ def main():
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
+            # TESTING
+            # print("About to process multis")
+            obj.process_multi_value_zips_to_single_value()
+            # print("finished processing multis")
 
         elif key in ("SME_County", "SME_ZIP"):
             # SME is unique. They do not provide zero count outages in their data feed. The customer count accompanies
@@ -239,6 +243,13 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
+        #TESTING
+        # if obj.abbrev in ("PEP", "DEL") and obj.style == "ZIP":
+        #     for statobjs in obj.stats_objects:
+        #         if "," in statobjs.area:
+        #             print("MULTI: ", statobjs.abbrev, statobjs.area)
+
+    exit()
     # JSON FILE OUTPUT
     #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")
