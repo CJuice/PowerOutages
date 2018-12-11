@@ -61,7 +61,6 @@ class DatabaseUtilities:
         table_name_style = {"ZIP": "Zipcodes", "County": "County"}.get(style)
         sql_statement = self.sql_delete_statement.format(style=table_name_style,
                                                          provider_abbrev=provider_abbrev)
-        print(sql_statement)
         self.cursor.execute(sql_statement)
         print(f"{provider_abbrev} {style} records deleted: {self.cursor.rowcount}")
         self.connection.commit()
