@@ -145,25 +145,25 @@ class Provider:
 
     # TODO: Need to develop zip code outage count sum functionality to deal with overlapping zip code reports
 
-    def generate_insert_sql_statement_archive(self):
-        """
-        Build the insert sql statement for archive data and yield the statement.
-        For ZIP archive data.
-        :return: none
-        """
-        self.date_updated = DOIT_UTIL.current_date_time()
-        for stat_obj in self.stats_objects:
-            if self.style == "ZIP":
-                sql = self.sql_insert_record_zip_archive.format(area=stat_obj.area,
-                                                                abbrev=stat_obj.abbrev,
-                                                                outages=stat_obj.outages,
-                                                                date_created=self.date_created,
-                                                                date_updated=self.date_updated
-                                                                )
-            else:
-                sql = ""
-                continue
-            yield sql
+    # def generate_insert_sql_statement_archive(self):
+    #     """
+    #     Build the insert sql statement for archive data and yield the statement.
+    #     For ZIP archive data.
+    #     :return: none
+    #     """
+    #     self.date_updated = DOIT_UTIL.current_date_time()
+    #     for stat_obj in self.stats_objects:
+    #         if self.style == "ZIP":
+    #             sql = self.sql_insert_record_zip_archive.format(area=stat_obj.area,
+    #                                                             abbrev=stat_obj.abbrev,
+    #                                                             outages=stat_obj.outages,
+    #                                                             date_created=self.date_created,
+    #                                                             date_updated=self.date_updated
+    #                                                             )
+    #         else:
+    #             sql = ""
+    #             continue
+    #         yield sql
 
     def remove_non_maryland_zip_stat_objects(self):
 

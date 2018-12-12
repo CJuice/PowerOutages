@@ -51,6 +51,36 @@ class ArchiveCounty:
             yield sql
 
 
+class ArchiveZIP:
+    def __init__(self):
+        self.master_aggregated_zip_count_objects_dict = {}
+        self.sql_insert_record_zip_archive = VARS.sql_insert_record_zip_archive
+
+    def generate_insert_sql_statement_archive(self):
+        """
+        Build the insert sql statement for archive data and yield the statement.
+        For ZIP archive data.
+        :return: none
+        """
+        for aggregated_count_obj in self.master_aggregated_zip_count_objects_dict.values():
+            sql = self.sql_insert_record_zip_archive.format(area=aggregated_count_obj.area,
+                                                            abbrev=aggregated_count_obj.abbrev,
+                                                            outages=aggregated_count_obj.outages,
+                                                            date_created=aggregated_count_obj.date_created,
+                                                            date_updated=aggregated_count_obj.date_updated
+                                                            )
+            yield sql
+
+
+@dataclass
+class ZipCodeCountAggregated:
+    area: str
+    abbrev: str
+    outages: int
+    date_created: datetime
+    date_updated: datetime
+
+
 @dataclass
 class PowerOutagesViewForArchiveCountyData:
     """
