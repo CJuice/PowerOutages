@@ -73,15 +73,6 @@ class ArchiveZIP:
 
 
 @dataclass
-class ZipCodeCountAggregated:
-    area: str
-    abbrev: str
-    outages: int
-    date_created: datetime
-    date_updated: datetime
-
-
-@dataclass
 class PowerOutagesViewForArchiveCountyData:
     """
     Data class for storing record data pulled from view.
@@ -91,3 +82,12 @@ class PowerOutagesViewForArchiveCountyData:
     outage: int
     updated: datetime
     percentage: Decimal
+
+
+@dataclass
+class ZipCodeCountAggregated:
+    area: str
+    abbrev: str
+    outages: int
+    date_created: datetime
+    date_updated: datetime

@@ -326,7 +326,7 @@ def main():
                     date_created=obj.date_created,
                     date_updated=obj.date_updated)
 
-    # Write the aggregated zip counts data to database
+    # Insertion into Archive_PowerOutagesZipcode
     try:
         zip_archive_insert_generator = archive_zip_obj.generate_insert_sql_statement_archive()
         for sql_statement in zip_archive_insert_generator:
