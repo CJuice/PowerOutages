@@ -14,6 +14,8 @@ class Utility:
     """
 
     COUNTY = "County"
+    DELAWARE = "Delaware"
+    DISTRICT_OF_COLUMBIA = "District Of Columbia"
     LESS_THAN_FIVE = "Less than 5"
     MARYLAND = "Maryland"
     MARYLAND_COUNTIES = ("Allegany", "Anne Arundel", "Baltimore", "Baltimore City", "Calvert", "Caroline", "Carroll",
@@ -50,7 +52,7 @@ class Utility:
         :param abbrev: string abbreviation for the state
         :return: string value from state_abbrev_dict for given abbrev, or the abbrev itself if KeyError
         """
-        state_abbrev_dict = {"DC": "District Of Columbia", "DE": "Delaware", "MD": "Maryland", }
+        state_abbrev_dict = {"DC": Utility.DISTRICT_OF_COLUMBIA, "DE": Utility.DELAWARE, "MD": Utility.MARYLAND, }
         try:
             return state_abbrev_dict[abbrev]
         except KeyError as ke:

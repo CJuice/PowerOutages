@@ -5,7 +5,6 @@ peculiarities of the CTK feeds and the processing they require that is not commo
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class CTK(Provider):
@@ -15,8 +14,6 @@ class CTK(Provider):
     The table contains strings that are grouped zip code values separated by commas. Thesa are used during the insertion
     of counts data into RealTime_PowerOutagesZipcodes.
     """
-
-    SQL_SELECT_GROUPED_ZIPCODES = VARS.sql_select_grouped_zipcodes
 
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
@@ -76,29 +73,4 @@ class CTK(Provider):
                                                 customers=e_list[customers_index].text,
                                                 state=DOIT_UTIL.MARYLAND))
         self.stats_objects = list_of_stats_objects
-        return
-
-    def create_grouped_zipcodes_dict(self, cursor):
-        """
-        Query the grouped zip codes table and store the results in a dictionary.
-        :param cursor: database cursor
-        :return: none
-        """
-        record_dict = {}
-        for record in cursor.execute(CTK.SQL_SELECT_GROUPED_ZIPCODES):
-            single_zip, zip_id = record
-            record_dict[single_zip] = zip_id
-        self.grouped_zipcodes_dict = record_dict
-        return
-
-    def process_grouped_zip_code_values(self):
-        for stat_obj in self.stats_objects:
-            if self.style == "ZIP":
-
-                # Substitute comma separated strings of zipcodes from grouped values dict, if single zip value found.
-                try:
-                    area_value = self.grouped_zipcodes_dict[stat_obj.area]
-                    stat_obj.area = area_value
-                except KeyError as ke:
-                    pass
         return

@@ -120,12 +120,12 @@ class Provider:
     def generate_insert_sql_statement_realtime(self):
         """
         Build the insert sql statement for real time data and yield the statement.
-        For both County and ZIP data.
+        For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
         :return: none
         """
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
-            if self.style == "ZIP":
+            if self.style == DOIT_UTIL.ZIP:
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
                                                                  abbrev=stat_obj.abbrev,
                                                                  outages=stat_obj.outages,
@@ -143,25 +143,37 @@ class Provider:
                                                                     )
             yield sql
 
-    def generate_insert_sql_statement_archive(self):
-        """
-        Build the insert sql statement for archive data and yield the statement.
-        For ZIP archive data.
-        :return: none
-        """
-        self.date_updated = DOIT_UTIL.current_date_time()
+    # TODO: Need to develop zip code outage count sum functionality to deal with overlapping zip code reports
+
+    # def generate_insert_sql_statement_archive(self):
+    #     """
+    #     Build the insert sql statement for archive data and yield the statement.
+    #     For ZIP archive data.
+    #     :return: none
+    #     """
+    #     self.date_updated = DOIT_UTIL.current_date_time()
+    #     for stat_obj in self.stats_objects:
+    #         if self.style == "ZIP":
+    #             sql = self.sql_insert_record_zip_archive.format(area=stat_obj.area,
+    #                                                             abbrev=stat_obj.abbrev,
+    #                                                             outages=stat_obj.outages,
+    #                                                             date_created=self.date_created,
+    #                                                             date_updated=self.date_updated
+    #                                                             )
+    #         else:
+    #             sql = ""
+    #             continue
+    #         yield sql
+
+    def remove_non_maryland_zip_stat_objects(self):
+
+        non_maryland_stat_objects = []
         for stat_obj in self.stats_objects:
-            if self.style == "ZIP":
-                sql = self.sql_insert_record_zip_archive.format(area=stat_obj.area,
-                                                                abbrev=stat_obj.abbrev,
-                                                                outages=stat_obj.outages,
-                                                                date_created=self.date_created,
-                                                                date_updated=self.date_updated
-                                                                )
-            else:
-                sql = ""
-                continue
-            yield sql
+            if self.style == DOIT_UTIL.ZIP and stat_obj.state != DOIT_UTIL.MARYLAND:
+                non_maryland_stat_objects.append(stat_obj)
+        for obj in non_maryland_stat_objects:
+            self.stats_objects.remove(obj)
+        return
 
     def groom_date_created(self):
         """

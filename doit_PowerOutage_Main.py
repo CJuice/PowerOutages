@@ -33,7 +33,9 @@ def main():
 
     # IMPORTS
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveZIP
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
     import os
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
@@ -190,6 +192,7 @@ def main():
         elif key in ("DEL_ZIP", "PEP_ZIP"):
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
+            obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):
             # SME is unique. They do not provide zero count outages in their data feed. The customer count accompanies
@@ -230,8 +233,10 @@ def main():
             obj.extract_outage_counts()
             obj.extract_date_created()
 
-        # Need to remove duplicates, correct spelling & punctuation, convert str counts to int, and process date/time
+        # Need to remove duplicates, isolate MD zips, correct spelling & punctuation, convert str counts to int,
+        #   and process date/time
         obj.purge_duplicate_stats_objects()
+        obj.remove_non_maryland_zip_stat_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
@@ -264,18 +269,9 @@ def main():
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
-        # Need to update database table with new records and handle unique provider functionality
-        if key in ("CTK_ZIP",):
-            obj.create_grouped_zipcodes_dict(cursor=db_obj.cursor)
-            print("Processing CTK grouped zips")
-            obj.process_grouped_zip_code_values()
-        elif key in ("DEL_ZIP",):
-            print("Processing DEL grouped zips")
-            obj.process_grouped_zip_code_values()
-
         try:
-            insert_generator = obj.generate_insert_sql_statement_realtime()
-            for sql_statement in insert_generator:
+            zip_archive_insert_generator = obj.generate_insert_sql_statement_realtime()
+            for sql_statement in zip_archive_insert_generator:
                 db_obj.execute_sql_statement(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
@@ -304,22 +300,43 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
-    # ARCHIVE ZIP: Append latest zip code records to the Archive_PowerOutagesZipcode table.
+    # ARCHIVE ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
     print("Archive process initiated...")
+    archive_zip_obj = ArchiveZIP()
     db_obj.create_database_cursor()
+
+    # Aggregate counts for all zips from all providers to account for outages for single zip from multiple providers
     for key, obj in provider_objects.items():
-        try:
-            insert_generator = obj.generate_insert_sql_statement_archive()
-            for sql_statement in insert_generator:
-                db_obj.execute_sql_statement(sql_statement=sql_statement)
-        except TypeError as te:
-            print(f"TypeError. {obj.abbrev} appears to have no stats objects. \n{te}")
-        except Exception as e:
-            print(f"ARCHIVE ZIP process. Database insertion operation error. {e}")
-            exit()
-        else:
-            db_obj.commit_changes()
-            print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+        if obj.style == DOIT_UTIL.COUNTY:
+            continue
+
+        for stat_obj in obj.stats_objects:
+            try:
+
+                # if exists already, add outages and revise provider abbreviation to indicate multiple
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].outages += stat_obj.outages
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].abbrev = VARS.multiple_providers
+            except KeyError as ke:
+
+                # Does not exist so add to dictionary
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area] = ZipCodeCountAggregated(
+                    area=stat_obj.area,
+                    abbrev=stat_obj.abbrev,
+                    outages=stat_obj.outages,
+                    date_created=obj.date_created,
+                    date_updated=obj.date_updated)
+
+    # Insertion into Archive_PowerOutagesZipcode
+    try:
+        zip_archive_insert_generator = archive_zip_obj.generate_insert_sql_statement_archive()
+        for sql_statement in zip_archive_insert_generator:
+            db_obj.execute_sql_statement(sql_statement=sql_statement)
+    except Exception as e:
+        print(f"ARCHIVE ZIP process. Database insertion operation error. {e}")
+        exit()
+    else:
+        db_obj.commit_changes()
+        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode")
 
     # Clean up for next step
     db_obj.delete_cursor()
@@ -344,8 +361,8 @@ def main():
     #   Insertion into Archive_PowerOutagesCounty
     try:
         db_obj.create_database_cursor()
-        insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
-        for sql_statement in insert_generator:
+        zip_archive_insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
+        for sql_statement in zip_archive_insert_generator:
             db_obj.execute_sql_statement(sql_statement=sql_statement)
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
@@ -354,7 +371,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print("County archive records inserted into Archive_PowerOutagesCounty.")
+        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty.")
     finally:
         # Clean up for next step
         db_obj.delete_cursor()

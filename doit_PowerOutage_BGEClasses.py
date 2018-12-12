@@ -5,6 +5,7 @@ peculiarities of the BGE feeds and the processing they require that is not commo
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class BGE(Provider):
@@ -67,7 +68,7 @@ class BGE(Provider):
             outages = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
                                                                                    tag_name="CustomersOut").text
             if self.style == "ZIP":
-                customers = -9999
+                customers = VARS.database_flag
             else:
                 customers = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
                                                                                          tag_name="CustomersServed").text
