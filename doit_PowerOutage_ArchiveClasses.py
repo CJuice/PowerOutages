@@ -1,7 +1,8 @@
 """
-The Archive module contains an ArchiveCounty class and a PowerOutagesViewForArchiveCountyData dataclass.
-The classes are built for the archive functionality in the power outage process. The County real time data requires
-manipulation before being written to the archive tables, unlike the ZIP code real time data.
+The Archive module contains an ArchiveCounty class, an ArchiveZIP class, a PowerOutagesViewForArchiveCountyData
+dataclass, and a ZipCodeCountAggregated dataclass.
+The classes are built for the archive functionality in the power outage process. The County and ZIP real time data
+require manipulation before being written to the archive tables and used in GIS rest services.
 """
 
 from dataclasses import dataclass
@@ -52,6 +53,11 @@ class ArchiveCounty:
 
 
 class ArchiveZIP:
+    """
+    Object processing data from real time form to archive form for zip code data.
+
+    The methods are used to insert into the zip code archive table.
+    """
     def __init__(self):
         self.master_aggregated_zip_count_objects_dict = {}
         self.sql_insert_record_zip_archive = VARS.sql_insert_record_zip_archive
@@ -59,7 +65,8 @@ class ArchiveZIP:
     def generate_insert_sql_statement_archive(self):
         """
         Build the insert sql statement for archive data and yield the statement.
-        For ZIP archive data.
+        For ZIP archive data. Uses a master dictionary of ZipCodeCountAggregated objects meant to aggregate outage
+        counts for zip codes covered by multiple providers
         :return: none
         """
         for aggregated_count_obj in self.master_aggregated_zip_count_objects_dict.values():
@@ -86,6 +93,9 @@ class PowerOutagesViewForArchiveCountyData:
 
 @dataclass
 class ZipCodeCountAggregated:
+    """
+    Data class for aggregating outages for single zip codes that are covered by multiple providers.
+    """
     area: str
     abbrev: str
     outages: int

@@ -300,12 +300,13 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
-    # ARCHIVE ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
+    # ARCHIVE STEPS
+    # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
     print("Archive process initiated...")
     archive_zip_obj = ArchiveZIP()
     db_obj.create_database_cursor()
 
-    # Aggregate counts for all zips from all providers to account for outages for single zip from multiple providers
+    # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
     for key, obj in provider_objects.items():
         if obj.style == DOIT_UTIL.COUNTY:
             continue
@@ -313,12 +314,12 @@ def main():
         for stat_obj in obj.stats_objects:
             try:
 
-                # if exists already, add outages and revise provider abbreviation to indicate multiple
+                # if exists already, add outages and revise provider abbreviation to indicate multiple ('MULTI')
                 archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].outages += stat_obj.outages
                 archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].abbrev = VARS.multiple_providers
             except KeyError as ke:
 
-                # Does not exist so add to dictionary
+                # Zip key does not exist already so add zip key to dictionary and store dataclass object as value
                 archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area] = ZipCodeCountAggregated(
                     area=stat_obj.area,
                     abbrev=stat_obj.abbrev,
@@ -341,7 +342,7 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
-    # ARCHIVE County: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
+    # COUNTY: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
     #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
     archive_county_obj = ArchiveCounty()
     try:
