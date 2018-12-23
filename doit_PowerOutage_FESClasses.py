@@ -19,29 +19,6 @@ class FES(Provider):
         self.area_elements = None
         self.stats_data_tuples_list = None
 
-    def extract_date_created(self):
-        """
-        Extract the data created from the xml response
-        :return: none
-        """
-        response_header_element = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.xml_element,
-                                                                                       tag_name="ResponseHeader")
-        date_created = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=response_header_element,
-                                                                                    tag_name="CreateDateTime")
-        self.date_created = date_created.text
-        return
-
-    def extract_area_outage_elements(self):
-        """
-        Extract the area outage elements from the xml response
-        :return: none
-        """
-        area_elements_list = []
-        for area_element in self.xml_element.iter("Outage"):
-            area_elements_list.append(area_element)
-        self.area_elements = area_elements_list
-        return
-
     def create_stats_objects(self):
         """
         Build stat objects
@@ -57,6 +34,29 @@ class FES(Provider):
                                                 customers=customers,
                                                 state=DOIT_UTIL.MARYLAND))
         self.stats_objects = list_of_stats_objects
+        return
+
+    def extract_area_outage_elements(self):
+        """
+        Extract the area outage elements from the xml response
+        :return: none
+        """
+        area_elements_list = []
+        for area_element in self.xml_element.iter("Outage"):
+            area_elements_list.append(area_element)
+        self.area_elements = area_elements_list
+        return
+
+    def extract_date_created(self):
+        """
+        Extract the data created from the xml response
+        :return: none
+        """
+        response_header_element = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.xml_element,
+                                                                                               tag_name="ResponseHeader")
+        date_created = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=response_header_element,
+                                                                                    tag_name="CreateDateTime")
+        self.date_created = date_created.text
         return
 
     def extract_outage_counts(self):

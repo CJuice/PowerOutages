@@ -170,13 +170,19 @@ class Provider:
         return
 
     def remove_non_maryland_zip_stat_objects(self):
-
+        """
+        Detect stats objects for zip codes not in Maryland and delete the objects from the stats objects list
+        :return:
+        """
         non_maryland_stat_objects = []
+
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP and stat_obj.state != DOIT_UTIL.MARYLAND:
                 non_maryland_stat_objects.append(stat_obj)
+
         for obj in non_maryland_stat_objects:
             self.stats_objects.remove(obj)
+
         return
 
     def set_status_codes(self):

@@ -33,28 +33,6 @@ class CTK(Provider):
         self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_dict, attribute_name="date")
         return
 
-    def extract_report_by_id(self):
-        """
-        Extract the data report based on id.
-        :return:
-        """
-        style_id = self.style
-        for report in self.xml_element.iter("report"):
-            if report.attrib["id"].lower() == style_id.lower():
-                self.outage_report = report
-                return
-
-    def extract_outage_dataset(self):
-        """
-        Extract the outage dataset from xml.
-        :return: none
-        """
-        self.outage_dataset = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.outage_report,
-                                                                                           tag_name="dataset")
-        if len(self.outage_dataset) == 0:
-            print(f"No {self.abbrev}_{self.style} dataset values in feed.\n\tResponse value: {self.data_feed_response}")
-        return
-
     def extract_outage_counts_from_dataset(self):
         """
         Extract the outage counts from the outage dataset xml and build stat objects to store the data.
@@ -74,3 +52,25 @@ class CTK(Provider):
                                                 state=DOIT_UTIL.MARYLAND))
         self.stats_objects = list_of_stats_objects
         return
+
+    def extract_outage_dataset(self):
+        """
+        Extract the outage dataset from xml.
+        :return: none
+        """
+        self.outage_dataset = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.outage_report,
+                                                                                           tag_name="dataset")
+        if len(self.outage_dataset) == 0:
+            print(f"No {self.abbrev}_{self.style} dataset values in feed.\n\tResponse value: {self.data_feed_response}")
+        return
+
+    def extract_report_by_id(self):
+        """
+        Extract the data report based on id.
+        :return:
+        """
+        style_id = self.style
+        for report in self.xml_element.iter("report"):
+            if report.attrib["id"].lower() == style_id.lower():
+                self.outage_report = report
+                return

@@ -1,5 +1,5 @@
 """
-
+Contains a Utility class that has functionality that is not provider specific and may be needed across the project.
 """
 from datetime import datetime
 import configparser
@@ -143,41 +143,38 @@ class Utility:
             print(f"Unable to process xml response to Element using ET.fromstring(): {e}")
             exit()
 
-    # TODO: process_customer_counts_to_integers & process_outage_counts_to_integers are basically identical. Refactor.
     @staticmethod
-    def process_customer_counts_to_integers(objects_list: list):
+    def process_stats_objects_counts_to_integers(objects_list: list, keyword: str):
         """
-        Process objects customer count attribute value to integer
+        Process objects customer or outage count attribute values to integer
         :param objects_list: list of stat objects
+        :param keyword: string that determines if .customers or .outages value of objects is operated on
         :return: none, revises value of attribute
         """
         replacement_values_dict = {Utility.LESS_THAN_FIVE: 1, "<5": 1}
-        for obj in objects_list:
-            try:
-                obj.customers = int(obj.customers)
-            except ValueError as ve:
-                try:
-                    obj.customers = replacement_values_dict[obj.customers]
-                except KeyError as ke:
-                    obj.customers = -9999
-        return
 
-    @staticmethod
-    def process_outage_counts_to_integers(objects_list: list):
-        """
-        Process objects outage count attribute value to integer
-        :param objects_list: list of stat objects
-        :return: none, revises value of attribute
-        """
-        replacement_values_dict = {Utility.LESS_THAN_FIVE: 1, "<5": 1}
         for obj in objects_list:
-            try:
-                obj.outages = int(obj.outages)
-            except ValueError as ve:
+            if keyword == "customers":
                 try:
-                    obj.outages = replacement_values_dict[obj.outages]
-                except KeyError as ke:
-                    obj.outages = -9999
+                    obj.customers = int(obj.customers)
+                except ValueError as ve:
+                    try:
+
+                        # Can't cast to type int so likely is a string. Try to replace string with int value using dict
+                        obj.customers = replacement_values_dict[obj.customers]
+                    except KeyError as ke:
+                        obj.customers = -9999
+            elif keyword == "outages":
+                try:
+                    obj.outages = int(obj.outages)
+                except ValueError as ve:
+                    try:
+                        obj.outages = replacement_values_dict[obj.outages]
+                    except KeyError as ke:
+                        obj.outages = -9999
+            else:
+                print("Invalid value passed as parameter 'keyword' in process_stats_objects_counts_to_integers()")
+                continue
         return
 
     @staticmethod
@@ -240,6 +237,6 @@ class Utility:
 
     # @staticmethod
     # def change_case_to_title(stats_objects: list):
-    #     # Removed use. Causes case errors in apostrophe containing county names. St. Mary's -> St. Mary'S
+    #     # REMOVED USE: Causes case errors in apostrophe containing county names. St. Mary's -> St. Mary'S
     #     for obj in stats_objects:
     #         obj.area = obj.area.title()

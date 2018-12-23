@@ -23,6 +23,18 @@ class DatabaseUtilities:
         self.sql_select_zipcode_by_provider_abbrev_statement_realtime = VARS.sql_select_zip_by_provider_abbrev_realtime
         self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_realtime
 
+    def commit_changes(self):
+        """
+        Commit changes to database.
+        :return:
+        """
+        try:
+            self.connection.commit()
+        except Exception as e:
+            print("Problem committing changes to database.")
+            exit()
+        return
+
     def create_database_connection_string(self):
         """
         Create the connection string for acccessing database and assign to internal attribute.
@@ -77,15 +89,6 @@ class DatabaseUtilities:
             self.connection = connection
         return
 
-    def fetch_all_from_selection(self):
-        """
-        Fetch all records from a selection from a database.
-        :return: none
-        """
-        self.selection = None
-        self.selection = self.cursor.fetchall()
-        return
-
     def execute_sql_statement(self, sql_statement):
         """
         Execute the passed sql statement
@@ -98,14 +101,12 @@ class DatabaseUtilities:
             print(f"A value in the sql exceeds the field length allowed in database table: {sql_statement}")
         return
 
-    def commit_changes(self):
+    def fetch_all_from_selection(self):
         """
-        Commit changes to database.
-        :return:
+        Fetch all records from a selection from a database.
+        :return: none
         """
-        try:
-            self.connection.commit()
-        except Exception as e:
-            print("Problem committing changes to database.")
-            exit()
+        self.selection = None
+        self.selection = self.cursor.fetchall()
         return
+

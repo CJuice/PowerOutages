@@ -35,114 +35,6 @@ class SME(Provider):
         self.database_path = os.path.join(os.path.dirname(__file__), VARS.sme_customer_count_database_location_and_name)
         self.database_table_name = VARS.sme_database_table_name
 
-    def extract_outage_events_list(self):
-        """
-        Extract the outage counts from json.
-        :return:
-        """
-        data_json = self.data_feed_response.json()
-        self.outage_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
-        return
-
-    def extract_outage_counts_by_desc(self):
-        """
-        Extract outage and customer counts and build stat object.
-        :return: none
-        """
-        list_of_stats_objects = []
-        for obj in self.outage_events_list:
-            desc_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=obj, attribute_name="desc")
-            area = DOIT_UTIL.extract_attribute_from_dict(data_dict=obj, attribute_name="id")
-            cust_affected_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_a")
-            outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=cust_affected_dict, attribute_name="val")
-            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_s")
-            list_of_stats_objects.append(Outage(abbrev=self.abbrev,
-                                                style=self.style,
-                                                area=area,
-                                                outages=outages,
-                                                customers=customers,
-                                                state=DOIT_UTIL.MARYLAND))
-        self.stats_objects = list_of_stats_objects
-        return
-
-    def create_default_county_outage_stat_objects(self):
-        """
-        Create default, zero count, county stat objects for the three counties that SME serves.
-        :return: none
-        """
-        names_count_dict = {"Calvert": 0, "Charles": 0, "St. Mary's": 0}
-        outages = 0
-        stat_objects_list = []
-        for name, cust_count in names_count_dict.items():
-            stat_objects_list.append(Outage(abbrev=self.abbrev,
-                                            style=self.style,
-                                            area=name,
-                                            outages=outages,
-                                            customers=cust_count,
-                                            state=DOIT_UTIL.MARYLAND))
-        self.default_zero_count_county_stat_objects = stat_objects_list
-        return
-
-    def county_customer_count_database_safety_check(self):
-        """
-        Check if the database exists and create the database and build the main table if it does not.
-        :return: none
-        """
-        # Need to check for database existence first, then create db if needed.
-        if os.path.exists(self.database_path):
-            return
-        else:
-
-            # This is important if the database does not exist. Builds and populates default database
-            # As of 20181115 SME did not provide county data in data feed when outage count was zero. So no records built.
-            try:
-                conn = sqlite3.connect(database=self.database_path)
-                db_curs = conn.cursor()
-                statement = VARS.sql_create_county_table_sme_sqlite3.format(table_name=self.database_table_name)
-                db_curs.execute(statement)
-                conn.commit()
-            except sqlite3.OperationalError as sqlOpErr:
-                print(sqlOpErr)
-                exit()
-            except Exception as e:
-                print(e)
-                exit()
-            else:
-                for default_county_stat_obj in self.default_zero_count_county_stat_objects:
-                    print(f"Default Object: {default_county_stat_obj}")
-                    database_ready_area_name = default_county_stat_obj.area.replace("'", "''")  # Prep names with apostrophe for DB
-                    statement = VARS.sql_insert_into_county_table_sme_sqlite3.format(table_name=self.database_table_name,
-                                                                                     county_name=database_ready_area_name,
-                                                                                     cust_count=default_county_stat_obj.customers,
-                                                                                     date_updated=DOIT_UTIL.current_date_time())
-                    db_curs.execute(statement)
-                conn.commit()
-                print(f"{self.database_path} did not appear to exist. A new zero count version has been created. Memory of previous SME customer counts has been lost.")
-            finally:
-                conn.close()
-        return
-
-    def get_current_county_customer_counts_in_memory(self):
-        """
-        Retrieve the customer count records from the local sqlite3 database.
-        :return: none
-        """
-        # Need the previous customer counts
-        try:
-            conn = sqlite3.connect(database=self.database_path)
-            db_curs = conn.cursor()
-            db_curs.execute(VARS.sql_select_county_data_sme_sqlite3)
-        except sqlite3.OperationalError as sqlOpErr:
-            print(sqlOpErr)
-            exit()
-        except Exception as e:
-            print(e)
-            exit()
-        else:
-            self.cust_count_memory_count_selection = db_curs.fetchall()  # returns a list of tuples
-        finally:
-            conn.close()
-
     def amend_default_stat_objects_with_cust_counts_from_memory(self):
         """
         Revise the default stat objects with the customer count data pulled from the local sqlite3 database.
@@ -170,6 +62,123 @@ class SME(Provider):
                                              state=DOIT_UTIL.MARYLAND)
                 amended_objects_list.append(amended_stat_object)
         self.memory_count_value_stat_objects = amended_objects_list
+        return
+
+    def county_customer_count_database_safety_check(self):
+        """
+        Check if the database exists and create the database and build the main table if it does not.
+        :return: none
+        """
+
+        # Need to check for database existence first, then create db if needed.
+        if os.path.exists(self.database_path):
+            return
+        else:
+
+            # This is important if the database does not exist. Builds and populates default database
+            # As of 20181115 SME did not provide county data in feed when outage count was zero. So no records built.
+            try:
+                conn = sqlite3.connect(database=self.database_path)
+                db_curs = conn.cursor()
+                statement = VARS.sql_create_county_table_sme_sqlite3.format(table_name=self.database_table_name)
+                db_curs.execute(statement)
+                conn.commit()
+            except sqlite3.OperationalError as sqlOpErr:
+                print(sqlOpErr)
+                exit()
+            except Exception as e:
+                print(e)
+                exit()
+            else:
+                for default_county_stat_obj in self.default_zero_count_county_stat_objects:
+                    print(f"Default Object: {default_county_stat_obj}")
+                    database_ready_area_name = default_county_stat_obj.area.replace("'", "''")  # Prep names with apostrophe for DB
+                    statement = VARS.sql_insert_into_county_table_sme_sqlite3.format(table_name=self.database_table_name,
+                                                                                     county_name=database_ready_area_name,
+                                                                                     cust_count=default_county_stat_obj.customers,
+                                                                                     date_updated=DOIT_UTIL.current_date_time())
+                    db_curs.execute(statement)
+                conn.commit()
+                print(f"{self.database_path} did not appear to exist. A new zero count version has been created. Memory of previous SME customer counts has been lost.")
+            finally:
+                conn.close()
+        return
+
+    def create_default_county_outage_stat_objects(self):
+        """
+        Create default, zero count, county stat objects for the three counties that SME serves (as of Fall 2018)
+        :return: none
+        """
+        names_count_dict = {"Calvert": 0, "Charles": 0, "St. Mary's": 0}
+        outages = 0
+        stat_objects_list = []
+        for name, cust_count in names_count_dict.items():
+            stat_objects_list.append(Outage(abbrev=self.abbrev,
+                                            style=self.style,
+                                            area=name,
+                                            outages=outages,
+                                            customers=cust_count,
+                                            state=DOIT_UTIL.MARYLAND))
+        self.default_zero_count_county_stat_objects = stat_objects_list
+        return
+
+    def extract_outage_counts_by_desc(self):
+        """
+        Extract outage and customer counts and build stat object.
+        :return: none
+        """
+        list_of_stats_objects = []
+        for obj in self.outage_events_list:
+            desc_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=obj, attribute_name="desc")
+            area = DOIT_UTIL.extract_attribute_from_dict(data_dict=obj, attribute_name="id")
+            cust_affected_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_a")
+            outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=cust_affected_dict, attribute_name="val")
+            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=desc_dict, attribute_name="cust_s")
+            list_of_stats_objects.append(Outage(abbrev=self.abbrev,
+                                                style=self.style,
+                                                area=area,
+                                                outages=outages,
+                                                customers=customers,
+                                                state=DOIT_UTIL.MARYLAND))
+        self.stats_objects = list_of_stats_objects
+        return
+
+    def extract_outage_events_list(self):
+        """
+        Extract the outage counts from json.
+        :return:
+        """
+        data_json = self.data_feed_response.json()
+        self.outage_events_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
+        return
+
+    def get_current_county_customer_counts_in_memory(self):
+        """
+        Retrieve the customer count records from the local sqlite3 database.
+        :return: none
+        """
+        # Need the previous customer counts
+        try:
+            conn = sqlite3.connect(database=self.database_path)
+            db_curs = conn.cursor()
+            db_curs.execute(VARS.sql_select_county_data_sme_sqlite3)
+        except sqlite3.OperationalError as sqlOpErr:
+            print(sqlOpErr)
+            exit()
+        except Exception as e:
+            print(e)
+            exit()
+        else:
+            self.cust_count_memory_count_selection = db_curs.fetchall()  # returns a list of tuples
+        finally:
+            conn.close()
+
+    def replace_data_feed_stat_objects_with_amended_objects(self):
+        """
+        Replace the data feed stat objects with the amended and update stat objects.
+        :return:
+        """
+        self.stats_objects = self.updated_amend_objects_from_live_data
         return
 
     def update_amended_cust_count_objects_using_live_data(self):
@@ -203,14 +212,6 @@ class SME(Provider):
                 obj_amended.customers = feed_stat_obj.customers
                 obj_amended.outages = feed_stat_obj.outages
         self.updated_amend_objects_from_live_data = memory_amended_dict.values()
-        return
-
-    def replace_data_feed_stat_objects_with_amended_objects(self):
-        """
-        Replace the data feed stat objects with the amended and update stat objects.
-        :return:
-        """
-        self.stats_objects = self.updated_amend_objects_from_live_data
         return
 
     def update_sqlite3_cust_count_memory_database(self):

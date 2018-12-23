@@ -239,8 +239,8 @@ def main():
         obj.remove_non_maryland_zip_stat_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
-        DOIT_UTIL.process_outage_counts_to_integers(objects_list=obj.stats_objects)
-        DOIT_UTIL.process_customer_counts_to_integers(objects_list=obj.stats_objects)
+        DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="customers")
+        DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
