@@ -224,6 +224,35 @@ class Utility:
         return
 
     @staticmethod
+    def send_feed_status_check_email(data_code: str, date_code: str, metadata_code: str, prov_abbrev: str, user: str, psswrd: str):
+        import smtplib
+        from email.message import EmailMessage
+
+        message_string = f"""Provider: {prov_abbrev}\n
+        Metadata Feed: {metadata_code}\n
+        Date Created Feed: {date_code}\n
+        Data Feed: {data_code}\n
+        ***An HTTP response code of 200 is expected for working feeds. Values other than 200 trigger 
+        an email notification."""
+
+        msg = EmailMessage()
+        msg['Subject'] = "Provider Data Issue - MEMA Power Outage App"
+        msg['From'] = "gis-smtp-svc@maryland.gov"
+        msg['To'] = ""             # TODO: Add a TO email address when need to run. Also refactor to variable elsewhere
+        msg.set_content(message_string)
+        try:
+
+            server = smtplib.SMTP_SSL(host='smtp.gmail.com', port=465)
+            server.login(user=user, password=psswrd)
+            server.send_message(msg=msg)
+            server.quit()
+        except ConnectionResetError as cre:
+            print("Connection reset error while trying to send email.")
+
+        print(f"Feed Status Issue. Email sent:\n{message_string}")
+        return
+
+    @staticmethod
     def write_to_file(file: str, content):
         """
         Use context manager to write the content to the provided rile in json format
