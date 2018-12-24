@@ -157,6 +157,21 @@ class Provider:
             self.date_created = f"{datetime_object:%Y-%m-%d %H:%M}"
         return
 
+    def perform_feed_status_check_and_notification(self, username, password):
+        codes_list = [self.data_feed_response_status_code,
+                      self.date_created_feed_response_status_code,
+                      self.metadata_feed_response_status_code]
+        for code in codes_list:
+            if code is not None and int(code) != 200:
+                DOIT_UTIL.send_feed_status_check_email(data_code=self.data_feed_response_status_code,
+                                                       date_code=self.date_created_feed_response_status_code,
+                                                       metadata_code=self.metadata_feed_response_status_code,
+                                                       prov_abbrev=self.abbrev,
+                                                       user=username,
+                                                       psswrd=password)
+        return
+
+
     def purge_duplicate_stats_objects(self):
         """
         Eliminate duplicate stats objects in a list

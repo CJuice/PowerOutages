@@ -244,12 +244,17 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-    # JSON FILE OUTPUT
+    # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         obj.set_status_codes()
+
+        #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
+        obj.perform_feed_status_check_and_notification(username=DOIT_UTIL.PARSER["EMAIL"]["USER"],
+                                                       password=DOIT_UTIL.PARSER["EMAIL"]["PASSWORD"])
+
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
