@@ -224,32 +224,42 @@ class Utility:
         return
 
     @staticmethod
-    def send_feed_status_check_email(data_code: str, date_code: str, metadata_code: str, prov_abbrev: str, user: str, psswrd: str):
+    def send_feed_status_check_email(data_code: str, date_code: str, metadata_code: str, prov_abbrev: str):
+        """
+        Send an email about the feed status checks.
+        ***NOTE: will have to switch to smtp.md.gov when we move to new MEMA environment
+
+        :param data_code: http response code from checking the data feed
+        :param date_code: http response code from checking the date feed
+        :param metadata_code: http response code from checking the metadata feed
+        :param prov_abbrev: power provider company abbreviation
+        :return:
+        """
         import smtplib
+        from smtplib import SMTPConnectError
         from email.message import EmailMessage
 
         message_string = f"""Provider: {prov_abbrev}\n
         Metadata Feed: {metadata_code}\n
         Date Created Feed: {date_code}\n
         Data Feed: {data_code}\n
-        ***An HTTP response code of 200 is expected for working feeds. Values other than 200 trigger 
-        an email notification."""
+        ***An HTTP response code of 200 is expected for working feeds. Values other than 200 trigger an email notification."""
 
         msg = EmailMessage()
         msg['Subject'] = "Provider Data Issue - MEMA Power Outage App"
         msg['From'] = "gis-smtp-svc@maryland.gov"
-        msg['To'] = ""             # TODO: Add a TO email address when need to run. Also refactor to variable elsewhere
+        msg['To'] = "conrad.schaefer@maryland.gov"
         msg.set_content(message_string)
+
         try:
+            smtp_obj = smtplib.SMTP(host="smtp.maryland.gov", port=25)
+            smtp_obj.send_message(msg=msg)
 
-            server = smtplib.SMTP_SSL(host='smtp.gmail.com', port=465)
-            server.login(user=user, password=psswrd)
-            server.send_message(msg=msg)
-            server.quit()
-        except ConnectionResetError as cre:
-            print("Connection reset error while trying to send email.")
+        except SMTPConnectError as smtp_ce:
+            print("SMTP Connection Error while trying to send email.")
 
-        print(f"Feed Status Issue. Email sent:\n{message_string}")
+        print(f"Feed Status Issue Detected! Email sent:\n{message_string}")
+
         return
 
     @staticmethod
