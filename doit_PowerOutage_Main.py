@@ -252,8 +252,7 @@ def main():
         obj.set_status_codes()
 
         #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
-        obj.perform_feed_status_check_and_notification(username=DOIT_UTIL.PARSER["EMAIL"]["USER"],
-                                                       password=DOIT_UTIL.PARSER["EMAIL"]["PASSWORD"])
+        obj.perform_feed_status_check_and_notification()
 
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))

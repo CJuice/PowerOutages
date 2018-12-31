@@ -47,7 +47,7 @@ class Provider:
     def build_feed_uri(self):
         """
         Build the data feed uri by substituting the metadata key value into the url
-        :return: none
+        :return:
         """
         self.data_feed_uri = self.data_feed_uri.format(metadata_key=self.metadata_key)
         return
@@ -69,7 +69,7 @@ class Provider:
     def calculate_data_age_minutes(self):
         """
         Determine the difference between two date time values.
-        :return: none
+        :return:
         """
         try:
             date_create_datetime_object = dateutil.parser.parse(timestr=self.date_created)
@@ -87,7 +87,7 @@ class Provider:
     def detect_response_style(self):
         """
         Detect the style of the feed provided in the http response; XML and JSON in this project.
-        :return: none
+        :return:
         """
         if "xml" in self.data_feed_response.headers["content-type"]:
             self.data_feed_response_style = "XML"
@@ -99,7 +99,7 @@ class Provider:
         """
         Build the insert sql statement for real time data and yield the statement.
         For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
-        :return: none
+        :return:
         """
         self.date_updated = DOIT_UTIL.current_date_time()
         for stat_obj in self.stats_objects:
@@ -143,7 +143,7 @@ class Provider:
         """
         Use a parser to interpret inconsistent/varying date string formats and format them into specific style.
         NOTE: Valuable Resource - https://dateutil.readthedocs.io/en/stable/parser.html
-        :return: none
+        :return:
         """
         try:
             datetime_object = dateutil.parser.parse(timestr=self.date_created)
@@ -157,7 +157,12 @@ class Provider:
             self.date_created = f"{datetime_object:%Y-%m-%d %H:%M}"
         return
 
-    def perform_feed_status_check_and_notification(self, username, password):
+    def perform_feed_status_check_and_notification(self):
+        """
+        Check http response status codes for data, date, and metadata feeds, detect non 200 codes, and trigger email.
+        This function does rely on the Utility class; It uses the send_feed_status_check_email() function.
+        :return:
+        """
         codes_list = [self.data_feed_response_status_code,
                       self.date_created_feed_response_status_code,
                       self.metadata_feed_response_status_code]
@@ -166,11 +171,8 @@ class Provider:
                 DOIT_UTIL.send_feed_status_check_email(data_code=self.data_feed_response_status_code,
                                                        date_code=self.date_created_feed_response_status_code,
                                                        metadata_code=self.metadata_feed_response_status_code,
-                                                       prov_abbrev=self.abbrev,
-                                                       user=username,
-                                                       psswrd=password)
+                                                       prov_abbrev=self.abbrev)
         return
-
 
     def purge_duplicate_stats_objects(self):
         """
@@ -203,7 +205,7 @@ class Provider:
     def set_status_codes(self):
         """
         Set the status code attribute for the various feed types; data, date created, and metadata
-        :return: none
+        :return:
         """
         try:
             self.data_feed_response_status_code = self.data_feed_response.status_code
