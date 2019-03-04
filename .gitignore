@@ -4,5 +4,5 @@
 *.cfg
 __init__.py
 *XML_Samples
-testing_code_platform_TBDeleted.py
+testing*
 *GroupedZIPIssue
