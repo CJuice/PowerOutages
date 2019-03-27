@@ -227,7 +227,7 @@ class Utility:
     def send_feed_status_check_email(data_code: str, date_code: str, metadata_code: str, prov_abbrev: str):
         """
         Send an email about the feed status checks.
-        ***NOTE: will have to switch to smtp.md.gov when we move to new MEMA environment
+        ***TODO: NOTE: will have to switch to smtp.md.gov when we move to new MEMA environment
 
         :param data_code: http response code from checking the data feed
         :param date_code: http response code from checking the date feed
@@ -248,7 +248,7 @@ class Utility:
         msg = EmailMessage()
         msg['Subject'] = "Provider Data Issue - MEMA Power Outage App"
         msg['From'] = "gis-smtp-svc@maryland.gov"
-        msg['To'] = "conrad.schaefer@maryland.gov"
+        msg['To'] = "conrad.schaefer@maryland.gov"  # TODO: NOTE: This will need to be changed for MJOC
         msg.set_content(message_string)
 
         try:

@@ -201,21 +201,24 @@ def main():
             #   SME served as of 20181115. The database provides count values and is updated when/if a outage report
             #   contains a customer count that is different that what is stored in memory. The memory values are used
             #   to populate the stat objects with customers count value, in the absence of a data feed outage report.
-            print(obj.abbrev, obj.style, obj.data_feed_uri)
+
+            # print(obj.abbrev, obj.style, obj.data_feed_uri)
             obj.extract_areas_list()
-            continue
-            if obj.style == DOIT_UTIL.COUNTY:
-                obj.create_default_county_outage_stat_objects()  # Creates default objects.
-                obj.county_customer_count_database_safety_check()   # Checks if DB exist. If not, then create.
-                obj.get_current_county_customer_counts_in_memory()   # Get customer count values stored in sqlite3 DB
-                obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
-            obj.extract_outage_events_list()
-            obj.extract_outage_counts_by_desc()
-            if obj.style == DOIT_UTIL.COUNTY:
-                DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
-                obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
-                obj.replace_data_feed_stat_objects_with_amended_objects()   # Substitute amended for stat_objects
-                obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 DB with any updated values
+            obj.extract_outage_counts()
+
+            # continue
+            # if obj.style == DOIT_UTIL.COUNTY:
+            #     obj.create_default_county_outage_stat_objects()  # Creates default objects.
+            #     obj.county_customer_count_database_safety_check()   # Checks if DB exist. If not, then create.
+            #     obj.get_current_county_customer_counts_in_memory()   # Get customer count values stored in sqlite3 DB
+            #     obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
+            # obj.extract_outage_events_list()
+            # obj.extract_outage_counts_by_desc()
+            # if obj.style == DOIT_UTIL.COUNTY:
+            #     DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
+            #     obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
+            #     obj.replace_data_feed_stat_objects_with_amended_objects()   # Substitute amended for stat_objects
+            #     obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 DB with any updated values
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -246,7 +249,9 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-    exit()
+        if "SME" in obj.abbrev:
+            print(obj.stats_objects)
+
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")

@@ -258,21 +258,20 @@ class SME(Provider):
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")
         areas_list_outer = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
-                                                            attribute_name="areas")
+                                                                 attribute_name="areas")
         areas_list_dict = areas_list_outer[0]
         areas_list_inner = DOIT_UTIL.extract_attribute_from_dict(data_dict=areas_list_dict,
-                                                         attribute_name="areas")
-
-        print(areas_list_inner)
+                                                                 attribute_name="areas")
         self.area_list = areas_list_inner
         return
+
     def extract_outage_counts(self):
         list_of_stats_objects = []
         for county_dict in self.area_list:
             county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="area_name")
             outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_a")
             outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=outages_dict, attribute_name="val")
-            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="custs_s")
+            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_s")
             list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                 style=self.style,
                                                 area=county,
