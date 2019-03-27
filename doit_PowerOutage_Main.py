@@ -26,7 +26,6 @@ for values and written to when necessary. It is named SME_Customer_Count_Memory_
 SME_Customer_Count_Memory_DB.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 """
-# TODO: Add logging functionality at some level for this process
 
 
 def main():
