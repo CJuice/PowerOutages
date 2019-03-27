@@ -6,12 +6,12 @@ The main() function contains all of the functionality. Imports include multiple 
 following order of sections: imports, variable definition/creation, web requests for various provider related data,
 processing of response data, output of feed status to json file, and database transactions for 'realtime' and 'archive'
 and customer data.
-Main relies on the following imported modules containing classes: CustomerClass, CTKClasses, DatabaseFunctionality,
-DELClasses, EUCClasses, FESClasses, PEPClasses, ArchiveClasses, and UtilityClass. It also relies on a
-CentralizedVariables python file, and access through a parser to a Credentials config file and a ProvidersURI config
-file.
+Main relies on the following imported modules containing classes: ArchiveClasses, CustomerClass,
+CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, SMEClasses,
+and UtilityClass. It also relies on a CentralizedVariables python file, and access through a parser
+to a Credentials config file and a ProvidersURI config file.
 The process is designed with an object-oriented focus. For power providers, there is a top level parent class called
-Provider. All providers are then subclassed from this parent to create children classes. The children classes contain
+Provider. All providers are then subclassed from this parent to create child classes. The child classes contain
 unique behavior specific to a provider. Functionality/behavior common to all providers has been placed into the parent
 class and inherited downward into the children. For PEP and DEL, Provider is inherited by the PEPDEL_ParentClass. This
 class organizes behavior common to both PEP and DEL providers. Both PEP and DEL children inherit from
@@ -21,10 +21,9 @@ A Utility class is used by all modules and serves as a static resource for commo
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
 variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
-To track historic customer count values for provider SME, a local sqlite3 database was built. This database is consulted
-for values and written to when necessary. It is named SME_Customer_Count_Memory_DB.db and is stored in a folder named
-SME_Customer_Count_Memory_DB.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
+Author: CJuice
+Revisions: 20190327 Redesign for change to SME data feeds
 """
 
 
@@ -35,7 +34,6 @@ def main():
     from doit_PowerOutage_ArchiveClasses import ArchiveZIP
     from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     from doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
-    import os
     import doit_PowerOutage_BGEClasses as BGEMod
     import doit_PowerOutage_CustomerClass as Customer
     import doit_PowerOutage_CTKClasses as CTKMod
@@ -46,6 +44,7 @@ def main():
     import doit_PowerOutage_PEPClasses as PEPMod
     import doit_PowerOutage_SMEClasses as SMEMod
     import doit_PowerOutage_CentralizedVariables as VARS
+    import os
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
 
@@ -194,30 +193,8 @@ def main():
             obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):
-            # SME is unique. They do not provide zero count outages in their data feed. The customer count accompanies
-            #   the outage report for a county so when no report is provided a customer count is unavailable. For this
-            #   reason, a sqlite3 database is created/used to store a customer count value for the four counties that
-            #   SME served as of 20181115. The database provides count values and is updated when/if a outage report
-            #   contains a customer count that is different that what is stored in memory. The memory values are used
-            #   to populate the stat objects with customers count value, in the absence of a data feed outage report.
-
-            # print(obj.abbrev, obj.style, obj.data_feed_uri)
             obj.extract_areas_list()
             obj.extract_outage_counts()
-
-            # continue
-            # if obj.style == DOIT_UTIL.COUNTY:
-            #     obj.create_default_county_outage_stat_objects()  # Creates default objects.
-            #     obj.county_customer_count_database_safety_check()   # Checks if DB exist. If not, then create.
-            #     obj.get_current_county_customer_counts_in_memory()   # Get customer count values stored in sqlite3 DB
-            #     obj.amend_default_stat_objects_with_cust_counts_from_memory()  # Update default objs with memory counts
-            # obj.extract_outage_events_list()
-            # obj.extract_outage_counts_by_desc()
-            # if obj.style == DOIT_UTIL.COUNTY:
-            #     DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)  # Intentional
-            #     obj.update_amended_cust_count_objects_using_live_data()  # Where available, substitute data feed values
-            #     obj.replace_data_feed_stat_objects_with_amended_objects()   # Substitute amended for stat_objects
-            #     obj.update_sqlite3_cust_count_memory_database()  # Update the sqlite3 DB with any updated values
 
         elif key in ("EUC_County", "EUC_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -258,7 +235,7 @@ def main():
     for key, obj in provider_objects.items():
         obj.set_status_codes()
 
-        #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
+        #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process TODO: Change EMails
         obj.perform_feed_status_check_and_notification()
 
     for key, obj in provider_objects.items():
