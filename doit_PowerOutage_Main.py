@@ -201,6 +201,9 @@ def main():
             #   SME served as of 20181115. The database provides count values and is updated when/if a outage report
             #   contains a customer count that is different that what is stored in memory. The memory values are used
             #   to populate the stat objects with customers count value, in the absence of a data feed outage report.
+            print(obj.abbrev, obj.style, obj.data_feed_uri)
+            obj.extract_areas_list()
+            continue
             if obj.style == DOIT_UTIL.COUNTY:
                 obj.create_default_county_outage_stat_objects()  # Creates default objects.
                 obj.county_customer_count_database_safety_check()   # Checks if DB exist. If not, then create.
@@ -243,7 +246,7 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-
+    exit()
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print("Writing feed check to json file...")
