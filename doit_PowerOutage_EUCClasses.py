@@ -2,9 +2,9 @@
 Module contains a EUC class that inherits from Provider class. EUC class is an implementation specific to the
 peculiarities of the EUC feeds and the processing they require that is not common to all providers.
 """
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from doit_PowerOutage_ProviderClasses import Outage
+from doit_PowerOutage_ProviderClasses import Provider
 import json
 
 

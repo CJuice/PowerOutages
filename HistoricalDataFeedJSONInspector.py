@@ -25,11 +25,11 @@ def main():
     from dateutil.parser import parse
     from datetime import datetime
     from datetime import timedelta
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+    from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     import numpy as np
     import os
     import pandas as pd
-    import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+    import doit_PowerOutage_CentralizedVariables as VARS
     import requests
 
     # VARIABLES

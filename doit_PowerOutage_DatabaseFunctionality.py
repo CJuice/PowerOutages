@@ -3,7 +3,7 @@ Module containing DatabaseUtilities class for functionality related to database 
 
 """
 import pyodbc
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+import doit_PowerOutage_CentralizedVariables as VARS
 
 
 class DatabaseUtilities:
@@ -37,7 +37,7 @@ class DatabaseUtilities:
 
     def create_database_connection_string(self):
         """
-        Create the connection string for acccessing database and assign to internal attribute.
+        Create the connection string for accessing database and assign to internal attribute.
         :return: none
         """
         self.full_connection_string = self.database_connection_string.format(database_name=self.database_name,

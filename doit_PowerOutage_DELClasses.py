@@ -4,8 +4,8 @@ DEL class is an implementation specific to the peculiarities of the DEL feeds an
 that is not common to all providers. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface. DEL inherits from the PEPDELParent class.
 """
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
+from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
 
 
 class DEL(PEPDELParent):

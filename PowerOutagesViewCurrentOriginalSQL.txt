@@ -1,0 +1,28 @@
+SELECT        a.COUNTY, a.Shape, ISNULL(b.Outage, 0) AS Outage, ISNULL(b.STATE, N'MARYLAND') AS state, b.updated, b.archived, c.Customers AS totCustomers, ISNULL(b.Outage / c.Customers * 100, 0) 
+                         AS Percentage
+FROM            dbo.GIS_CountyBoundaries_WGS84 AS a INNER JOIN
+                             (SELECT        SUM(Outage) AS Outage, STATE, COUNTY, MAX(updated) AS updated, MAX(archived) AS archived
+                               FROM            dbo.Archive_PowerOutagesCounty
+                               WHERE        (archived >= DATEADD(mi, - 15, GETDATE()))
+                               GROUP BY COUNTY, STATE) AS b ON a.COUNTY = b.COUNTY LEFT OUTER JOIN
+                         dbo.RealTime_PowerOutagesCounty_Customers AS c ON a.COUNTY = c.County
+
+(SELECT OUTAGE_DATA.COUNTY
+		, OUTAGE_DATA.Outage
+		, OUTAGE_DATA.STATE
+		, OUTAGE_DATA.updated
+		, OUTAGE_DATA.archived
+		, CUST_DATA.Customers AS totCustomers
+		, OUTAGE_DATA.percentage AS Percentage
+FROM (
+	SELECT Outage
+		, STATE
+		, COUNTY
+		, updated
+		, archived
+		, percentage 
+	FROM dbo.Archive_PowerOutagesCounty
+	WHERE (archived >= DATEADD(mi, - 15, GETDATE()))
+	) AS OUTAGE_DATA 
+LEFT OUTER JOIN dbo.RealTime_PowerOutagesCounty_Customers AS CUST_DATA 
+ON OUTAGE_DATA.COUNTY = CUST_DATA.County)

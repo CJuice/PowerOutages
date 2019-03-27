@@ -7,10 +7,10 @@ Provider is inherited by all of the child power providing company classes.
 """
 from dataclasses import dataclass
 from datetime import datetime
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import dateutil.parser
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
-import PowerOutages_V2.doit_PowerOutage_WebRelatedFunctionality as WebFunc
+import doit_PowerOutage_CentralizedVariables as VARS
+import doit_PowerOutage_WebRelatedFunctionality as WebFunc
 
 
 class Provider:
