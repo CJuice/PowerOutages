@@ -224,26 +224,26 @@ multiple_providers = "MULTI"
 provider_uri_cfg_file = "doit_PowerOutage_ProviderURI.cfg"
 sme_customer_count_database_location_and_name = "SME_Customer_Count_Memory_DB\SME_Customer_Count_Memory_DB.db"
 sme_database_table_name = "SME_Customer_Count_Memory"
-sql_create_county_table_sme_sqlite3 = textwrap.dedent(
-    """CREATE TABLE {table_name} (
-        County_ID integer primary key autoincrement, 
-        County_Name text, 
-        Customer_Count integer, 
-        Last_Updated text
-    )"""
-)
+# sql_create_county_table_sme_sqlite3 = textwrap.dedent(
+#     """CREATE TABLE {table_name} (
+#         County_ID integer primary key autoincrement,
+#         County_Name text,
+#         Customer_Count integer,
+#         Last_Updated text
+#     )"""
+# )
 sql_delete_statement = textwrap.dedent(
     """DELETE FROM RealTime_PowerOutages{style} 
     WHERE PROVIDER = '{provider_abbrev}'"""
 )
-sql_insert_into_county_table_sme_sqlite3 = textwrap.dedent(
-    """INSERT INTO {table_name} VALUES (
-        Null,
-        '{county_name}', 
-        {cust_count}, 
-        '{date_updated}'
-    )"""
-)
+# sql_insert_into_county_table_sme_sqlite3 = textwrap.dedent(
+#     """INSERT INTO {table_name} VALUES (
+#         Null,
+#         '{county_name}',
+#         {cust_count},
+#         '{date_updated}'
+#     )"""
+# )
 sql_insert_record_county_archive = textwrap.dedent(
     """INSERT INTO Archive_PowerOutagesCounty(
             STATE, 
@@ -325,10 +325,10 @@ sql_select_counties_viewforarchive = textwrap.dedent(
     FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive 
     WHERE state is not Null"""
 )
-sql_select_county_data_sme_sqlite3 = textwrap.dedent(
-    """SELECT County_ID, County_Name, Customer_Count 
-    FROM SME_Customer_Count_Memory"""
-)
+# sql_select_county_data_sme_sqlite3 = textwrap.dedent(
+#     """SELECT County_ID, County_Name, Customer_Count
+#     FROM SME_Customer_Count_Memory"""
+# )
 sql_select_zip_by_provider_abbrev_realtime = textwrap.dedent(
     """SELECT zipcode FROM dbo.RealTime_PowerOutagesZipcodes 
     WHERE PROVIDER = '{provider_abbrev}'"""
@@ -338,11 +338,15 @@ sql_update_customer_counts_table = textwrap.dedent(
     SET Customers = {cust_count} 
     WHERE County = '{area}'"""
 )
-sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
-    """UPDATE SME_Customer_Count_Memory 
-    SET Customer_Count = {customers}, Last_Updated = '{date}' 
-    WHERE County_Name = '{area}'"""
+sql_update_task_tracking_table = textwrap.dedent(
+    """UPDATE RealTime_TaskTracking SET lastRun = '{now}',
+    DataGenerated = {now) WHERE taskName = 'PowerOutages'"""
 )
+# sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
+#     """UPDATE SME_Customer_Count_Memory
+#     SET Customer_Count = {customers}, Last_Updated = '{date}'
+#     WHERE County_Name = '{area}'"""
+# )
 
 # NOTE: Named style was not working, execute did not succeed. Switched to using .format for sqlite3 db statements.
 #Example:

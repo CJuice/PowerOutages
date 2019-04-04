@@ -365,7 +365,21 @@ def main():
         # Clean up for next step
         db_obj.delete_cursor()
 
-    print(f"Process complete @ {DOIT_UTIL.current_date_time()}")
+    #   Update RealTime_TaskTracking
+    try:
+        db_obj.create_database_cursor()
+        sql_task_tracking_update = VARS.sql_update_task_tracking_table.format(now=DOIT_UTIL.current_date_time())
+        db_obj.execute_sql_statement(sql_statement=sql_task_tracking_update)
+    except Exception as e:
+        print(f"Task Tracking update. Database insertion operation error. {e}")
+        print(e)
+        exit()
+    else:
+        db_obj.commit_changes()
+        print(f"Task Tracking table updated.")
+    finally:
+        # Clean up for next step
+        db_obj.delete_cursor()
 
 
 if __name__ == "__main__":
