@@ -340,7 +340,7 @@ sql_update_customer_counts_table = textwrap.dedent(
 )
 sql_update_task_tracking_table = textwrap.dedent(
     """UPDATE RealTime_TaskTracking SET lastRun = '{now}',
-    DataGenerated = {now) WHERE taskName = 'PowerOutages'"""
+    DataGenerated = '{now}' WHERE taskName = 'PowerOutage'"""
 )
 # sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
 #     """UPDATE SME_Customer_Count_Memory
