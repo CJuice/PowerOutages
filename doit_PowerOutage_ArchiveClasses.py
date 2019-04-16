@@ -8,7 +8,7 @@ require manipulation before being written to the archive tables and used in GIS 
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+import doit_PowerOutage_CentralizedVariables as VARS
 
 
 class ArchiveCounty:
