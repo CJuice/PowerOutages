@@ -225,8 +225,6 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-        if "SME" in obj.abbrev:
-            print(obj.stats_objects)
 
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
