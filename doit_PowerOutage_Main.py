@@ -235,8 +235,8 @@ def main():
     for key, obj in provider_objects.items():
         obj.set_status_codes()
 
-        #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process TODO: Change EMails
-        obj.perform_feed_status_check_and_notification()
+        #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
+        obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))

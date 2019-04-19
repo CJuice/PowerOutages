@@ -157,10 +157,11 @@ class Provider:
             self.date_created = f"{datetime_object:%Y-%m-%d %H:%M}"
         return
 
-    def perform_feed_status_check_and_notification(self):
+    def perform_feed_status_check_and_notification(self, alert_email_address: str):
         """
         Check http response status codes for data, date, and metadata feeds, detect non 200 codes, and trigger email.
         This function does rely on the Utility class; It uses the send_feed_status_check_email() function.
+        :param alert_email_address: email address to which alerts are sent
         :return:
         """
         codes_list = [self.data_feed_response_status_code,
@@ -171,7 +172,8 @@ class Provider:
                 DOIT_UTIL.send_feed_status_check_email(data_code=self.data_feed_response_status_code,
                                                        date_code=self.date_created_feed_response_status_code,
                                                        metadata_code=self.metadata_feed_response_status_code,
-                                                       prov_abbrev=self.abbrev)
+                                                       prov_abbrev=self.abbrev,
+                                                       alert_email_address=alert_email_address)
         return
 
     def purge_duplicate_stats_objects(self):
