@@ -188,6 +188,16 @@ class Provider:
         self.stats_objects = list(temp_dict.values())
         return
 
+    def purge_zero_outage_zip_stats_objects(self):
+        """
+        Remove zero zip outage objects from the stats objects so that only counts greater than zero are inserted in db.
+        :return:
+        """
+        temp_list = [outage for outage in self.stats_objects if outage.style == DOIT_UTIL.ZIP and outage.outages == 0]
+        for zero_outage in temp_list:
+            self.stats_objects.remove(zero_outage)
+        return
+
     def remove_non_maryland_zip_stat_objects(self):
         """
         Detect stats objects for zip codes not in Maryland and delete the objects from the stats objects list

@@ -218,6 +218,7 @@ def main():
         # Need to remove duplicates, isolate MD zips, correct spelling & punctuation, convert str counts to int,
         #   and process date/time
         obj.purge_duplicate_stats_objects()
+        obj.purge_zero_outage_zip_stats_objects()
         obj.remove_non_maryland_zip_stat_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
