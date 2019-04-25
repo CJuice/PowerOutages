@@ -74,7 +74,7 @@ def main():
                         }
 
     #   Get and store variables, as provider object attributes, from cfg file.
-    print("Gathering variables...")
+    print(f"Gathering variables...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         section_items = [item for item in DOIT_UTIL.PARSER[key]]
         if "BGE" in key:
@@ -85,7 +85,7 @@ def main():
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
-    print("Metadata feed processing...")
+    print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in none_and_not_available:
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
@@ -110,7 +110,7 @@ def main():
                     attribute_name=obj.metadata_key_attribute)
 
     #   Make the date created requests, for providers with a date created service, and store the response.
-    print("Date Generated feed processing...")
+    print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in none_and_not_available:
             continue
@@ -145,7 +145,7 @@ def main():
                     attribute_name=obj.date_created_attribute)
 
     #   Make the data feed requests and store the response.
-    print("Data feed processing...")
+    print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if "BGE" in key:
             # BGE uses POST and no metadata key.
@@ -172,7 +172,7 @@ def main():
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
-    print("Data processing...")
+    print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
 
         if key in ("FES_County", "FES_ZIP"):
@@ -229,7 +229,7 @@ def main():
 
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
-    print("Writing feed check to json file...")
+    print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         obj.set_status_codes()
@@ -243,7 +243,7 @@ def main():
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
-    print("Database operations initiated...")
+    print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")
     db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
@@ -257,21 +257,21 @@ def main():
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
 
         try:
-            zip_archive_insert_generator = obj.generate_insert_sql_statement_realtime()
-            for sql_statement in zip_archive_insert_generator:
+            realtime_insert_generator = obj.generate_insert_sql_statement_realtime()
+            for sql_statement in realtime_insert_generator:
                 db_obj.execute_sql_statement(sql_statement=sql_statement)
         except TypeError as te:
             print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
         else:
             db_obj.commit_changes()
-            print(f"Records inserted: {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+            print(f"Records inserted ({DOIT_UTIL.current_date_time()}): {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
     # Clean up for next step
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
     #   the customer counts table using data feed values. Use feed when present and memory when not present.
-    print("County customer count update process initiated...")
+    print(f"County customer count update process initiated...{DOIT_UTIL.current_date_time()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
     cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
@@ -280,7 +280,7 @@ def main():
         for statement in customer_count_update_generator:
             db_obj.execute_sql_statement(sql_statement=statement)
     except Exception as e:
-        print(f"CUSTOMER COUNT sqlite3 process. Database operation error. {e}")
+        print(f"CUSTOMER COUNT process. Database operation error. {e}")
 
     db_obj.commit_changes()
 
@@ -289,7 +289,7 @@ def main():
 
     # ARCHIVE STEPS
     # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
-    print("Archive process initiated...")
+    print(f"Archive process initiated...{DOIT_UTIL.current_date_time()}")
     archive_zip_obj = ArchiveZIP()
     db_obj.create_database_cursor()
 
@@ -324,7 +324,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode")
+        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode...{DOIT_UTIL.current_date_time()}")
 
     # Clean up for next step
     db_obj.delete_cursor()
@@ -349,8 +349,8 @@ def main():
     #   Insertion into Archive_PowerOutagesCounty
     try:
         db_obj.create_database_cursor()
-        zip_archive_insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
-        for sql_statement in zip_archive_insert_generator:
+        county_archive_insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
+        for sql_statement in county_archive_insert_generator:
             db_obj.execute_sql_statement(sql_statement=sql_statement)
     except Exception as e:
         # TODO: Refine exception handling when determine what issue types could be
@@ -359,7 +359,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty.")
+        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
     finally:
         # Clean up for next step
         db_obj.delete_cursor()
@@ -375,7 +375,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"Task Tracking table updated.")
+        print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
     finally:
         # Clean up for next step
         db_obj.delete_cursor()

@@ -233,7 +233,7 @@ sme_database_table_name = "SME_Customer_Count_Memory"
 #     )"""
 # )
 sql_delete_statement = textwrap.dedent(
-    """DELETE FROM RealTime_PowerOutages{style} 
+    """DELETE FROM dbo.RealTime_PowerOutages{style} 
     WHERE PROVIDER = '{provider_abbrev}'"""
 )
 # sql_insert_into_county_table_sme_sqlite3 = textwrap.dedent(
@@ -245,7 +245,7 @@ sql_delete_statement = textwrap.dedent(
 #     )"""
 # )
 sql_insert_record_county_archive = textwrap.dedent(
-    """INSERT INTO Archive_PowerOutagesCounty(
+    """INSERT INTO dbo.Archive_PowerOutagesCounty(
             STATE, 
             COUNTY, 
             Outage, 
@@ -339,7 +339,7 @@ sql_update_customer_counts_table = textwrap.dedent(
     WHERE County = '{area}'"""
 )
 sql_update_task_tracking_table = textwrap.dedent(
-    """UPDATE RealTime_TaskTracking SET lastRun = '{now}',
+    """UPDATE dbo.RealTime_TaskTracking SET lastRun = '{now}',
     DataGenerated = '{now}' WHERE taskName = 'PowerOutage'"""
 )
 # sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
