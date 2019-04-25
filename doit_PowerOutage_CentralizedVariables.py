@@ -322,7 +322,7 @@ sql_select_by_provider_abbrev_realtime = textwrap.dedent(
 )
 sql_select_counties_viewforarchive = textwrap.dedent(
     """SELECT state, county, outage, updated, percentage 
-    FROM OSPREYDB_DEV.dbo.PowerOutages_PowerOutagesViewForArchive 
+    FROM dbo.PowerOutages_PowerOutagesViewForArchive 
     WHERE state is not Null"""
 )
 # sql_select_county_data_sme_sqlite3 = textwrap.dedent(
