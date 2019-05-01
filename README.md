@@ -33,4 +33,4 @@ This is an overhaul/redesign of an original process developed by CGIS. This new 
 production on 20190430.
 
 #### Code Architecture
-![code architecture](https://github.com/CJuice/PowerOutages_V2/blob/master/Power%20Outage%20Process%20-%20Code%20Architecture.png)
+![code architecture image](https://github.com/CJuice/PowerOutages_V2/blob/master/Power%20Outage%20Process%20-%20Code%20Architecture.png)
