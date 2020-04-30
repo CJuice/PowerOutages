@@ -38,6 +38,8 @@ class Customer:
         master_stat_obj_list = []
         county_objs = [obj for obj in prov_objects.values() if obj.style == DOIT_UTIL.COUNTY]
         for obj in county_objs:
+            if obj.stats_objects is None:
+                continue
             master_stat_obj_list.extend(obj.stats_objects)
         county_counts_dict = {county: 0 for county in DOIT_UTIL.MARYLAND_COUNTIES}
         for obj in master_stat_obj_list:

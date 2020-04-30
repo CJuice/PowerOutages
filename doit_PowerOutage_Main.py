@@ -24,6 +24,10 @@ A Web Related Functionality class exists for web related functionality and is ac
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
 Revisions: 20190327 Redesign for change to SME data feeds
+    20200430 Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down. Entire
+    process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
+    Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
+    for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
 """
 
 
@@ -174,6 +178,8 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        if obj.data_feed_response.status_code != 200:
+            continue
 
         if key in ("FES_County", "FES_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
@@ -296,6 +302,8 @@ def main():
     # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
     for key, obj in provider_objects.items():
         if obj.style == DOIT_UTIL.COUNTY:
+            continue
+        if obj.stats_objects is None:
             continue
 
         for stat_obj in obj.stats_objects:

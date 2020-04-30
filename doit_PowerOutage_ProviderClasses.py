@@ -174,6 +174,7 @@ class Provider:
                                                        metadata_code=self.metadata_feed_response_status_code,
                                                        prov_abbrev=self.abbrev,
                                                        alert_email_address=alert_email_address)
+                return
         return
 
     def purge_duplicate_stats_objects(self):
