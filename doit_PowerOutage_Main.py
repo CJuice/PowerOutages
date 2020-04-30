@@ -24,7 +24,10 @@ A Web Related Functionality class exists for web related functionality and is ac
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
 Revisions: 20190327 Redesign for change to SME data feeds
-    20200430 Temporary patch to get process working in absence of Pepco and Delmarva feeds
+    20200430 Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down. Entire
+    process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
+    Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
+    for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
 """
 
 
