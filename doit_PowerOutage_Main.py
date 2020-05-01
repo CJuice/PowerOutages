@@ -119,7 +119,7 @@ def main():
             metadata_response_dict = obj.metadata_feed_response.json()
             interval_gen_data_dict = DOIT_UTIL.extract_attribute_from_dict(
                 data_dict=metadata_response_dict,
-                attribute_name=obj.file_data_attribute)
+                attribute_name=obj.kubra_data_dict_attribute)
             obj.interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(
                 data_dict=interval_gen_data_dict,
                 attribute_name=obj.interval_generation_data_attribute)
@@ -133,11 +133,11 @@ def main():
         else:
             obj.date_created_feed_uri = DOIT_UTIL.build_feed_uri(metadata_key=obj.metadata_key,
                                                                  data_feed_uri=obj.date_created_feed_uri)
-            print(obj.abbrev, obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
+        print(obj.abbrev)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
@@ -148,13 +148,20 @@ def main():
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
-                print(obj.abbrev, date_created_response_dict)
-                file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                  attribute_name=obj.file_data_attribute)  # FIXME
-                obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
-                    data_dict=file_data,
-                    attribute_name=obj.date_created_attribute)  # TODO: deal with PEP DEL issue
 
+                # Kubra specific, date data sits at different levels of response json
+                if obj.abbrev in VARS.kubra_feed_providers:
+                    obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
+                        data_dict=date_created_response_dict,
+                        attribute_name=obj.date_created_attribute)
+                    obj.process_date_created_to_seconds()
+                else:
+                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                      attribute_name=obj.file_data_attribute)
+                    obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
+                        data_dict=file_data,
+                        attribute_name=obj.date_created_attribute)
+        print(obj.date_created)
     exit()
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
