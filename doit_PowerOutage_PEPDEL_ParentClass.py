@@ -21,6 +21,9 @@ class PEPDELParent(Provider):
     def __init__(self, provider_abbrev, style):
         super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
+        self.configuration_url = None
+        self.instance_id = None
+        self.view_id = None
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
 
