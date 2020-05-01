@@ -32,8 +32,21 @@ class PEPDELParent(Provider):
         self.interval_generation_data = None
         self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
+        self.source_data_json = None
+        self.source_report_json = None
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
+
+    def build_feed_uri(self):
+        """
+        Build the data feed uri by substituting the metadata key value into the url
+        :return:
+        """
+        # TODO: two different data feed url's, need to come up with way to deal with that.
+        print("TEST: ", self.data_feed_uri)
+        self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data, source=) # FIXME
+        # maybe create two new vars for the source specific url, then have a dict that gets the right one based on some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
+        return
 
     def extract_areas_list_county(self):
         """
