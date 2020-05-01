@@ -82,6 +82,8 @@ def main():
         section_items = [item for item in DOIT_UTIL.PARSER[key]]
         if "BGE" in key:
             obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
+        elif "PEP" in key or "DEL" in key:
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = [DOIT_UTIL.PARSER[key][item] for item in section_items]
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
 
@@ -95,7 +97,7 @@ def main():
             continue
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
-
+    exit()
     #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in VARS.none_and_not_available:
