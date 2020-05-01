@@ -2,9 +2,9 @@
 Module contains a CTK class that inherits from Provider class. CTK class is an implementation specific to the
 peculiarities of the CTK feeds and the processing they require that is not common to all providers.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_ProviderClasses import Outage
-from doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 
 
 class CTK(Provider):

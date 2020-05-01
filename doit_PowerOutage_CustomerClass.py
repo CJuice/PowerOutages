@@ -5,8 +5,8 @@ real time data on customer counts from data feeds and update the Customer Count 
 than hard coded values of unknown age.
 """
 from dataclasses import dataclass
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-import doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class Customer:

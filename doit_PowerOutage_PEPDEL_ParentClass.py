@@ -4,10 +4,10 @@ specific to the peculiarities of the DEL and PEP feeds and the processing they r
 providers but common to them both. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_ProviderClasses import Outage
-from doit_PowerOutage_ProviderClasses import Provider
-import doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class PEPDELParent(Provider):
