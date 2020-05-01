@@ -138,23 +138,12 @@ def main():
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
-                if obj.abbrev == "SME":
-                    # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data dict
-                    #   containing the date. SME uses "summaryFileData" as the key to access the data dict
-                    #   containing the date.
-                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                      attribute_name="summaryFileData")
-                elif obj.abbrev in VARS.kubra_feed_providers:
-                    # 20200501 CJuice, PEP and DEL, Exelon owned, moved to Kubra feeds. Now uses "data" to access the
-                    #   data dict.
-                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                      attribute_name="data")
-                else:
-                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                      attribute_name="file_data")
+                file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                  attribute_name=obj.file_data_attribute)
                 obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                     data_dict=file_data,
-                    attribute_name=obj.date_created_attribute)
+                    attribute_name=obj.date_created_attribute) # TODO: deal with PEP DEL issue
+                print(obj.abbrev, obj.date_created)
     exit()
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
