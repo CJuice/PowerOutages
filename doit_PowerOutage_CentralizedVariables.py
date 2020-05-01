@@ -10,6 +10,7 @@ import textwrap
 credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
 database_connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
 database_flag = -9999
+kubra_feed_providers = ["PEP", "DEL"]  # BGE will be added in future design
 json_file_local_location_and_name = "JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
 less_than_five = "Less than 5"
 maryland_master_inventory_zip_codes_with_geometry = {'0': 'Assateague Island', '20601': 'Waldorf', '20602': 'Waldorf',
