@@ -57,7 +57,6 @@ def main():
     centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
     credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
     DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
-    none_and_not_available = (None, "NA")
     OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
@@ -91,7 +90,7 @@ def main():
     #   Key used in the uri for accessing the data feeds and date created feeds.
     print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri in none_and_not_available:
+        if obj.metadata_feed_uri in VARS.none_and_not_available:
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
             continue
         else:
@@ -99,7 +98,7 @@ def main():
 
     #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri in none_and_not_available:
+        if obj.metadata_feed_uri in VARS.none_and_not_available:
             continue
         else:
             if "xml" in obj.metadata_feed_response.headers["content-type"]:
@@ -116,7 +115,7 @@ def main():
     #   Make the date created requests, for providers with a date created service, and store the response.
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.date_created_feed_uri in none_and_not_available:
+        if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
             obj.date_created_feed_uri = DOIT_UTIL.build_feed_uri(metadata_key=obj.metadata_key,
@@ -125,7 +124,7 @@ def main():
 
     #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
-        if obj.date_created_feed_uri in none_and_not_available:
+        if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
             if "xml" in obj.date_created_feed_response.headers["content-type"]:
@@ -163,7 +162,7 @@ def main():
                                                                          style="POST_data",
                                                                          headers=bge_extra_header)
         else:
-            if obj.metadata_key in none_and_not_available:
+            if obj.metadata_key in VARS.none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
             else:
                 obj.build_feed_uri()
@@ -303,7 +302,7 @@ def main():
     for key, obj in provider_objects.items():
         if obj.style == DOIT_UTIL.COUNTY:
             continue
-        if obj.stats_objects is None:
+        if obj.stats_objects in VARS.none_and_not_available:
             continue
 
         for stat_obj in obj.stats_objects:
