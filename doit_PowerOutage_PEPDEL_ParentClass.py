@@ -25,6 +25,7 @@ class PEPDELParent(Provider):
         self.instance_id = None
         self.view_id = None
         self.state_to_data_list_dict = None
+        self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.zip_desc_list = None
 
     def extract_areas_list_county(self):
