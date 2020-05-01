@@ -22,9 +22,11 @@ class PEPDELParent(Provider):
         super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
         self.configuration_url = None
-        self.date_created_attribute = "interval_generation_data"  # Attribute override from Provider
+        self.date_created_attribute = "updatedAt"  # Attribute override from Provider
         self.file_data_attribute = "data"  # Attribute override from Provider
         self.instance_id = None
+        self.interval_generation_data_attribute = "interval_generation_data"
+        self.interval_generation_data = None
         self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
         self.state_to_data_list_dict = None
