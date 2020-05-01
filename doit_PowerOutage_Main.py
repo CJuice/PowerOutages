@@ -137,7 +137,6 @@ def main():
 
     #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
-        print(obj.abbrev)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
@@ -161,7 +160,6 @@ def main():
                     obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                         data_dict=file_data,
                         attribute_name=obj.date_created_attribute)
-        print(obj.date_created)
     exit()
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
