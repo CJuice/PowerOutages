@@ -97,7 +97,7 @@ def main():
             continue
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
-    exit()
+
     #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in VARS.none_and_not_available:
@@ -115,6 +115,7 @@ def main():
                     attribute_name=obj.metadata_key_attribute)
 
     #   Make the date created requests, for providers with a date created service, and store the response.
+    #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -122,6 +123,7 @@ def main():
         else:
             obj.date_created_feed_uri = DOIT_UTIL.build_feed_uri(metadata_key=obj.metadata_key,
                                                                  data_feed_uri=obj.date_created_feed_uri)
+            print(obj.abbrev, obj.date_created_feed_uri)
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
@@ -142,13 +144,18 @@ def main():
                     #   containing the date.
                     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
                                                                       attribute_name="summaryFileData")
+                elif obj.abbrev in VARS.kubra_feed_providers:
+                    # 20200501 CJuice, PEP and DEL, Exelon owned, moved to Kubra feeds. Now uses "data" to access the
+                    #   data dict.
+                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
+                                                                      attribute_name="data")
                 else:
                     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
                                                                       attribute_name="file_data")
                 obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                     data_dict=file_data,
                     attribute_name=obj.date_created_attribute)
-
+    exit()
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
