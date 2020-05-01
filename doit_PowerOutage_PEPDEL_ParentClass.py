@@ -8,6 +8,8 @@ from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+import datetime
+import pytz
 
 
 class PEPDELParent(Provider):
@@ -23,7 +25,8 @@ class PEPDELParent(Provider):
         self.area_list = None
         self.configuration_url = None
         self.date_created_attribute = "updatedAt"  # Attribute override from Provider
-        self.file_data_attribute = "data"  # Attribute override from Provider
+        self.kubra_data_dict_attribute = "data"
+        # self.file_data_attribute = "updatedAt"  # Attribute override from Provider
         self.instance_id = None
         self.interval_generation_data_attribute = "interval_generation_data"
         self.interval_generation_data = None
@@ -225,3 +228,11 @@ class PEPDELParent(Provider):
         self.stats_objects.extend(new_stat_objs_to_append)
 
         return
+
+    def process_date_created_to_seconds(self):
+        # TODO: Documentation
+        seconds = self.date_created / 1000
+        tz_eastern = pytz.timezone('US/Eastern')
+        dt_obj = datetime.datetime.fromtimestamp(seconds, tz=tz_eastern)
+        self.date_created = dt_obj  #.strftime("%Y-%m-%dT%H:%M:%S")  # May be needed later if dateutil.parser chokes
+
