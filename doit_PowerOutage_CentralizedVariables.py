@@ -221,6 +221,7 @@ maryland_master_inventory_zip_codes_with_geometry = {'0': 'Assateague Island', '
                                                      '21919': 'Earleville', '21921': 'Elkton'}
 multi_zip_code_value_delimiter = ","
 multiple_providers = "MULTI"
+none_and_not_available = (None, "NA")
 provider_uri_cfg_file = "doit_PowerOutage_ProviderURI.cfg"
 sme_customer_count_database_location_and_name = "SME_Customer_Count_Memory_DB\SME_Customer_Count_Memory_DB.db"
 sme_database_table_name = "SME_Customer_Count_Memory"
