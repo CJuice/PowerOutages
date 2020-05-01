@@ -23,10 +23,11 @@ class PEPDELParent(Provider):
         self.area_list = None
         self.configuration_url = None
         self.date_created_attribute = "interval_generation_data"  # Attribute override from Provider
+        self.file_data_attribute = "data"  # Attribute override from Provider
         self.instance_id = None
+        self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
         self.state_to_data_list_dict = None
-        self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.zip_desc_list = None
 
     def extract_areas_list_county(self):

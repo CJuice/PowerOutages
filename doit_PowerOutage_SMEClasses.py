@@ -15,6 +15,7 @@ class SME(Provider):
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
+        self.file_data_attribute = "summaryFileData"  # Attribute override from Provider
 
     def extract_areas_list(self):
         """
