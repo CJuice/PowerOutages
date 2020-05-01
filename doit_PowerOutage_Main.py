@@ -114,6 +114,16 @@ def main():
                     data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
+        # Kubra specific, there is a second key needed
+        if obj.abbrev in VARS.kubra_feed_providers:
+            metadata_response_dict = obj.metadata_feed_response.json()
+            interval_gen_data_dict = DOIT_UTIL.extract_attribute_from_dict(
+                data_dict=metadata_response_dict,
+                attribute_name=obj.file_data_attribute)
+            obj.interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(
+                data_dict=interval_gen_data_dict,
+                attribute_name=obj.interval_generation_data_attribute)
+
     #   Make the date created requests, for providers with a date created service, and store the response.
     #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
@@ -138,12 +148,13 @@ def main():
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
+                print(obj.abbrev, date_created_response_dict)
                 file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                  attribute_name=obj.file_data_attribute)
+                                                                  attribute_name=obj.file_data_attribute)  # FIXME
                 obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                     data_dict=file_data,
-                    attribute_name=obj.date_created_attribute) # TODO: deal with PEP DEL issue
-                print(obj.abbrev, obj.date_created)
+                    attribute_name=obj.date_created_attribute)  # TODO: deal with PEP DEL issue
+
     exit()
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
