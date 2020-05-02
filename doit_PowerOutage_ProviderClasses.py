@@ -45,7 +45,7 @@ class Provider:
         self.sql_insert_record_zip_archive = VARS.sql_insert_record_zip_archive
         self.web_func_class = WebFunc.WebFunctionality
 
-    def build_feed_uri(self):
+    def build_data_feed_uri(self):
         """
         Build the data feed uri by substituting the metadata key value into the url
         :return:
