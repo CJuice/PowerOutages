@@ -24,6 +24,8 @@ class PEPDELParent(Provider):
         super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
         self.configuration_url = None
+        self.configuration_feed_response = None
+        self.report_source = None
         self.date_created_attribute = "updatedAt"  # Attribute override from Provider
         self.kubra_data_dict_attribute = "data"
         # self.file_data_attribute = "updatedAt"  # Attribute override from Provider
@@ -37,16 +39,25 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
 
-    def build_feed_uri(self):
+    def build_configuration_feed_uri(self):
         """
-        Build the data feed uri by substituting the metadata key value into the url
+        Build the configuration feed uri by substituting the instance id, view id, and deployment id into the url
         :return:
         """
-        # TODO: two different data feed url's, need to come up with way to deal with that.
-        print("TEST: ", self.data_feed_uri)
-        self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data, source=) # FIXME
-        # maybe create two new vars for the source specific url, then have a dict that gets the right one based on some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
+        self.configuration_url = self.configuration_url.format(instance_id=self.instance_id, view_id=self.view_id,
+                                                               deployment_id=self.metadata_key)
         return
+
+    # def build_data_feed_uri(self):
+    #     """
+    #     Build the data feed uri by substituting the metadata key value into the url
+    #     :return:
+    #     """
+    #     # TODO: two different data feed url's, need to come up with way to deal with that.
+    #     print("TEST: ", self.data_feed_uri)
+    #     self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data, source=) # FIXME: Get source first
+    #     # maybe create two new vars for the source specific url, then have a dict that gets the right one based on some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
+    #     return
 
     def extract_areas_list_county(self):
         """
@@ -123,6 +134,24 @@ class PEPDELParent(Provider):
                                                 state=state_groomed))
         self.stats_objects = list_of_stats_objects
         return
+
+    def extract_source_report(self):
+        # TODO: Documentation
+        configuration_json = self.configuration_feed_response.json()
+        config_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=configuration_json,
+                                                            attribute_name="config")
+        reports_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=config_data,
+                                                             attribute_name="reports")
+        data_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=reports_data,
+                                                          attribute_name="data")
+        interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_data,
+                                                                         attribute_name="interval_generation_data")
+        county_data, zip_data, *rest = interval_generation_data  # expecting len 2, protect against more
+        style_dict = {DOIT_UTIL.COUNTY: county_data, DOIT_UTIL.ZIP: zip_data}  # choose based on style of obj
+        self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict.get(self.style),
+                                                                   attribute_name="source")
+        return
+
 
     def extract_zip_descriptions_list(self):
         """
