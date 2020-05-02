@@ -161,13 +161,20 @@ def main():
                         data_dict=file_data,
                         attribute_name=obj.date_created_attribute)
 
+    print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
+    for key, obj in provider_objects.items():
+        if obj.abbrev in VARS.kubra_feed_providers:
+            obj.build_configuration_feed_uri()
+            obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
+            obj.extract_source_report()
+            # obj.extract_source_data()
+            print(obj.abbrev, obj.style, obj.report_source)
+    exit()
+
+
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.abbrev in VARS.kubra_feed_providers:
-            # TODO: First need to make the configuration information call and extract "source" values for later use
-            pass
-
         if "BGE" in key:
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
@@ -184,17 +191,15 @@ def main():
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
             elif obj.abbrev in VARS.kubra_feed_providers:
                 # print(obj.abbrev, obj.data_feed_uri)
-
-                obj.build_feed_uri()
+                obj.build_data_feed_uri()
+                # TODO: finish, need values from configuration section first
             else:
-                obj.build_feed_uri()
+                obj.build_data_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-        print(obj.abbrev, obj.data_feed_uri)
-    exit()
+
     # Detect the style of response
     for key, obj in provider_objects.items():
         obj.detect_response_style()
-
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
