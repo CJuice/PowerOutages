@@ -148,6 +148,9 @@ class Provider:
         """
         try:
             datetime_object = dateutil.parser.parse(timestr=self.date_created)
+        except TypeError as te:
+            print(f"TypeError while parsing date created string to datetime: {self.date_created}\n{te}")
+            self.date_created = datetime.fromisoformat(DOIT_UTIL.ZERO_TIME_STRING)
         except ValueError as ve:
             print(f"ValueError while parsing date created string to datetime: {self.date_created}\n{ve}")
             self.date_created = datetime.fromisoformat(DOIT_UTIL.ZERO_TIME_STRING)
