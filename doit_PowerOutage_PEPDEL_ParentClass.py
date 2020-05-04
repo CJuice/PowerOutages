@@ -68,9 +68,6 @@ class PEPDELParent(Provider):
         data_json = self.data_feed_response.json()
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")
-        # TODO: determine where to extract this cust_a value.
-        # curr_custs_aff = DOIT_UTIL.extract_attribute_from_dict(data_dict=maryland_area,
-        #                                                        attribute_name="cust_a")
         self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
                                                                attribute_name="areas")
         return
@@ -100,10 +97,11 @@ class PEPDELParent(Provider):
         for state_abbrev, outages_list in self.state_to_data_list_dict.items():
             state = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_abbrev)
             for county_dict in outages_list:
-                county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="area_name")
-                outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="custs_out")
+                county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="name")
+                outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_a")
+                outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=outages_dict, attribute_name="val")
                 customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict,
-                                                                  attribute_name="total_custs")
+                                                                  attribute_name="cust_s")
                 list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                     style=self.style,
                                                     area=county,
@@ -111,6 +109,8 @@ class PEPDELParent(Provider):
                                                     customers=customers,
                                                     state=state))
         self.stats_objects = list_of_stats_objects
+        for out in self.stats_objects:
+            print(out)
         return
 
     def extract_outage_counts_by_zip_desc(self):
@@ -275,5 +275,5 @@ class PEPDELParent(Provider):
         seconds = self.date_created / 1000
         tz_eastern = pytz.timezone('US/Eastern')
         dt_obj = datetime.datetime.fromtimestamp(seconds, tz=tz_eastern)
-        self.date_created = dt_obj  #.strftime("%Y-%m-%dT%H:%M:%S")  # May be needed later if dateutil.parser chokes
+        self.date_created = dt_obj.strftime("%Y-%m-%dT%H:%M:%S")  # converted to string so dateutil.parser won't choke
 
