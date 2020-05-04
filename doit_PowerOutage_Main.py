@@ -172,8 +172,6 @@ def main():
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.abbrev not in VARS.kubra_feed_providers:
-            continue
         if "BGE" in key:
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
@@ -188,17 +186,14 @@ def main():
         else:
             if obj.metadata_key in VARS.none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-            # elif obj.abbrev in VARS.kubra_feed_providers:
-            #     obj.build_data_feed_uri()
             else:
                 obj.build_data_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-            # print(obj.data_feed_response.json())  # TESTING
-    exit()
 
     # Detect the style of response
-    for key, obj in provider_objects.items():
-        obj.detect_response_style()
+    # FIXME: Assess, not entirely sure this is necessary code. Follow through with class attribute too. Commented Out !
+    # for key, obj in provider_objects.items():
+    #     obj.detect_response_style()
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
@@ -216,11 +211,15 @@ def main():
             obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
+            print(key)
+            print("trying extract_areas_list_county()")
             obj.extract_areas_list_county()
+            print("trying extract_county_outage_lists_by_state()")
             obj.extract_county_outage_lists_by_state()
             obj.extract_outage_counts_by_county()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
+            print(key)
             obj.extract_zip_descriptions_list()
             obj.extract_outage_counts_by_zip_desc()
             obj.process_multi_value_zips_to_single_value()
@@ -259,7 +258,7 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-
+    exit()
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
