@@ -58,7 +58,6 @@ class PEPDELParent(Provider):
         # some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
         self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data,
                                                        source=self.report_source)
-        print(self.abbrev, self.data_feed_uri)
         return
 
     def extract_areas_list_county(self):
@@ -69,12 +68,10 @@ class PEPDELParent(Provider):
         data_json = self.data_feed_response.json()
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")
-        curr_custs_aff = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
-                                                               attribute_name="curr_custs_aff")
-        file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=curr_custs_aff,
-                                                          attribute_name="areas")
-        area_dict, *rest = file_data  # Expecting dict len=1, *rest guards against len>1
-        self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict,
+        # TODO: determine where to extract this cust_a value.
+        # curr_custs_aff = DOIT_UTIL.extract_attribute_from_dict(data_dict=maryland_area,
+        #                                                        attribute_name="cust_a")
+        self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
                                                                attribute_name="areas")
         return
 
