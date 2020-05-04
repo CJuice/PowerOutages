@@ -83,10 +83,11 @@ class PEPDELParent(Provider):
         states_outages_list_dict = {}
         for state_dict in self.area_list:
             state_abbrev = DOIT_UTIL.extract_attribute_from_dict(data_dict=state_dict,
-                                                                 attribute_name="area_name")
+                                                                 attribute_name="name")
             states_outages_list_dict[state_abbrev] = DOIT_UTIL.extract_attribute_from_dict(data_dict=state_dict,
                                                                                            attribute_name="areas")
         self.state_to_data_list_dict = states_outages_list_dict
+        print(self.state_to_data_list_dict)
         return
 
     def extract_outage_counts_by_county(self):
