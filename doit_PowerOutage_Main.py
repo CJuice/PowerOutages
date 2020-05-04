@@ -216,6 +216,7 @@ def main():
             obj.extract_areas_list_county()
             print("trying extract_county_outage_lists_by_state()")
             obj.extract_county_outage_lists_by_state()
+            print("trying extract_outage_counts_by_county()")
             obj.extract_outage_counts_by_county()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
