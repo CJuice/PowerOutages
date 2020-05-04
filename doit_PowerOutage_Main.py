@@ -167,14 +167,13 @@ def main():
             obj.build_configuration_feed_uri()
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
             obj.extract_source_report()
-            # obj.extract_source_data()
-            print(obj.abbrev, obj.style, obj.report_source)
-    exit()
-
+            # obj.extract_source_data() # FIXME: Assess if necessary to get the data.json
 
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        if obj.abbrev not in VARS.kubra_feed_providers:
+            continue
         if "BGE" in key:
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
@@ -189,13 +188,13 @@ def main():
         else:
             if obj.metadata_key in VARS.none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-            elif obj.abbrev in VARS.kubra_feed_providers:
-                # print(obj.abbrev, obj.data_feed_uri)
-                obj.build_data_feed_uri()
-                # TODO: finish, need values from configuration section first
+            # elif obj.abbrev in VARS.kubra_feed_providers:
+            #     obj.build_data_feed_uri()
             else:
                 obj.build_data_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
+            # print(obj.data_feed_response.json())  # TESTING
+    exit()
 
     # Detect the style of response
     for key, obj in provider_objects.items():
