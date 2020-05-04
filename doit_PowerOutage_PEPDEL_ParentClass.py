@@ -25,15 +25,14 @@ class PEPDELParent(Provider):
         self.area_list = None
         self.configuration_url = None
         self.configuration_feed_response = None
-        self.report_source = None
         self.date_created_attribute = "updatedAt"  # Attribute override from Provider
         self.kubra_data_dict_attribute = "data"
-        # self.file_data_attribute = "updatedAt"  # Attribute override from Provider
         self.instance_id = None
         self.interval_generation_data_attribute = "interval_generation_data"
         self.interval_generation_data = None
         self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
+        self.report_source = None
         self.source_data_json = None
         self.source_report_json = None
         self.state_to_data_list_dict = None
@@ -48,16 +47,19 @@ class PEPDELParent(Provider):
                                                                deployment_id=self.metadata_key)
         return
 
-    # def build_data_feed_uri(self):
-    #     """
-    #     Build the data feed uri by substituting the metadata key value into the url
-    #     :return:
-    #     """
-    #     # TODO: two different data feed url's, need to come up with way to deal with that.
-    #     print("TEST: ", self.data_feed_uri)
-    #     self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data, source=) # FIXME: Get source first
-    #     # maybe create two new vars for the source specific url, then have a dict that gets the right one based on some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
-    #     return
+    def build_data_feed_uri(self):
+        """
+        Build the data feed uri by substituting the metadata key value into the url
+        TODO: revise documentation. Add note on report.json focus, not data.json. Aslo method is override of parent
+        :return:
+        """
+        # TODO: two different feed url's, need to come up with way to deal with that. This currently gets report json
+        # maybe create two new vars for the source specific url, then have a dict that gets the right one based on
+        # some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
+        self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data,
+                                                       source=self.report_source)
+        print(self.abbrev, self.data_feed_uri)
+        return
 
     def extract_areas_list_county(self):
         """
@@ -151,7 +153,6 @@ class PEPDELParent(Provider):
         self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict.get(self.style),
                                                                    attribute_name="source")
         return
-
 
     def extract_zip_descriptions_list(self):
         """
