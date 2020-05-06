@@ -200,6 +200,9 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        if key not in ["PEP_ZIP", "DEL_ZIP"]:
+            continue
+
         if obj.data_feed_response.status_code != 200:
             continue
 
@@ -212,17 +215,23 @@ def main():
 
         elif key in ("DEL_County", "PEP_County"):
             print(key)
-            print("trying extract_areas_list_county()")
-            obj.extract_areas_list_county()
+            obj.extract_top_level_areas_list()
             print("trying extract_county_outage_lists_by_state()")
             obj.extract_county_outage_lists_by_state()
             print("trying extract_outage_counts_by_county()")
             obj.extract_outage_counts_by_county()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
+            # TODO: functionality between county and zip appears to be very very similar.
             print(key)
-            obj.extract_zip_descriptions_list()
-            obj.extract_outage_counts_by_zip_desc()
+            obj.extract_top_level_areas_list()
+            # print("trying extract_county_outage_lists_by_state()")
+            obj.extract_county_outage_lists_by_state()  # WORKS FOR DEL AS IS, WITHOUT OVERRIDE
+            print(obj.state_to_data_list_dict)
+            # obj.extract_outage_counts_by_zip_desc()
+            # print("trying extract_outage_counts_by_county()")
+            obj.extract_outage_counts_by_county()
+            # print("trying process_multi_value_zips_to_single_value()")
             obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):
@@ -259,7 +268,9 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
+
     exit()
+
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
