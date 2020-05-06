@@ -60,12 +60,14 @@ class PEPDELParent(Provider):
                                                        source=self.report_source)
         return
 
-    def extract_areas_list_county(self):
+    def extract_top_level_areas_list(self):
         """
-        Extract the county area information from a json response.
+        Extract the top level area key information from a json response.
         :return: none
         """
         data_json = self.data_feed_response.json()
+        # print(f"DATA JSON FOR {self.abbrev}_{self.style}")
+        # print(data_json)
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")
         self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
@@ -84,7 +86,6 @@ class PEPDELParent(Provider):
             states_outages_list_dict[state_abbrev] = DOIT_UTIL.extract_attribute_from_dict(data_dict=state_dict,
                                                                                            attribute_name="areas")
         self.state_to_data_list_dict = states_outages_list_dict
-        print(self.state_to_data_list_dict)
         return
 
     def extract_outage_counts_by_county(self):
@@ -95,22 +96,21 @@ class PEPDELParent(Provider):
         """
         list_of_stats_objects = []
         for state_abbrev, outages_list in self.state_to_data_list_dict.items():
-            state = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_abbrev)
+            state_groomed = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_abbrev)
             for county_dict in outages_list:
                 county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="name")
                 outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_a")
                 outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=outages_dict, attribute_name="val")
-                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict,
-                                                                  attribute_name="cust_s")
+                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_s")
                 list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                     style=self.style,
                                                     area=county,
                                                     outages=outages,
                                                     customers=customers,
-                                                    state=state))
+                                                    state=state_groomed))
         self.stats_objects = list_of_stats_objects
-        for out in self.stats_objects:
-            print(out)
+        # for out in self.stats_objects:
+        #     print(out)
         return
 
     def extract_outage_counts_by_zip_desc(self):
@@ -152,14 +152,19 @@ class PEPDELParent(Provider):
                                                                    attribute_name="source")
         return
 
-    def extract_zip_descriptions_list(self):
-        """
-        Extract zip descriptions list from response json
-        :return: none
-        """
-        data_json = self.data_feed_response.json()
-        self.zip_desc_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
-        return
+    # Replaced by extract_top_level_areas_list()
+    # def extract_zip_descriptions_list(self):
+    #     """
+    #     Extract zip descriptions list from response json
+    #     :return: none
+    #     """
+    #     data_json = self.data_feed_response.json()
+    #     # self.zip_desc_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
+    #     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
+    #                                                       attribute_name="file_data")
+    #     self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
+    #                                                            attribute_name="areas")
+    #     return
 
     def process_multi_value_zips_to_single_value(self):
         """
