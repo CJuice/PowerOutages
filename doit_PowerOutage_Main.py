@@ -15,7 +15,7 @@ Provider. All providers are then subclassed from this parent to create child cla
 unique behavior specific to a provider. Functionality/behavior common to all providers has been placed into the parent
 class and inherited downward into the children. For PEP and DEL, Provider is inherited by the PEPDEL_ParentClass. This
 class organizes behavior common to both PEP and DEL providers. Both PEP and DEL children inherit from
-PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overridden
+PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
 by methods in child classes.
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
@@ -200,9 +200,6 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if key not in ["PEP_ZIP", "DEL_ZIP"]:
-            continue
-
         if obj.data_feed_response.status_code != 200:
             continue
 
@@ -214,24 +211,15 @@ def main():
             obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
-            print(key)
             obj.extract_top_level_areas_list()
-            print("trying extract_county_outage_lists_by_state()")
             obj.extract_county_outage_lists_by_state()
-            print("trying extract_outage_counts_by_county()")
             obj.extract_outage_counts_by_county()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            # TODO: functionality between county and zip appears to be very very similar.
-            print(key)
+            # TODO: refactor names for functions to be independent of zip or county reference
             obj.extract_top_level_areas_list()
-            # print("trying extract_county_outage_lists_by_state()")
-            obj.extract_county_outage_lists_by_state()  # WORKS FOR DEL AS IS, WITHOUT OVERRIDE
-            print(obj.state_to_data_list_dict)
-            # obj.extract_outage_counts_by_zip_desc()
-            # print("trying extract_outage_counts_by_county()")
+            obj.extract_county_outage_lists_by_state()  # WORKS FOR DEL AS IS, WITHOUT OVERLOAD
             obj.extract_outage_counts_by_county()
-            # print("trying process_multi_value_zips_to_single_value()")
             obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):
@@ -269,8 +257,6 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-    exit()
-
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
@@ -284,6 +270,8 @@ def main():
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+
+    exit()
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
