@@ -273,8 +273,6 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
 
-    exit()
-
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
     print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")

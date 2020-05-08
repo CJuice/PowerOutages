@@ -35,7 +35,7 @@ class ArchiveCounty:
         self.county_archive_record_objects_list = record_list
         return
 
-    def generate_county_archive_insert_sql_statement(self) -> None:
+    def generate_county_archive_insert_sql_statement(self):
         """
         Generator for building and yielding sql statement for insertion of county record object data into archive
         :return: None
@@ -62,7 +62,7 @@ class ArchiveZIP:
         self.master_aggregated_zip_count_objects_dict = {}
         self.sql_insert_record_zip_archive = VARS.sql_insert_record_zip_archive
 
-    def generate_insert_sql_statement_archive(self) -> None:
+    def generate_insert_sql_statement_archive(self):
         """
         Build the insert sql statement for archive data and yield the statement.
         For ZIP archive data. Uses a master dictionary of ZipCodeCountAggregated objects meant to aggregate outage

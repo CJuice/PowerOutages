@@ -96,7 +96,7 @@ class Provider:
             self.data_feed_response_style = "JSON"
         return
 
-    def generate_insert_sql_statement_realtime(self) -> None:
+    def generate_insert_sql_statement_realtime(self):
         """
         Build the insert sql statement for real time data and yield the statement.
         For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table

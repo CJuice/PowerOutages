@@ -51,7 +51,7 @@ class Customer:
         self.county_customer_count_objects_list = county_customer_count_objects_list
         return
 
-    def generate_insert_sql_statement_customer_count(self) -> None:
+    def generate_insert_sql_statement_customer_count(self):
         """
         Generate a sql statement for each county and the count and yield the statement for use in database transaction.
         :return: None
