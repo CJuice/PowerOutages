@@ -4,6 +4,7 @@ specific to the peculiarities of the DEL and PEP feeds and the processing they r
 providers but common to them both. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface.
 """
+
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
@@ -14,8 +15,8 @@ import pytz
 
 class PEPDELParent(Provider):
     """
-    Functionality and variables common to the PEP and DEL providers. Inherits from Provider. Portions are overridden
-    in the PEP and DEL classes.
+    Functionality and variables common to the PEP and DEL providers. Inherits from Provider. Certain functions
+    are overloaded in the PEP and DEL classes.
     """
 
     MULTI_ZIP_CODE_VALUE_DELIMITER = VARS.multi_zip_code_value_delimiter
@@ -38,45 +39,29 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = None
         self.zip_desc_list = None
 
-    def build_configuration_feed_uri(self):
+    def build_configuration_feed_uri(self) -> None:
         """
         Build the configuration feed uri by substituting the instance id, view id, and deployment id into the url
-        :return:
+        :return: None
         """
         self.configuration_url = self.configuration_url.format(instance_id=self.instance_id, view_id=self.view_id,
                                                                deployment_id=self.metadata_key)
         return
 
-    def build_data_feed_uri(self):
+    def build_data_feed_uri(self) -> None:
         """
-        Build the data feed uri by substituting the metadata key value into the url
-        TODO: revise documentation. Add note on report.json focus, not data.json. Aslo method is override of parent
-        :return:
+        Build the data feed uri by substituting the interval generation data value and source value into the url.
+        Despite being called the 'data' feed and there being a kubra data.json available, this builds the string
+        to access the report.json url.
+        :return: None
         """
-        # TODO: two different feed url's, need to come up with way to deal with that. This currently gets report json
-        # maybe create two new vars for the source specific url, then have a dict that gets the right one based on
-        # some key retrieval when the data_feed_uri is called for PEPDEL kubra ones
         self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data,
                                                        source=self.report_source)
         return
 
-    def extract_top_level_areas_list(self):
+    def extract_area_outage_lists_by_state(self) -> None:
         """
-        Extract the top level area key information from a json response.
-        :return: none
-        """
-        data_json = self.data_feed_response.json()
-        # print(f"DATA JSON FOR {self.abbrev}_{self.style}")
-        # print(data_json)
-        file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
-                                                          attribute_name="file_data")
-        self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
-                                                               attribute_name="areas")
-        return
-
-    def extract_county_outage_lists_by_state(self):
-        """
-        Extract county outage lists by state from dictionary
+        Extract area outage lists by state from dictionary
         :return: none
         """
         states_outages_list_dict = {}
@@ -88,9 +73,9 @@ class PEPDELParent(Provider):
         self.state_to_data_list_dict = states_outages_list_dict
         return
 
-    def extract_outage_counts_by_county(self):
+    def extract_outage_counts_by_area(self) -> None:
         """
-        Extract outage counts by county from the outage dictionary, exchange state abbreviation for full name, and
+        Extract outage counts by area from the outage dictionary, exchange state abbreviation for full name, and
         build stat objects
         :return: none
         """
@@ -109,34 +94,13 @@ class PEPDELParent(Provider):
                                                     customers=customers,
                                                     state=state_groomed))
         self.stats_objects = list_of_stats_objects
-        # for out in self.stats_objects:
-        #     print(out)
         return
 
-    def extract_outage_counts_by_zip_desc(self):
+    def extract_source_report(self) -> None:
         """
-        Extract the outage counts by zip and build stat objects
-        :return: none
+        Extract the source report string value from the configuration feed response json
+        :return: None
         """
-        list_of_stats_objects = []
-        for desc in self.zip_desc_list:
-            zip_desc_dict, *rest = DOIT_UTIL.extract_attribute_from_dict(data_dict=desc, attribute_name="desc")
-            zip_code = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="area_name")
-            outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="custs_out")
-            customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="total_custs")
-            state_raw = DOIT_UTIL.extract_attribute_from_dict(data_dict=zip_desc_dict, attribute_name="state")
-            state_groomed = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_raw)
-            list_of_stats_objects.append(Outage(abbrev=self.abbrev,
-                                                style=self.style,
-                                                area=zip_code,
-                                                outages=outages,
-                                                customers=customers,
-                                                state=state_groomed))
-        self.stats_objects = list_of_stats_objects
-        return
-
-    def extract_source_report(self):
-        # TODO: Documentation
         configuration_json = self.configuration_feed_response.json()
         config_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=configuration_json,
                                                             attribute_name="config")
@@ -147,26 +111,26 @@ class PEPDELParent(Provider):
         interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_data,
                                                                          attribute_name="interval_generation_data")
         county_data, zip_data, *rest = interval_generation_data  # expecting len 2, protect against more
-        style_dict = {DOIT_UTIL.COUNTY: county_data, DOIT_UTIL.ZIP: zip_data}  # choose based on style of obj
+
+        # Need to choose the correct data based on style of obj
+        style_dict = {DOIT_UTIL.COUNTY: county_data, DOIT_UTIL.ZIP: zip_data}
         self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict.get(self.style),
                                                                    attribute_name="source")
         return
 
-    # Replaced by extract_top_level_areas_list()
-    # def extract_zip_descriptions_list(self):
-    #     """
-    #     Extract zip descriptions list from response json
-    #     :return: none
-    #     """
-    #     data_json = self.data_feed_response.json()
-    #     # self.zip_desc_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json, attribute_name="file_data")
-    #     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
-    #                                                       attribute_name="file_data")
-    #     self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
-    #                                                            attribute_name="areas")
-    #     return
+    def extract_top_level_areas_list(self) -> None:
+        """
+        Extract the top level area key information from a json response.
+        :return: none
+        """
+        data_json = self.data_feed_response.json()
+        file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
+                                                          attribute_name="file_data")
+        self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
+                                                               attribute_name="areas")
+        return
 
-    def process_multi_value_zips_to_single_value(self):
+    def process_multi_value_zips_to_single_value(self) -> None:
         """
         Process "area" values, containing multiple comma separated zips, into new single zip value objects.
         This function is rather long and works on each stat object in a list at a time. The stat object .area attribute
@@ -275,10 +239,15 @@ class PEPDELParent(Provider):
 
         return
 
-    def process_date_created_to_seconds(self):
-        # TODO: Documentation
+    def process_date_created_to_seconds(self) -> None:
+        """
+        Process the Kubra date created milliseconds to a tz aware datetime obj and convert to formatted string.
+        :return:
+        """
         seconds = self.date_created / 1000
         tz_eastern = pytz.timezone('US/Eastern')
         dt_obj = datetime.datetime.fromtimestamp(seconds, tz=tz_eastern)
         self.date_created = dt_obj.strftime("%Y-%m-%dT%H:%M:%S")  # converted to string so dateutil.parser won't choke
+
+        return
 

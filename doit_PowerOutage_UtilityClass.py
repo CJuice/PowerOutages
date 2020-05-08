@@ -1,6 +1,7 @@
 """
 Contains a Utility class that has functionality that is not provider specific and may be needed across the project.
 """
+
 from datetime import datetime
 import configparser
 import xml.etree.ElementTree as ET

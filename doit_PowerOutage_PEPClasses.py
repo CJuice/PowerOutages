@@ -1,9 +1,10 @@
 """
 Module contains a PEP class that inherits from PEPDELParent class which inherits from Provider class.
-PEP class is an implementation specific to the peculiarities of the DEL feeds and the processing they require
+PEP class is an implementation specific to the peculiarities of the PEP feeds and the processing they require
 that is not common to all providers. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface. PEP inherits from the PEPDELParent class.
 """
+
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
@@ -17,12 +18,15 @@ class PEP(PEPDELParent):
     def __init__(self, provider_abbrev, style):
         super(PEP, self).__init__(provider_abbrev=provider_abbrev, style=style)
 
-    def extract_county_outage_lists_by_state(self):
+    def extract_area_outage_lists_by_state(self) -> None:
         """
-        TODO: update documentation, also make assumption that pepco only covers md and dc. describe issues and reason
-            for the special handling
-
-        :return: none
+        Extract area outage dicts, determine state (MD/DC), aggregate into respective lists, and store in state dict.
+        PEPCO json data varied from DPL (DEL) json data. The same functions in the PEPDEL parent class could not be
+        applied to both provider feeds (county & zip). The objects/data of interest was provided at two different
+        levels of the json hierarchy. PEPCO did not contain a state level but DEL did. DEL seemed the better design.
+        A choice was made to handle the variation in style by overloading the PEPDEL method in the PEP class. An
+        assumption has been made that PEPCO only covers MD and DC.
+        :return: None
         """
         dc_areas_list = []
         md_areas_list = []
@@ -35,13 +39,12 @@ class PEP(PEPDELParent):
                     dc_areas_list.append(area_dict)
                 else:
                     md_areas_list.append(area_dict)
-
-            # # Need to store the DC and MD dicts with key to make states_outages_list_dict
-            # self.state_to_data_list_dict = {"DC": dc_areas_list, "MD": md_areas_list}
         else:
-            # TODO: No state given in json, must determine if in DC. Can't assign all to MD.
+
+            # No state given in json, must determine if in DC based on DC multi-zip strings provided by Exelon staff
             for area_dict in self.area_list:
-                if area_dict.get("name") in VARS.district_of_columbia_exelon_defined_aggregated_zip_codes_values:
+                zip_code_string = area_dict.get("name")
+                if zip_code_string in VARS.district_of_columbia_exelon_defined_aggregated_zip_codes_values:
                     dc_areas_list.append(area_dict)
                 else:
                     md_areas_list.append(area_dict)

@@ -21,20 +21,20 @@ class EUC(Provider):
         self.events_list = None
         self.zip_to_county = {"21601": "Talbot"}
 
-    def extract_date_created(self):
+    def extract_date_created(self) -> None:
         """
         Extract the date created from the events list.
-        :return:
+        :return: None
         """
         for event in self.events_list:
             self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=event, attribute_name="TimeStamp")
         return
 
-    def extract_outage_counts(self):
+    def extract_outage_counts(self) -> None:
         """
         Extract outage counts, customer counts, and area from events list, exchange zip for county, then
         build stat objects.
-        :return: none
+        :return: None
         """
         list_of_stats_objects = []
         for event in self.events_list:
@@ -55,10 +55,10 @@ class EUC(Provider):
         self.stats_objects = list_of_stats_objects
         return
 
-    def extract_outage_events_list_from_xml_str(self):
+    def extract_outage_events_list_from_xml_str(self) -> None:
         """
         Extract outage events from xml response
-        :return: none
+        :return: None
         """
         content_list_as_str = self.xml_element.text
         self.events_list = json.loads(content_list_as_str)

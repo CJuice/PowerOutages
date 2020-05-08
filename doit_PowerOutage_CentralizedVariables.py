@@ -5,6 +5,7 @@ editing easier for non-developers by having a single location for the variables 
 through and interact with the code. This avoids introduction of errors and also makes life easier for those who do not
 enjoy mucking about in the code.
 """
+
 import textwrap
 
 credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
@@ -471,6 +472,7 @@ sql_update_task_tracking_table = textwrap.dedent(
     """UPDATE dbo.RealTime_TaskTracking SET lastRun = '{now}',
     DataGenerated = '{now}' WHERE taskName = 'PowerOutage'"""
 )
+
 # sql_update_customers_table_sme_sqlite3 = textwrap.dedent(
 #     """UPDATE SME_Customer_Count_Memory
 #     SET Customer_Count = {customers}, Last_Updated = '{date}'

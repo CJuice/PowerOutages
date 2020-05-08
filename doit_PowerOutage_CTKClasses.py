@@ -2,6 +2,7 @@
 Module contains a CTK class that inherits from Provider class. CTK class is an implementation specific to the
 peculiarities of the CTK feeds and the processing they require that is not common to all providers.
 """
+
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
@@ -22,10 +23,10 @@ class CTK(Provider):
         self.outage_dataset = None
         self.grouped_zipcodes_dict = None
 
-    def extract_date_created(self):
+    def extract_date_created(self) -> None:
         """
         Extract the date created from the xml response content
-        :return: none
+        :return: None
         """
         date_generated = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.xml_element,
                                                                                       tag_name="generated")
@@ -33,10 +34,10 @@ class CTK(Provider):
         self.date_created = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_dict, attribute_name="date")
         return
 
-    def extract_outage_counts_from_dataset(self):
+    def extract_outage_counts_from_dataset(self) -> None:
         """
         Extract the outage counts from the outage dataset xml and build stat objects to store the data.
-        :return: none
+        :return: None
         """
         list_of_stats_objects = []
         t_elements = DOIT_UTIL.extract_all_immediate_child_features_from_element(element=self.outage_dataset,
@@ -53,10 +54,10 @@ class CTK(Provider):
         self.stats_objects = list_of_stats_objects
         return
 
-    def extract_outage_dataset(self):
+    def extract_outage_dataset(self) -> None:
         """
         Extract the outage dataset from xml.
-        :return: none
+        :return: None
         """
         self.outage_dataset = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.outage_report,
                                                                                            tag_name="dataset")
@@ -64,13 +65,14 @@ class CTK(Provider):
             print(f"No {self.abbrev}_{self.style} dataset values in feed.\n\tResponse value: {self.data_feed_response}")
         return
 
-    def extract_report_by_id(self):
+    def extract_report_by_id(self) -> None:
         """
         Extract the data report based on id.
-        :return:
+        :return: None
         """
         style_id = self.style
         for report in self.xml_element.iter("report"):
             if report.attrib["id"].lower() == style_id.lower():
                 self.outage_report = report
                 return
+        return

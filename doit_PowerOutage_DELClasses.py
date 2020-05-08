@@ -12,7 +12,7 @@ class DEL(PEPDELParent):
     """
     DEL specific functionality and variables for handling DEL feed data. Inherits from PEPDELParent and therefore
     Provider.
-    NOTE: DEL and PEP report.json hierarchy are different. Overrode extract_county_outage_lists_by_state() for PEP
+    NOTE: DEL and PEP report.json hierarchy are different. Overload extract_area_outage_lists_by_state() for PEP
         but not DEL, to handle hierarchy variation in PEP json. Chose to treat DEL json structure as correct and
         what to expect since it contained a state level, whereas the PEP json went straight to the county level
         and also included the District of Columbia in with the Maryland counties.
@@ -21,19 +21,3 @@ class DEL(PEPDELParent):
     def __init__(self, provider_abbrev, style):
         super(DEL, self).__init__(provider_abbrev=provider_abbrev, style=style)
         # self.SPECIAL_ZIP_VALUES_DICT = {"21921,21922": "21916,21920,21921"}
-
-    # def process_grouped_zip_code_values(self):
-    #     """
-    #
-    #     :return:
-    #     """
-    #     for stat_obj in self.stats_objects:
-    #         if self.style == "ZIP":
-    #
-    #             # Substitute comma separated strings of zipcodes from special values dict, if value found.
-    #             try:
-    #                 stat_obj.area = self.SPECIAL_ZIP_VALUES_DICT[stat_obj.area]
-    #                 print(f"{self.abbrev} - FOUND: {stat_obj.area}")
-    #             except KeyError as ke:
-    #                 print(f"{self.abbrev} - NOT FOUND: {stat_obj.area}")
-    #     return

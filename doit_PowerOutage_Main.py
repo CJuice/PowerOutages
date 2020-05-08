@@ -23,11 +23,14 @@ variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
-Revisions: 20190327 Redesign for change to SME data feeds
-    20200430 Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down. Entire
-    process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
+Revisions: 20190327, CJuice Redesign for change to SME data feeds
+    20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
+    Entire process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
     Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
     for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
+    20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
+    Heavily revised Main, PEPDEL_ParentClass, PEPClasses, DELClasses ProviderURI, and did minor alterations to other
+    classes for clarity or minor improvements in documentation or style but not functionality.
 """
 
 
@@ -212,14 +215,13 @@ def main():
 
         elif key in ("DEL_County", "PEP_County"):
             obj.extract_top_level_areas_list()
-            obj.extract_county_outage_lists_by_state()
-            obj.extract_outage_counts_by_county()
+            obj.extract_area_outage_lists_by_state()
+            obj.extract_outage_counts_by_area()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            # TODO: refactor names for functions to be independent of zip or county reference
             obj.extract_top_level_areas_list()
-            obj.extract_county_outage_lists_by_state()  # WORKS FOR DEL AS IS, WITHOUT OVERLOAD
-            obj.extract_outage_counts_by_county()
+            obj.extract_area_outage_lists_by_state()
+            obj.extract_outage_counts_by_area()
             obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):

@@ -1,7 +1,7 @@
 """
 Module containing DatabaseUtilities class for functionality related to database interaction.
-
 """
+
 import pyodbc
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
