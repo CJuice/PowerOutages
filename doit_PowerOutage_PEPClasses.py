@@ -26,6 +26,7 @@ class PEP(PEPDELParent):
         levels of the json hierarchy. PEPCO did not contain a state level but DEL did. DEL seemed the better design.
         A choice was made to handle the variation in style by overloading the PEPDEL method in the PEP class. An
         assumption has been made that PEPCO only covers MD and DC.
+        Overload of PEPDEL_ParentClass method.
         :return: None
         """
         dc_areas_list = []

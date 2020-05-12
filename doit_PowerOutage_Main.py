@@ -409,7 +409,7 @@ def main():
         db_obj.commit_changes()
         print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
     finally:
-        
+
         # Clean up for next step
         db_obj.delete_cursor()
 

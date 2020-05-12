@@ -53,6 +53,7 @@ class PEPDELParent(Provider):
         Build the data feed uri by substituting the interval generation data value and source value into the url.
         Despite being called the 'data' feed and there being a kubra data.json available, this builds the string
         to access the report.json url.
+        Override of Provider method.
         :return: None
         """
         self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data,
@@ -61,7 +62,7 @@ class PEPDELParent(Provider):
 
     def extract_area_outage_lists_by_state(self) -> None:
         """
-        Extract area outage lists by state from dictionary
+        Extract area outage lists by state from dictionary.
         :return: none
         """
         states_outages_list_dict = {}
@@ -146,7 +147,6 @@ class PEPDELParent(Provider):
         to be mappable. The new design does away with the multi-value method and simply breaks the multi into singles
         and distributes the counts as evenly as possible. This design is based around the zip code geometry layer
         instead of revolving around the business practice of PEP and DEL.
-
         :return: none
         """
 

@@ -5,6 +5,7 @@ Outage is a data class used to store reported power outage data. The Outage obje
 Provider is inherited by all of the child power providing company classes.
 
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
