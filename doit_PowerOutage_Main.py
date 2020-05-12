@@ -60,7 +60,7 @@ def main():
     centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
     credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
     DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
-    OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
+    output_json_file = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
@@ -271,7 +271,7 @@ def main():
 
     for key, obj in provider_objects.items():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
-    DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+    DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
@@ -413,6 +413,8 @@ def main():
     finally:
         # Clean up for next step
         db_obj.delete_cursor()
+
+    print("Process Completed")
 
 
 if __name__ == "__main__":
