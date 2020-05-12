@@ -82,14 +82,15 @@ def main():
     #   Get and store variables, as provider object attributes, from cfg file.
     print(f"Gathering variables...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        section_items = [item for item in DOIT_UTIL.PARSER[key]]
+        section_keys = [item for item in DOIT_UTIL.PARSER[key]]
+        section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
         if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
+            obj.soap_header_uri, obj.post_uri = section_values
         elif "PEP" in key or "DEL" in key:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = [DOIT_UTIL.PARSER[key][item] for item in section_items]
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
-
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
+    
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
