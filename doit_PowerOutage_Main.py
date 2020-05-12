@@ -413,7 +413,7 @@ def main():
         # Clean up for next step
         db_obj.delete_cursor()
 
-    print("Process Completed")
+    print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
 
 if __name__ == "__main__":
