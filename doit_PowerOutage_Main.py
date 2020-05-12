@@ -96,6 +96,7 @@ def main():
     print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if obj.metadata_feed_uri in VARS.none_and_not_available:
+
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
             continue
         else:
@@ -170,12 +171,12 @@ def main():
             obj.build_configuration_feed_uri()
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
             obj.extract_source_report()
-            # obj.extract_source_data() # FIXME: Assess if necessary to get the data.json
 
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         if "BGE" in key:
+
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
             bge_extra_header = obj.build_extra_header_for_SOAP_request()
@@ -192,11 +193,6 @@ def main():
             else:
                 obj.build_data_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-
-    # Detect the style of response
-    # FIXME: Assess, not entirely sure this is necessary code. Follow through with class attribute too. Commented Out !
-    # for key, obj in provider_objects.items():
-    #     obj.detect_response_style()
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
@@ -312,8 +308,8 @@ def main():
         for statement in customer_count_update_generator:
             db_obj.execute_sql_statement(sql_statement=statement)
     except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
         print(f"CUSTOMER COUNT process. Database operation error. {e}")
-
     db_obj.commit_changes()
 
     # Clean up for next step
@@ -377,6 +373,7 @@ def main():
     else:
         archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
     finally:
+
         # Clean up for next step
         db_obj.delete_cursor()
 
@@ -395,6 +392,7 @@ def main():
         db_obj.commit_changes()
         print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
     finally:
+
         # Clean up for next step
         db_obj.delete_cursor()
 
@@ -411,6 +409,7 @@ def main():
         db_obj.commit_changes()
         print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
     finally:
+        
         # Clean up for next step
         db_obj.delete_cursor()
 
