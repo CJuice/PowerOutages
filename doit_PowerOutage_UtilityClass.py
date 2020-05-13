@@ -146,6 +146,11 @@ class Utility:
 
     @staticmethod
     def print_tabbed_string(value: str) -> None:
+        """
+        Print provided value with proceeding tab
+        :param value: string
+        :return: None
+        """
         print(f"\t{value}")
         return None
 
