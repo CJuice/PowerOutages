@@ -82,6 +82,7 @@ def main():
     #   Get and store variables, as provider object attributes, from cfg file.
     print(f"Gathering variables...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         section_keys = [item for item in DOIT_UTIL.PARSER[key]]
         section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
         if "BGE" in key:
@@ -90,12 +91,13 @@ def main():
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
-    
+
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
     print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.metadata_feed_uri in VARS.none_and_not_available:
 
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
@@ -105,6 +107,7 @@ def main():
 
     #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.metadata_feed_uri in VARS.none_and_not_available:
             continue
         else:
@@ -133,6 +136,7 @@ def main():
     #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
@@ -142,6 +146,7 @@ def main():
 
     #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
@@ -158,6 +163,8 @@ def main():
                     obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
                         data_dict=date_created_response_dict,
                         attribute_name=obj.date_created_attribute)
+
+                    # Kubra datetime requires processing to match format of other providers dt strings
                     obj.process_date_created_to_seconds()
                 else:
                     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
@@ -168,6 +175,7 @@ def main():
 
     print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
             obj.build_configuration_feed_uri()
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
@@ -176,6 +184,7 @@ def main():
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if "BGE" in key:
 
             # BGE uses POST and no metadata key.
@@ -200,6 +209,7 @@ def main():
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
             continue
 
@@ -261,12 +271,14 @@ def main():
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         obj.set_status_codes()
 
         #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
 
@@ -281,6 +293,7 @@ def main():
     db_obj.create_database_cursor()
 
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
@@ -323,7 +336,9 @@ def main():
     db_obj.create_database_cursor()
 
     # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
+    print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.style == DOIT_UTIL.COUNTY:
             continue
         if obj.stats_objects in VARS.none_and_not_available:
