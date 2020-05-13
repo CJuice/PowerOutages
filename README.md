@@ -29,8 +29,7 @@ variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 
-This is an overhaul/redesign of an original process developed by CGIS. This new process was deployed to 
-production on 20190430.
+This is an overhaul/redesign of an original process developed by CGIS.
 
 #### Code Architecture
 ![code architecture image](https://github.com/CJuice/PowerOutages_V2/blob/master/Power%20Outage%20Process%20-%20Code%20Architecture.png)
