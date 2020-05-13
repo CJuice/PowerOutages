@@ -145,6 +145,11 @@ class Utility:
             exit()
 
     @staticmethod
+    def print_tabbed_string(value: str) -> None:
+        print(f"\t{value}")
+        return None
+
+    @staticmethod
     def process_stats_objects_counts_to_integers(objects_list: list, keyword: str):
         """
         Process objects customer or outage count attribute values to integer
