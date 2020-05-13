@@ -2,10 +2,11 @@
 Module contains a BGE class that inherits from Provider class. BGE class is an implementation specific to the
 peculiarities of the BGE feeds and the processing they require that is not common to all providers.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_ProviderClasses import Outage
-from doit_PowerOutage_ProviderClasses import Provider
-import doit_PowerOutage_CentralizedVariables as VARS
+
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class BGE(Provider):
@@ -41,24 +42,24 @@ class BGE(Provider):
     def build_extra_header_for_SOAP_request(self) -> dict:
         """
         Build the extra header required for the SOAP request
-        :return: dictionary
+        :return: dict
         """
         return {"Content-Type": "text/xml", "charset": "utf-8", "SOAPAction": self.soap_header_uri, }
 
-    def extract_date_created(self):
+    def extract_date_created(self) -> None:
         """
         Extract the date created from the xml response content
-        :return: none
+        :return: None
         """
         for date_time in self.xml_element.iter("CreateDateTime"):
             self.date_created = date_time.text
             return
 
-    def extract_outage_counts(self):
+    def extract_outage_counts(self) -> None:
         """
         Extract the outage counts from xml.
         NOTE: It appears that BGE does not provide a count of customers served for zip code areas. Set to -9999.
-        :return:
+        :return: None
         """
         substitution = {"County": "County", "ZIP": "ZipCode"}.get(self.style)
         stats_objects_list = []
@@ -81,10 +82,10 @@ class BGE(Provider):
         self.stats_objects = stats_objects_list
         return
 
-    def extract_outage_elements(self):
+    def extract_outage_elements(self) -> None:
         """
         Extract the outage elements from the response content
-        :return: none
+        :return: None
         """
         outage_elements_list = []
         for outage in self.xml_element.iter("Outage"):

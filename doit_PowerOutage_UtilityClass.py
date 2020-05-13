@@ -1,6 +1,7 @@
 """
 Contains a Utility class that has functionality that is not provider specific and may be needed across the project.
 """
+
 from datetime import datetime
 import configparser
 import xml.etree.ElementTree as ET
@@ -142,6 +143,11 @@ class Utility:
         except Exception as e:  # TODO: Improve exception handling
             print(f"Unable to process xml response to Element using ET.fromstring(): {e}")
             exit()
+
+    @staticmethod
+    def print_tabbed_string(value: str) -> None:
+        print(f"\t{value}")
+        return None
 
     @staticmethod
     def process_stats_objects_counts_to_integers(objects_list: list, keyword: str):

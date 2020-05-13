@@ -2,9 +2,10 @@
 Module contains a FES class that inherits from Provider class. FES class is an implementation specific to the
 peculiarities of the FES feeds and the processing they require that is not common to all providers.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_ProviderClasses import Outage
-from doit_PowerOutage_ProviderClasses import Provider
+
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 
 
 class FES(Provider):
@@ -19,10 +20,10 @@ class FES(Provider):
         self.area_elements = None
         self.stats_data_tuples_list = None
 
-    def create_stats_objects(self):
+    def create_stats_objects(self) -> None:
         """
         Build stat objects
-        :return:
+        :return: None
         """
         list_of_stats_objects = []
         for stat_tup in self.stats_data_tuples_list:
@@ -36,10 +37,10 @@ class FES(Provider):
         self.stats_objects = list_of_stats_objects
         return
 
-    def extract_area_outage_elements(self):
+    def extract_area_outage_elements(self) -> None:
         """
         Extract the area outage elements from the xml response
-        :return: none
+        :return: None
         """
         area_elements_list = []
         for area_element in self.xml_element.iter("Outage"):
@@ -47,10 +48,10 @@ class FES(Provider):
         self.area_elements = area_elements_list
         return
 
-    def extract_date_created(self):
+    def extract_date_created(self) -> None:
         """
         Extract the data created from the xml response
-        :return: none
+        :return: None
         """
         response_header_element = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=self.xml_element,
                                                                                                tag_name="ResponseHeader")
@@ -59,10 +60,10 @@ class FES(Provider):
         self.date_created = date_created.text
         return
 
-    def extract_outage_counts(self):
+    def extract_outage_counts(self) -> None:
         """
         Extract outage counts from the xml response and clean the county string
-        :return: none
+        :return: None
         """
         stats_tuples_list = []
         for element in self.area_elements:

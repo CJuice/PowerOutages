@@ -2,9 +2,10 @@
 Module contains a SME class that inherits from Provider class. SME class is an implementation specific to the
 peculiarities of the SME feeds and the processing they require that is not common to all providers.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_ProviderClasses import Outage
-from doit_PowerOutage_ProviderClasses import Provider
+
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
 
 
 class SME(Provider):
@@ -15,8 +16,9 @@ class SME(Provider):
     def __init__(self, provider_abbrev, style):
         super().__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
+        self.file_data_attribute = "summaryFileData"  # Attribute override from Provider
 
-    def extract_areas_list(self):
+    def extract_areas_list(self) -> None:
         """
         Extract the county or zip area information from a json response.
         :return: None
@@ -32,7 +34,7 @@ class SME(Provider):
         self.area_list = areas_list_inner
         return
 
-    def extract_outage_counts(self):
+    def extract_outage_counts(self) -> None:
         """
         Extract the outage counts from the outage areas dataset json and build stat objects to store the data.
         :return: None

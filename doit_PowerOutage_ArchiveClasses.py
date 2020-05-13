@@ -8,7 +8,7 @@ require manipulation before being written to the archive tables and used in GIS 
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-import doit_PowerOutage_CentralizedVariables as VARS
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class ArchiveCounty:
@@ -22,11 +22,11 @@ class ArchiveCounty:
         self.county_archive_record_objects_list = None
         self.sql_insert_record_county_archive = VARS.sql_insert_record_county_archive
 
-    def build_list_of_archive_data_record_objects(self, selection):
+    def build_list_of_archive_data_record_objects(self, selection) -> None:
         """
         Use the data class to create objects for each record in the selection.
         :param selection: records from query
-        :return: none, data objects stored in county_archive_record_objects_list
+        :return: None
         """
         record_list = []
         for record in selection:
@@ -38,7 +38,7 @@ class ArchiveCounty:
     def generate_county_archive_insert_sql_statement(self):
         """
         Generator for building and yielding sql statement for insertion of county record object data into archive
-        :return: none
+        :return: None
         """
         for record_obj in self.county_archive_record_objects_list:
             record_obj.county = record_obj.county.replace("'", "''")  # Prepping county name values for re-entry into DB
@@ -67,7 +67,7 @@ class ArchiveZIP:
         Build the insert sql statement for archive data and yield the statement.
         For ZIP archive data. Uses a master dictionary of ZipCodeCountAggregated objects meant to aggregate outage
         counts for zip codes covered by multiple providers
-        :return: none
+        :return: None
         """
         for aggregated_count_obj in self.master_aggregated_zip_count_objects_dict.values():
             sql = self.sql_insert_record_zip_archive.format(area=aggregated_count_obj.area,

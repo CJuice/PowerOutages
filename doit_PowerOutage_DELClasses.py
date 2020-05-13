@@ -4,32 +4,20 @@ DEL class is an implementation specific to the peculiarities of the DEL feeds an
 that is not common to all providers. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface. DEL inherits from the PEPDELParent class.
 """
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
+
+from PowerOutages_V2.doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
 
 
 class DEL(PEPDELParent):
     """
     DEL specific functionality and variables for handling DEL feed data. Inherits from PEPDELParent and therefore
     Provider.
+    NOTE: DEL and PEP report.json hierarchy are different. Overload extract_area_outage_lists_by_state() for PEP
+        but not DEL, to handle hierarchy variation in PEP json. Chose to treat DEL json structure as correct and
+        what to expect since it contained a state level, whereas the PEP json went straight to the county level
+        and also included the District of Columbia in with the Maryland counties.
     """
 
     def __init__(self, provider_abbrev, style):
         super(DEL, self).__init__(provider_abbrev=provider_abbrev, style=style)
         # self.SPECIAL_ZIP_VALUES_DICT = {"21921,21922": "21916,21920,21921"}
-
-    # def process_grouped_zip_code_values(self):
-    #     """
-    #
-    #     :return:
-    #     """
-    #     for stat_obj in self.stats_objects:
-    #         if self.style == "ZIP":
-    #
-    #             # Substitute comma separated strings of zipcodes from special values dict, if value found.
-    #             try:
-    #                 stat_obj.area = self.SPECIAL_ZIP_VALUES_DICT[stat_obj.area]
-    #                 print(f"{self.abbrev} - FOUND: {stat_obj.area}")
-    #             except KeyError as ke:
-    #                 print(f"{self.abbrev} - NOT FOUND: {stat_obj.area}")
-    #     return

@@ -15,7 +15,7 @@ Provider. All providers are then subclassed from this parent to create child cla
 unique behavior specific to a provider. Functionality/behavior common to all providers has been placed into the parent
 class and inherited downward into the children. For PEP and DEL, Provider is inherited by the PEPDEL_ParentClass. This
 class organizes behavior common to both PEP and DEL providers. Both PEP and DEL children inherit from
-PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overridden
+PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
 by methods in child classes.
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
@@ -23,31 +23,34 @@ variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
-Revisions: 20190327 Redesign for change to SME data feeds
-    20200430 Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down. Entire
-    process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
+Revisions: 20190327, CJuice Redesign for change to SME data feeds
+    20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
+    Entire process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
     Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
     for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
+    20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
+    Heavily revised Main, PEPDEL_ParentClass, PEPClasses, DELClasses ProviderURI, and did minor alterations to other
+    classes for clarity or minor improvements in documentation or style but not functionality.
 """
 
 
 def main():
 
     # IMPORTS
-    from doit_PowerOutage_ArchiveClasses import ArchiveCounty
-    from doit_PowerOutage_ArchiveClasses import ArchiveZIP
-    from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    from doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
-    import doit_PowerOutage_BGEClasses as BGEMod
-    import doit_PowerOutage_CustomerClass as Customer
-    import doit_PowerOutage_CTKClasses as CTKMod
-    import doit_PowerOutage_DatabaseFunctionality as DbMod
-    import doit_PowerOutage_DELClasses as DELMod
-    import doit_PowerOutage_EUCClasses as EUCMod
-    import doit_PowerOutage_FESClasses as FESMod
-    import doit_PowerOutage_PEPClasses as PEPMod
-    import doit_PowerOutage_SMEClasses as SMEMod
-    import doit_PowerOutage_CentralizedVariables as VARS
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveZIP
+    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
+    import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
+    import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
+    import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
+    import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
+    import PowerOutages_V2.doit_PowerOutage_DELClasses as DELMod
+    import PowerOutages_V2.doit_PowerOutage_EUCClasses as EUCMod
+    import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
+    import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
+    import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
+    import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
     import os
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
@@ -57,8 +60,7 @@ def main():
     centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
     credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
     DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
-    none_and_not_available = (None, "NA")
-    OUTPUT_JSON_FILE = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
+    output_json_file = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
@@ -80,18 +82,24 @@ def main():
     #   Get and store variables, as provider object attributes, from cfg file.
     print(f"Gathering variables...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        section_items = [item for item in DOIT_UTIL.PARSER[key]]
+        DOIT_UTIL.print_tabbed_string(value=key)
+        section_keys = [item for item in DOIT_UTIL.PARSER[key]]
+        section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
         if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
+            obj.soap_header_uri, obj.post_uri = section_values
+        elif "PEP" in key or "DEL" in key:
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = [DOIT_UTIL.PARSER[key][item] for item in section_items]
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
 
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
     print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri in none_and_not_available:
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.metadata_feed_uri in VARS.none_and_not_available:
+
             # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
             continue
         else:
@@ -99,7 +107,8 @@ def main():
 
     #   Extract the metadata key and assign to provider object attribute for later use.
     for key, obj in provider_objects.items():
-        if obj.metadata_feed_uri in none_and_not_available:
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.metadata_feed_uri in VARS.none_and_not_available:
             continue
         else:
             if "xml" in obj.metadata_feed_response.headers["content-type"]:
@@ -113,10 +122,22 @@ def main():
                     data_dict=metadata_response_dict,
                     attribute_name=obj.metadata_key_attribute)
 
+        # Kubra specific, there is a second key needed
+        if obj.abbrev in VARS.kubra_feed_providers:
+            metadata_response_dict = obj.metadata_feed_response.json()
+            interval_gen_data_dict = DOIT_UTIL.extract_attribute_from_dict(
+                data_dict=metadata_response_dict,
+                attribute_name=obj.kubra_data_dict_attribute)
+            obj.interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(
+                data_dict=interval_gen_data_dict,
+                attribute_name=obj.interval_generation_data_attribute)
+
     #   Make the date created requests, for providers with a date created service, and store the response.
+    #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        if obj.date_created_feed_uri in none_and_not_available:
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
             obj.date_created_feed_uri = DOIT_UTIL.build_feed_uri(metadata_key=obj.metadata_key,
@@ -125,7 +146,8 @@ def main():
 
     #   Extract the date created value and assign to provider object attribute
     for key, obj in provider_objects.items():
-        if obj.date_created_feed_uri in none_and_not_available:
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.date_created_feed_uri in VARS.none_and_not_available:
             continue
         else:
             if "xml" in obj.date_created_feed_response.headers["content-type"]:
@@ -135,23 +157,36 @@ def main():
                     root_element=date_created_xml_element)
             else:
                 date_created_response_dict = obj.date_created_feed_response.json()
-                if obj.abbrev == "SME":
-                    # 20181010 CJuice, All providers except SME use "file_data" as the key to access the data dict
-                    #   containing the date. SME uses "summaryFileData" as the key to access the data dict
-                    #   containing the date.
-                    file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                      attribute_name="summaryFileData")
+
+                # Kubra specific, date data sits at different levels of response json
+                if obj.abbrev in VARS.kubra_feed_providers:
+                    obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
+                        data_dict=date_created_response_dict,
+                        attribute_name=obj.date_created_attribute)
+
+                    # Kubra datetime requires processing to match format of other providers dt strings
+                    obj.process_date_created_to_seconds()
                 else:
                     file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=date_created_response_dict,
-                                                                      attribute_name="file_data")
-                obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
-                    data_dict=file_data,
-                    attribute_name=obj.date_created_attribute)
+                                                                      attribute_name=obj.file_data_attribute)
+                    obj.date_created = DOIT_UTIL.extract_attribute_from_dict(
+                        data_dict=file_data,
+                        attribute_name=obj.date_created_attribute)
+
+    print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
+    for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.abbrev in VARS.kubra_feed_providers:
+            obj.build_configuration_feed_uri()
+            obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
+            obj.extract_source_report()
 
     #   Make the data feed requests and store the response.
     print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if "BGE" in key:
+
             # BGE uses POST and no metadata key.
             # Make the POST request and include the headers and the post data as a string (is xml, not json)
             bge_extra_header = obj.build_extra_header_for_SOAP_request()
@@ -163,21 +198,18 @@ def main():
                                                                          style="POST_data",
                                                                          headers=bge_extra_header)
         else:
-            if obj.metadata_key in none_and_not_available:
+            if obj.metadata_key in VARS.none_and_not_available:
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
             else:
-                obj.build_feed_uri()
+                obj.build_data_feed_uri()
                 obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-
-    # Detect the style of response
-    for key, obj in provider_objects.items():
-        obj.detect_response_style()
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
     print(f"Data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
             continue
 
@@ -189,13 +221,14 @@ def main():
             obj.extract_date_created()
 
         elif key in ("DEL_County", "PEP_County"):
-            obj.extract_areas_list_county()
-            obj.extract_county_outage_lists_by_state()
-            obj.extract_outage_counts_by_county()
+            obj.extract_top_level_areas_list()
+            obj.extract_area_outage_lists_by_state()
+            obj.extract_outage_counts_by_area()
 
         elif key in ("DEL_ZIP", "PEP_ZIP"):
-            obj.extract_zip_descriptions_list()
-            obj.extract_outage_counts_by_zip_desc()
+            obj.extract_top_level_areas_list()
+            obj.extract_area_outage_lists_by_state()
+            obj.extract_outage_counts_by_area()
             obj.process_multi_value_zips_to_single_value()
 
         elif key in ("SME_County", "SME_ZIP"):
@@ -238,14 +271,16 @@ def main():
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         obj.set_status_codes()
 
         #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
-    DOIT_UTIL.write_to_file(file=OUTPUT_JSON_FILE, content=status_check_output_dict)
+    DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
@@ -258,6 +293,7 @@ def main():
     db_obj.create_database_cursor()
 
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
 
         # Need to delete existing records from database table for every/all provider. All the same WRT delete.
         db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
@@ -286,8 +322,8 @@ def main():
         for statement in customer_count_update_generator:
             db_obj.execute_sql_statement(sql_statement=statement)
     except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
         print(f"CUSTOMER COUNT process. Database operation error. {e}")
-
     db_obj.commit_changes()
 
     # Clean up for next step
@@ -300,10 +336,12 @@ def main():
     db_obj.create_database_cursor()
 
     # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
+    print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.style == DOIT_UTIL.COUNTY:
             continue
-        if obj.stats_objects is None:
+        if obj.stats_objects in VARS.none_and_not_available:
             continue
 
         for stat_obj in obj.stats_objects:
@@ -351,6 +389,7 @@ def main():
     else:
         archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
     finally:
+
         # Clean up for next step
         db_obj.delete_cursor()
 
@@ -369,6 +408,7 @@ def main():
         db_obj.commit_changes()
         print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
     finally:
+
         # Clean up for next step
         db_obj.delete_cursor()
 
@@ -385,8 +425,11 @@ def main():
         db_obj.commit_changes()
         print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
     finally:
+
         # Clean up for next step
         db_obj.delete_cursor()
+
+    print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
 
 if __name__ == "__main__":

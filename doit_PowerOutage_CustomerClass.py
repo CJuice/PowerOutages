@@ -4,9 +4,10 @@ power outage process. A static table of customer counts per county was maintaine
 real time data on customer counts from data feeds and update the Customer Count table using the latest feed data rather
 than hard coded values of unknown age.
 """
+
 from dataclasses import dataclass
-from doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-import doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class Customer:
@@ -28,17 +29,17 @@ class Customer:
         area: str
         customers: int
 
-    def calculate_county_customer_counts(self, prov_objects):
+    def calculate_county_customer_counts(self, prov_objects) -> None:
         """
         Calculate the counts from each provider for each county they cover and develop a county total.
         Gathers all county stats objects from all providers and sums the counts by county
         :param prov_objects: power provider objects
-        :return: none
+        :return: None
         """
         master_stat_obj_list = []
         county_objs = [obj for obj in prov_objects.values() if obj.style == DOIT_UTIL.COUNTY]
         for obj in county_objs:
-            if obj.stats_objects is None:
+            if obj.stats_objects in VARS.none_and_not_available:
                 continue
             master_stat_obj_list.extend(obj.stats_objects)
         county_counts_dict = {county: 0 for county in DOIT_UTIL.MARYLAND_COUNTIES}
@@ -53,7 +54,7 @@ class Customer:
     def generate_insert_sql_statement_customer_count(self):
         """
         Generate a sql statement for each county and the count and yield the statement for use in database transaction.
-        :return: none
+        :return: None
         """
         for obj in self.county_customer_count_objects_list:
             database_ready_area_name = obj.area.replace("'", "''")  # Prep apostrophe containing names for DB

@@ -1,6 +1,7 @@
 """
 Module containing WebFunctionality class for web interaction
 """
+
 import requests
 
 
@@ -8,6 +9,7 @@ class WebFunctionality:
     """
     Static class at time of implementation, contains make_web_request() for use by all providers in web transactions
     """
+
     @staticmethod
     def make_web_request(uri, payload=None, style="GET", headers=None):
         """
