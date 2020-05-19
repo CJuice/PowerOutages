@@ -3,6 +3,7 @@ Contains a Utility class that has functionality that is not provider specific an
 """
 
 from datetime import datetime
+import collections
 import configparser
 import xml.etree.ElementTree as ET
 import json
@@ -112,6 +113,15 @@ class Utility:
         except AttributeError as ae:
             print(f"AttributeError: Unable to extract '{tag_name}' from {element.text}: {ae}")
             exit()
+
+    @staticmethod
+    def generate_value_from_csv_string(csv_string: str) -> collections.Iterable:
+        """
+        Yield a single string from a string of one to many values separated by commas
+        :param csv_string: string containing 0 to many commas that are separators of values, example: alpha,beta,zeta
+        :return: collections.Iterable containing string values yielded
+        """
+        yield from csv_string.split(",")
 
     @staticmethod
     def get_config_variable(parser: configparser.ConfigParser, section: str, variable_name: str) -> str:
