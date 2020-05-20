@@ -145,6 +145,7 @@ def main():
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
+    print(f"\tExtracting date created value...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -182,7 +183,7 @@ def main():
             obj.extract_source_report()
 
     #   Make the data feed requests and store the response.
-    print(f"Data feed processing...{DOIT_UTIL.current_date_time()}")
+    print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if "BGE" in key:
@@ -207,7 +208,7 @@ def main():
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
-    print(f"Data processing...{DOIT_UTIL.current_date_time()}")
+    print(f"Response data processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
@@ -266,9 +267,10 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
+    exit()
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
-    print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
+    print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -277,6 +279,7 @@ def main():
         #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
+    print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
@@ -291,7 +294,7 @@ def main():
 
     # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     db_obj.create_database_cursor()
-
+    print(f"RealTime counts update process initiated...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
 
@@ -313,7 +316,7 @@ def main():
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
     #   the customer counts table using data feed values. Use feed when present and memory when not present.
-    print(f"County customer count update process initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
     cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
@@ -331,7 +334,7 @@ def main():
 
     # ARCHIVE STEPS
     # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
-    print(f"Archive process initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"Archive counts update process initiated...{DOIT_UTIL.current_date_time()}")
     archive_zip_obj = ArchiveZIP()
     db_obj.create_database_cursor()
 
