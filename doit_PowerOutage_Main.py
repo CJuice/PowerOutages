@@ -31,6 +31,12 @@ Revisions: 20190327, CJuice Redesign for change to SME data feeds
     20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
     Heavily revised Main, PEPDEL_ParentClass, PEPClasses, DELClasses ProviderURI, and did minor alterations to other
     classes for clarity or minor improvements in documentation or style but not functionality.
+    20200520, CJuice Revised PEPCO zip code harvesting after discovering issues with Exelon zip code values
+    that were provided to us. Switched to identifying MD zip codes first using geometry zip list, then identifying DC
+    zips based on web scraped usps zip code list, and finally printing out message on unknown zips but with no
+    other action. Refactored code to reduce nested code where could. Did discover two valid zip codes that are missing
+    from MDP sourced zip code spatial layer behind master MD zip codes list. Contacted MDP, said to be adding soon
+    and will provide update. Process could be improved with those MD zips added.
 """
 
 
