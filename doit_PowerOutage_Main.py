@@ -267,7 +267,6 @@ def main():
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
 
-    exit()
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
