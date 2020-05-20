@@ -17,6 +17,26 @@ class PEP(PEPDELParent):
     """
     def __init__(self, provider_abbrev, style):
         super(PEP, self).__init__(provider_abbrev=provider_abbrev, style=style)
+        self.md_zips_keys_only = None
+
+    @property
+    def md_zips_keys_only(self):
+        """
+        Get the md zip codes key value
+        :return: None or list depending on object style (Zip or County)
+        """
+        return self.__md_zips_keys_only
+
+    @md_zips_keys_only.setter
+    def md_zips_keys_only(self, value):
+        """
+        Assign a list of maryland master inventory keys to attribute if the style is ZIP.
+        Do not need to perform this functionality if the object is style of COUNTY
+        :param value: expected signature, not used
+        :return: None
+        """
+        if self.style == DOIT_UTIL.ZIP:
+            self.__md_zips_keys_only = list(VARS.maryland_master_inventory_zip_codes_with_geometry.keys())
 
     def extract_area_outage_lists_by_state(self) -> None:
         """
@@ -28,27 +48,35 @@ class PEP(PEPDELParent):
         assumption has been made that PEPCO only covers MD and DC.
         Overload of PEPDEL_ParentClass method.
         :return: None
+        TODO: Attempted to refactor to flatten nested levels. Tried inner functions and ternary etc. Future improvement.
         """
         dc_areas_list = []
         md_areas_list = []
-        if self.style == DOIT_UTIL.COUNTY:
 
-            # Need to build a single list of aggregated dicts. One for DC and one for MD
-            for area_dict in self.area_list:
-                area_name = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="name")
-                if area_name.lower() == DOIT_UTIL.DISTRICT_OF_COLUMBIA.lower():
-                    dc_areas_list.append(area_dict)
-                else:
-                    md_areas_list.append(area_dict)
-        else:
+        for area_dict in self.area_list:
 
-            # No state given in json, must determine if in DC based on DC multi-zip strings provided by Exelon staff
-            for area_dict in self.area_list:
-                zip_code_string = area_dict.get("name")
-                if zip_code_string in VARS.district_of_columbia_exelon_defined_aggregated_zip_codes_values:
-                    dc_areas_list.append(area_dict)
-                else:
-                    md_areas_list.append(area_dict)
+            # Identical for county and zip
+            area_name = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="name")
+
+            if self.style == DOIT_UTIL.COUNTY:
+
+                # Easy either or situation, unlike zip code areas
+                dc_areas_list.append(area_dict) if area_name.lower() == DOIT_UTIL.DISTRICT_OF_COLUMBIA.lower() else md_areas_list.append(area_dict)
+            else:
+
+                # Need to check each and every zip code in single or multi-zip string.
+                # During testing did not find scenario where MD and DC zip were in same outage string. Assumption made.
+                for value in DOIT_UTIL.generate_value_from_csv_string(area_name):
+                    if value in self.md_zips_keys_only:
+                        md_areas_list.append(area_dict)
+                        break
+                    elif value in VARS.district_of_columbia_zip_code_inventory_from_web:
+                        dc_areas_list.append(area_dict)
+                        break
+                    else:
+                        # If an unknown zip code is found, print a message and move on to next in string of zips
+                        print(f"UNKNOWN ZIP CODE ({value})\t{area_dict}")
+                        continue
 
         # Need to store the DC and MD dicts with key to make states_outages_list_dict
         self.state_to_data_list_dict = {"DC": dc_areas_list, "MD": md_areas_list}
