@@ -23,15 +23,16 @@ variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
-Revisions: 20190327, CJuice Redesign for change to SME data feeds
-    20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
+Revisions:
+20190327, CJuice Redesign for change to SME data feeds
+20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
     Entire process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
     Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
     for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
-    20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
+20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
     Heavily revised Main, PEPDEL_ParentClass, PEPClasses, DELClasses ProviderURI, and did minor alterations to other
     classes for clarity or minor improvements in documentation or style but not functionality.
-    20200520, CJuice Revised PEPCO zip code harvesting after discovering issues with Exelon zip code values
+20200520, CJuice Revised PEPCO zip code harvesting after discovering issues with Exelon zip code values
     that were provided to us. Switched to identifying MD zip codes first using geometry zip list, then identifying DC
     zips based on web scraped usps zip code list, and finally printing out message on unknown zips but with no
     other action. Refactored code to reduce nested code where could. Did discover two valid zip codes that are missing
@@ -93,7 +94,7 @@ def main():
         section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
         if "BGE" in key:
             obj.soap_header_uri, obj.post_uri = section_values
-        elif "PEP" in key or "DEL" in key:
+        elif "PEP" in key or "DEL" in key:  # TODO: Switch to check if in list using the kubra_feed_providers list, after add BGE
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
