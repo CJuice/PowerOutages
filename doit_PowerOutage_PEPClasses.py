@@ -7,10 +7,10 @@ intended to provide flexibility for future changes. It acts as an interface. PEP
 
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_PEPDEL_ParentClass import PEPDELParent
+from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
 
 
-class PEP(PEPDELParent):
+class PEP(KubraParent):
     """
     PEP specific functionality and variables for handling PEP feed data. Inherits from PEPDELParent and therefore
     Provider.
