@@ -13,7 +13,7 @@ import datetime
 import pytz
 
 
-class PEPDELParent(Provider):
+class KubraParent(Provider):
     """
     Functionality and variables common to the PEP and DEL providers. Inherits from Provider. Certain functions
     are overloaded in the PEP and DEL classes.
@@ -22,7 +22,7 @@ class PEPDELParent(Provider):
     MULTI_ZIP_CODE_VALUE_DELIMITER = VARS.multi_zip_code_value_delimiter
 
     def __init__(self, provider_abbrev, style):
-        super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
+        super(KubraParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
         self.configuration_url = None
         self.configuration_feed_response = None
@@ -157,10 +157,10 @@ class PEPDELParent(Provider):
         for stat_obj in self.stats_objects:
 
             # If the delimiter, currently a comma, is in the .area then it is multi-value and needs to be processed
-            if PEPDELParent.MULTI_ZIP_CODE_VALUE_DELIMITER in stat_obj.area:
+            if KubraParent.MULTI_ZIP_CODE_VALUE_DELIMITER in stat_obj.area:
 
                 # Split the multi value string into a list of single value zips
-                singles = stat_obj.area.split(PEPDELParent.MULTI_ZIP_CODE_VALUE_DELIMITER)
+                singles = stat_obj.area.split(KubraParent.MULTI_ZIP_CODE_VALUE_DELIMITER)
             else:
                 continue
 
