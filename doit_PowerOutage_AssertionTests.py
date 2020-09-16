@@ -13,7 +13,7 @@ def main():
                      r"doit_PowerOutage_FESClasses.py",
                      r"doit_PowerOutage_Main.py",
                      r"doit_PowerOutage_PEPClasses.py",
-                     r"doit_PowerOutage_PEPDEL_ParentClass.py",
+                     r"doit_PowerOutage_Kubra_ParentClass.py",
                      r"doit_PowerOutage_ProviderClasses.py",
                      r"doit_PowerOutage_ProviderURI.cfg",
                      r"doit_PowerOutage_SMEClasses.py",
