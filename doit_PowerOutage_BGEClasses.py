@@ -5,11 +5,13 @@ peculiarities of the BGE feeds and the processing they require that is not commo
 
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+# from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
+
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
-class BGE(Provider):
+class BGE(KubraParent):
     """
     BGE specific functionality and variables for handling BGE feed data. Inherits from Provider.
     BGE uses a POST rather than GET for retrieving feed data, unlike the other providers. This requires unique
@@ -33,7 +35,7 @@ class BGE(Provider):
     """
 
     def __init__(self, provider_abbrev, style):
-        super().__init__(provider_abbrev=provider_abbrev, style=style)
+        super(BGE, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.soap_header_uri = None
         self.post_uri = None
         self.xml_element = None
