@@ -92,13 +92,11 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         section_keys = [item for item in DOIT_UTIL.PARSER[key]]
         section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
-        if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = section_values
-        elif "PEP" in key or "DEL" in key:  # TODO: Switch to check if in list using the kubra_feed_providers list, after add BGE
+        if obj.abbrev in VARS.kubra_feed_providers:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
-
+    exit()
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
