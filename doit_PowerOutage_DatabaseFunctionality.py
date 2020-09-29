@@ -84,7 +84,7 @@ class DatabaseUtilities:
         NOTE: when the keyword 'p_str=' is used in pyodbc.connect(), a pyodbc.InterfaceError occurs
         :return:
         """
-        #
+
         with pyodbc.connect(self.full_connection_string) as connection:
             self.connection = connection
         return
