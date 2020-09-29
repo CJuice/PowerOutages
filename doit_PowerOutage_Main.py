@@ -96,7 +96,7 @@ def main():
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
-    exit()
+
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
@@ -138,7 +138,7 @@ def main():
                 attribute_name=obj.interval_generation_data_attribute)
 
     #   Make the date created requests, for providers with a date created service, and store the response.
-    #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
+    #   NOTE: For Kubra feeds this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -150,7 +150,7 @@ def main():
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
-    print(f"\tExtracting date created value...{DOIT_UTIL.current_date_time()}")
+    print(f"Extracting date created value...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -184,32 +184,41 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
             obj.build_configuration_feed_uri()
+            print(obj.abbrev, obj.configuration_url)
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
+            # if "BGE" in obj.abbrev:
+            #     # TODO: BGE interval_generation_data is not matching expected. See internals of extract_source_report()
+            #     print("skipping BGE source report extraction")
+            #     continue
+            # else:
             obj.extract_source_report()
+    # TODO: STOPPED, in comms with Victor about zip data report
+    exit()
 
     #   Make the data feed requests and store the response.
     print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
-        if "BGE" in key:
-
-            # BGE uses POST and no metadata key.
-            # Make the POST request and include the headers and the post data as a string (is xml, not json)
-            bge_extra_header = obj.build_extra_header_for_SOAP_request()
-            bge_username, bge_password = [DOIT_UTIL.PARSER["BGE"][item] for item in DOIT_UTIL.PARSER["BGE"]]
-            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
-                                                                         payload=obj.POST_DATA_XML_STRING.format(
-                                                                             username=bge_username,
-                                                                             password=bge_password),
-                                                                         style="POST_data",
-                                                                         headers=bge_extra_header)
+        # if "BGE" in key:
+        #
+        #     # BGE uses POST and no metadata key.
+        #     # Make the POST request and include the headers and the post data as a string (is xml, not json)
+        #     bge_extra_header = obj.build_extra_header_for_SOAP_request()
+        #     bge_username, bge_password = [DOIT_UTIL.PARSER["BGE"][item] for item in DOIT_UTIL.PARSER["BGE"]]
+        #     obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
+        #                                                                  payload=obj.POST_DATA_XML_STRING.format(
+        #                                                                      username=bge_username,
+        #                                                                      password=bge_password),
+        #                                                                  style="POST_data",
+        #                                                                  headers=bge_extra_header)
+        # else:
+        if obj.metadata_key in VARS.none_and_not_available:
+            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
         else:
-            if obj.metadata_key in VARS.none_and_not_available:
-                obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-            else:
-                obj.build_data_feed_uri()
-                obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-
+            obj.build_data_feed_uri()
+            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
+        print(obj.data_feed_uri)
+    
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
@@ -254,6 +263,7 @@ def main():
             obj.extract_outage_counts_from_dataset()
             obj.extract_date_created()
 
+        # TODO: combine the BGE with other kubra based providers
         elif key in ("BGE_County", "BGE_ZIP"):
             obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
             obj.extract_outage_elements()
@@ -275,7 +285,6 @@ def main():
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
-    status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         obj.set_status_codes()
@@ -284,6 +293,7 @@ def main():
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
+    status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
