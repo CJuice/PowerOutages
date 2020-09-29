@@ -94,3 +94,26 @@ class BGE(KubraParent):
             outage_elements_list.append(outage)
         self.outages_list = outage_elements_list
         return
+
+    def extract_source_report(self) -> None:
+        """
+        Extract the source report string value from the configuration feed response json
+        :return: None
+        """
+        configuration_json = self.configuration_feed_response.json()
+        config_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=configuration_json,
+                                                            attribute_name="config")
+        reports_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=config_data,
+                                                             attribute_name="reports")
+        data_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=reports_data,
+                                                          attribute_name="data")
+        interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_data,
+                                                                         attribute_name="interval_generation_data")
+        source_report, *rest = interval_generation_data  # expecting len 1, unlike PEP and DEL, but protect against more
+
+        # Only one source report item in the json. PEP and DEL have a county and a zip. #TODO: Inquire as to why this is different for BGE
+        style_dict = source_report
+        # print(style_dict)
+        self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict,
+                                                                   attribute_name="source")
+        return
