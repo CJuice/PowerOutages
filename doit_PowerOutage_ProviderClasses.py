@@ -166,6 +166,7 @@ class Provider:
         """
         Check http response status codes for data, date, and metadata feeds, detect non 200 codes, and trigger email.
         This function does rely on the Utility class; It uses the send_feed_status_check_email() function.
+        Object attributes begin as None, and unavailable feeds also equate to None, so can't differentiate currently.
         :param alert_email_address: email address to which alerts are sent
         :return: None
         """
@@ -221,7 +222,8 @@ class Provider:
 
     def set_status_codes(self) -> None:
         """
-        Set the status code attribute for the various feed types; data, date created, and metadata
+        Set the status code attribute for the various feed types; data, date created, and metadata.
+        Not all providers have all three feed types. Can't assume AttributeError indicates down/unavailable feed.
         :return: None
         """
         try:
