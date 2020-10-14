@@ -93,7 +93,9 @@ def main():
         section_keys = [item for item in DOIT_UTIL.PARSER[key]]
         section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
         if obj.abbrev in VARS.kubra_feed_providers:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
+
+            # 20201014 CJuice Redesign to include use of report_id for all Kubra, following use of report_id in BGE flow.
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id, obj.report_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
 
@@ -184,41 +186,22 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
             obj.build_configuration_feed_uri()
-            print(obj.abbrev, obj.configuration_url)
+            # print(obj.abbrev, obj.configuration_url)
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
-            # if "BGE" in obj.abbrev:
-            #     # TODO: BGE interval_generation_data is not matching expected. See internals of extract_source_report()
-            #     print("skipping BGE source report extraction")
-            #     continue
-            # else:
             obj.extract_source_report()
-    # TODO: STOPPED, in comms with Victor about zip data report
-    exit()
+            # print(obj.report_source)
 
     #   Make the data feed requests and store the response.
     print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
-        # if "BGE" in key:
-        #
-        #     # BGE uses POST and no metadata key.
-        #     # Make the POST request and include the headers and the post data as a string (is xml, not json)
-        #     bge_extra_header = obj.build_extra_header_for_SOAP_request()
-        #     bge_username, bge_password = [DOIT_UTIL.PARSER["BGE"][item] for item in DOIT_UTIL.PARSER["BGE"]]
-        #     obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
-        #                                                                  payload=obj.POST_DATA_XML_STRING.format(
-        #                                                                      username=bge_username,
-        #                                                                      password=bge_password),
-        #                                                                  style="POST_data",
-        #                                                                  headers=bge_extra_header)
-        # else:
         if obj.metadata_key in VARS.none_and_not_available:
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
         else:
             obj.build_data_feed_uri()
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
         print(obj.data_feed_uri)
-    
+
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
@@ -281,7 +264,7 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-
+    exit()
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
