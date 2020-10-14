@@ -218,12 +218,12 @@ def main():
             obj.create_stats_objects()
             obj.extract_date_created()
 
-        elif key in ("DEL_County", "PEP_County"):
+        elif key in ("DEL_County", "PEP_County", "BGE_County"):
             obj.extract_top_level_areas_list()
             obj.extract_area_outage_lists_by_state()
             obj.extract_outage_counts_by_area()
 
-        elif key in ("DEL_ZIP", "PEP_ZIP"):
+        elif key in ("DEL_ZIP", "PEP_ZIP", "BGE_ZIP"):
             obj.extract_top_level_areas_list()
             obj.extract_area_outage_lists_by_state()
             obj.extract_outage_counts_by_area()
@@ -246,13 +246,6 @@ def main():
             obj.extract_outage_counts_from_dataset()
             obj.extract_date_created()
 
-        # TODO: combine the BGE with other kubra based providers
-        elif key in ("BGE_County", "BGE_ZIP"):
-            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            obj.extract_outage_elements()
-            obj.extract_outage_counts()
-            obj.extract_date_created()
-
         # Need to remove duplicates, isolate MD zips, correct spelling & punctuation, convert str counts to int,
         #   and process date/time
         obj.purge_duplicate_stats_objects()
@@ -264,7 +257,7 @@ def main():
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="outages")
         obj.groom_date_created()
         obj.calculate_data_age_minutes()
-    exit()
+
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
