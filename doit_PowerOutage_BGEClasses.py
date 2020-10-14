@@ -36,10 +36,11 @@ class BGE(KubraParent):
 
     def __init__(self, provider_abbrev, style):
         super(BGE, self).__init__(provider_abbrev=provider_abbrev, style=style)
-        self.soap_header_uri = None
-        self.post_uri = None
-        self.xml_element = None
         self.outages_list = None
+        self.post_uri = None
+        self.report_str_template = "public/reports/{report_id}_report.json"
+        self.soap_header_uri = None
+        self.xml_element = None
 
     def build_extra_header_for_SOAP_request(self) -> dict:
         """
@@ -98,22 +99,27 @@ class BGE(KubraParent):
     def extract_source_report(self) -> None:
         """
         Extract the source report string value from the configuration feed response json
+
+        BGE is unlike Pep and Del, the report_id is fixed and therefore is not included in the json from
+        the call to the configuration url.
         :return: None
         """
-        configuration_json = self.configuration_feed_response.json()
-        config_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=configuration_json,
-                                                            attribute_name="config")
-        reports_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=config_data,
-                                                             attribute_name="reports")
-        data_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=reports_data,
-                                                          attribute_name="data")
-        interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_data,
-                                                                         attribute_name="interval_generation_data")
-        source_report, *rest = interval_generation_data  # expecting len 1, unlike PEP and DEL, but protect against more
 
-        # Only one source report item in the json. PEP and DEL have a county and a zip. #TODO: Inquire as to why this is different for BGE
-        style_dict = source_report
-        # print(style_dict)
-        self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict,
-                                                                   attribute_name="source")
+        if self.style == DOIT_UTIL.ZIP:
+            source_data = self.report_str_template.format(report_id=self.report_id)
+        else:
+            configuration_json = self.configuration_feed_response.json()
+            config_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=configuration_json,
+                                                                attribute_name="config")
+            reports_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=config_data,
+                                                                 attribute_name="reports")
+            data_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=reports_data,
+                                                              attribute_name="data")
+            interval_generation_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_data,
+                                                                             attribute_name="interval_generation_data")
+
+            # NOTE: For BGE, expecting len 1 not 2, protect against more should the design change unexpectedly
+            county_data, *rest = interval_generation_data
+            source_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_data, attribute_name="source")
+        self.report_source = source_data
         return
