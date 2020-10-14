@@ -84,14 +84,14 @@ class KubraParent(Provider):
         list_of_stats_objects = []
         for state_abbrev, outages_list in self.state_to_data_list_dict.items():
             state_groomed = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_abbrev)
-            for county_dict in outages_list:
-                county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="name")
-                outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_a")
+            for area_dict in outages_list:
+                area = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="name")
+                outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="cust_a")
                 outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=outages_dict, attribute_name="val")
-                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_s")
+                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="cust_s")
                 list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                     style=self.style,
-                                                    area=county,
+                                                    area=area,
                                                     outages=outages,
                                                     customers=customers,
                                                     state=state_groomed))
