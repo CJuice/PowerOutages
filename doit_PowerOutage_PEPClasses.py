@@ -1,8 +1,8 @@
 """
-Module contains a PEP class that inherits from PEPDELParent class which inherits from Provider class.
+Module contains a PEP class that inherits from KubraParent class which inherits from Provider class.
 PEP class is an implementation specific to the peculiarities of the PEP feeds and the processing they require
-that is not common to all providers. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
-intended to provide flexibility for future changes. It acts as an interface. PEP inherits from the PEPDELParent class.
+that is not common to all providers. PEP and DEL had shared functionality. KubraParent was created as a result and is
+intended to provide flexibility for future changes. It acts as an interface. PEP inherits from the KubraParent class.
 """
 
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
@@ -12,7 +12,7 @@ from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
 
 class PEP(KubraParent):
     """
-    PEP specific functionality and variables for handling PEP feed data. Inherits from PEPDELParent and therefore
+    PEP specific functionality and variables for handling PEP feed data. Inherits from KubraParent and therefore
     Provider.
     """
     def __init__(self, provider_abbrev, style):
@@ -41,12 +41,12 @@ class PEP(KubraParent):
     def extract_area_outage_lists_by_state(self) -> None:
         """
         Extract area outage dicts, determine state (MD/DC), aggregate into respective lists, and store in state dict.
-        PEPCO json data varied from DPL (DEL) json data. The same functions in the PEPDEL parent class could not be
+        PEPCO json data varied from DPL (DEL) json data. The same functions in the Kubra parent class could not be
         applied to both provider feeds (county & zip). The objects/data of interest was provided at two different
         levels of the json hierarchy. PEPCO did not contain a state level but DEL did. DEL seemed the better design.
-        A choice was made to handle the variation in style by overloading the PEPDEL method in the PEP class. An
+        A choice was made to handle the variation in style by overloading the Kubra method in the PEP class. An
         assumption has been made that PEPCO only covers MD and DC.
-        Overload of PEPDEL_ParentClass method.
+        Overload of Kubra_ParentClass method.
         :return: None
         TODO: Attempted to refactor to flatten nested levels. Tried inner functions and ternary etc. Future improvement.
         """
