@@ -33,6 +33,7 @@ class KubraParent(Provider):
         self.interval_generation_data = None
         self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
+        self.report_id = None
         self.report_source = None
         self.source_data_json = None
         self.source_report_json = None
