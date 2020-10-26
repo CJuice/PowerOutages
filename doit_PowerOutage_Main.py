@@ -186,10 +186,8 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
             obj.build_configuration_feed_uri()
-            # print(obj.abbrev, obj.configuration_url)
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
             obj.extract_source_report()
-            # print(obj.report_source)
 
     #   Make the data feed requests and store the response.
     print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
@@ -200,7 +198,6 @@ def main():
         else:
             obj.build_data_feed_uri()
             obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-        print(obj.data_feed_uri)
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
@@ -269,6 +266,7 @@ def main():
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
+    # TODO: write feed check data to socrata asset
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -421,6 +419,8 @@ def main():
 
         # Clean up for next step
         db_obj.delete_cursor()
+
+    # TODO: Write Zipcode and county data to socrata assets
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
