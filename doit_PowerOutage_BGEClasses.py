@@ -126,44 +126,22 @@ class BGE(KubraParent):
 
     def extract_area_outage_lists_by_state(self) -> None:
         """
-        Extract area outage dicts, assuming all are MD, aggregate into list, and store in state dict.
+        Store outage dicts in state dict.
         BGE json data varied from DPL (DEL) json data. The same functions in the Kubra parent class could not be
         applied. The objects/data of interest was provided at two different levels of the json hierarchy. BGE,
         like PEPCO, did not contain a state level but DEL did. DEL seemed the better design.
         A choice was made to handle the variation in style by overloading the Kubra method in the BGE class. An
-        assumption has been made that BGE only covers MD.
+        assumption has been made that BGE only covers the state of Maryland and that all zips are within Maryland.
         Overload of Kubra_ParentClass method.
         :return: None
-        TODO: Attempted to refactor to flatten nested levels. Tried inner functions and ternary etc. Future improvement.
         """
         # dc_areas_list = []
-        md_areas_list = []
+        # md_areas_list = []
+        #
+        # for area_dict in self.area_list:
+        #     md_areas_list.append(area_dict)
 
-        for area_dict in self.area_list:
-
-            # Identical for county and zip
-            # area_name = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="name")
-            md_areas_list.append(area_dict)
-            # if self.style == DOIT_UTIL.COUNTY:
-            #
-            #     # Easy, unlike zip code areas
-            #     md_areas_list.append(area_dict)
-            # else:
-            #
-            #     # Need to check each and every zip code in single or multi-zip string.
-            #     # During testing did not find scenario where MD and DC zip were in same outage string. Assumption made.
-            #     for value in DOIT_UTIL.generate_value_from_csv_string(area_name):
-            #         if value in self.md_zips_keys_only:
-            #             md_areas_list.append(area_dict)
-            #             break
-            #         # elif value in VARS.district_of_columbia_zip_code_inventory_from_web:
-            #         #     dc_areas_list.append(area_dict)
-            #         #     break
-            #         else:
-            #             # If an unknown zip code is found, print a message and move on to next in string of zips
-            #             print(f"UNKNOWN ZIP CODE ({value})\t{area_dict}")
-            #             continue
-
-        # Need to store the DC and MD dicts with key to make states_outages_list_dict
-        self.state_to_data_list_dict = {"MD": md_areas_list}
+        # Need to store the dicts with state key to make states_outages_list_dict
+        # self.state_to_data_list_dict = {"MD": md_areas_list}
+        self.state_to_data_list_dict = {"MD": self.area_list}
         return
