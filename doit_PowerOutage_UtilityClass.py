@@ -258,7 +258,6 @@ class Utility:
         :return:
         """
         import smtplib
-        from smtplib import SMTPConnectError
         from email.message import EmailMessage
 
         message_string = f"""Provider: {prov_abbrev}\n
@@ -277,8 +276,8 @@ class Utility:
             smtp_obj = smtplib.SMTP(host="smtp.maryland.gov", port=25)
             smtp_obj.send_message(msg=msg)
 
-        except SMTPConnectError as smtp_ce:
-            print("SMTP Connection Error while trying to send email.")
+        except smtplib.SMTPConnectError as smtp_ce:
+            print(f"SMTP Connection Error while trying to send email.\n{smtp_ce}")
 
         print(f"Feed Status Issue Detected! Email sent:\n{message_string}")
 
