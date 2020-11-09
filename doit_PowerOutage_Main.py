@@ -48,6 +48,8 @@ def main():
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveZIP
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
+    from PowerOutages_V2.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
+
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
@@ -58,6 +60,7 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+
     import os
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
@@ -183,8 +186,8 @@ def main():
 
     print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
+            DOIT_UTIL.print_tabbed_string(value=key)
             obj.build_configuration_feed_uri()
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
             obj.extract_source_report()
@@ -206,6 +209,7 @@ def main():
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
+            print(f"Data feed response status code != 200: {key} {obj.data_feed_response.status_code}")
             continue
 
         if key in ("FES_County", "FES_ZIP"):
@@ -247,7 +251,7 @@ def main():
         #   and process date/time
         obj.purge_duplicate_stats_objects()
         obj.purge_zero_outage_zip_stats_objects()
-        obj.remove_non_maryland_zip_stat_objects()
+        obj.remove_non_maryland_stat_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="customers")
@@ -272,6 +276,44 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
+
+    # FIXME
+    # TODO: Write Zipcode and county data to socrata assets
+    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
+    cloud_storage = CloudStorage()
+    dt_stamp_socrata_style = DOIT_UTIL.current_date_time().replace(" ", "T")
+
+    # for key, obj in provider_objects.items():
+    #     cloud_storage.outages_as_record_dicts_list.extend(
+    #         [dataclasses.asdict(stat_obj) for stat_obj in obj.stats_objects])
+    # cloud_storage.master_outages_df = pd.DataFrame.from_records(data=cloud_storage.outages_as_record_dicts_list,
+    #                                                             columns=["style", "area", "outages", "customers"])
+
+    cloud_storage.create_socrata_acceptable_dt_string()
+    cloud_storage.create_outage_records(provider_objects=provider_objects)
+    cloud_storage.create_master_outage_dataframe()
+    cloud_storage.group_by_area()
+    cloud_storage.sum_outages()
+    cloud_storage.create_unique_id()
+    cloud_storage.create_dt_stamp_column()
+    cloud_storage.isolate_zip_style_records()
+    cloud_storage.isolate_county_style_records()
+    cloud_storage.calculate_county_outage_percentage()
+    cloud_storage.drop_customers_from_zip_df()
+    cloud_storage.drop_style_from_record_dfs()
+    cloud_storage.create_lists_of_record_dicts()
+    # TODO: Need dataset for Status of feeds.
+
+    # zip_sums_df.to_csv(path_or_buf=r".\Scratch Content\stats_obj_df_zip_test.csv")
+    # county_sums_df.to_csv(path_or_buf=r".\Scratch Content\stats_obj_df_county_test.csv")
+
+    # Note: value "2020-10-30 13:56:05" Needs the "T" between date and time for socrata to accept as dt
+    # FIXME: Refactor to use cloud storage class instead of database functionality
+    db_obj.create_socrata_client()
+    db_obj.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
+    db_obj.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
+    exit()
+
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
@@ -303,7 +345,8 @@ def main():
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
-    #   the customer counts table using data feed values. Use feed when present and memory when not present.
+    #   the customer counts table using data feed values.
+    # TODO: write customer sums to socrata table with date time stamp to be able to track the change over time and pair with outage events
     print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
@@ -366,6 +409,7 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
+    # TODO: Reassess. Why is this happening? Is this transaction necessary?
     # COUNTY: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
     #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
     archive_county_obj = ArchiveCounty()
@@ -420,7 +464,6 @@ def main():
         # Clean up for next step
         db_obj.delete_cursor()
 
-    # TODO: Write Zipcode and county data to socrata assets
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
