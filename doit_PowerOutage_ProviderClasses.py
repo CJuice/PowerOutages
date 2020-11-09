@@ -20,7 +20,6 @@ class Provider:
     It is inherited by child classes.
     """
     def __init__(self, provider_abbrev: str, style: str):
-        super(Provider, self).__init__()
         self.abbrev = provider_abbrev
         self.date_created = None
         self.date_created_attribute = "date_generated"
@@ -205,15 +204,15 @@ class Provider:
             self.stats_objects.remove(zero_outage)
         return
 
-    def remove_non_maryland_zip_stat_objects(self) -> None:
+    def remove_non_maryland_stat_objects(self) -> None:
         """
-        Detect stats objects for zip codes not in Maryland and delete the objects from the stats objects list
+        Detect stats objects for those not in Maryland and delete the objects from the stats objects list
         :return: None
         """
         non_maryland_stat_objects = []
 
         for stat_obj in self.stats_objects:
-            if self.style == DOIT_UTIL.ZIP and stat_obj.state != DOIT_UTIL.MARYLAND:
+            if stat_obj.state != DOIT_UTIL.MARYLAND:
                 non_maryland_stat_objects.append(stat_obj)
 
         for obj in non_maryland_stat_objects:
