@@ -4,6 +4,8 @@ Module containing DatabaseUtilities class for functionality related to database 
 
 import pyodbc
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from sodapy import Socrata
 
 
 class DatabaseUtilities:
@@ -19,7 +21,12 @@ class DatabaseUtilities:
         self.database_user = parser["DATABASE"]["USER"]
         self.sql_delete_statement = VARS.sql_delete_statement
         self.full_connection_string = None
+        self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
+        self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
+        self.opendata_password = parser["OPENDATA"]["PASSWORD"]
+        self.opendata_username = parser["OPENDATA"]["USERNAME"]
         self.selection = None
+        self.socrata_client = None
         self.sql_select_zipcode_by_provider_abbrev_statement_realtime = VARS.sql_select_zip_by_provider_abbrev_realtime
         self.sql_select_by_provider_abbrev_statement_realtime = VARS.sql_select_by_provider_abbrev_realtime
 
@@ -110,3 +117,30 @@ class DatabaseUtilities:
         self.selection = self.cursor.fetchall()
         return
 
+    def create_socrata_client(self) -> None:
+        """
+        Create and return a Socrata client for use.
+
+        NOTE_1: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
+            will not substitute for 'opendata.maryland.gov'.
+
+        :param maryland_domain: domain for maryland open data portal.
+        :return: Socrata connection client
+        """
+        self.socrata_client = Socrata(domain=self.opendata_domain, app_token=self.opendata_apptoken,
+                                      username=self.opendata_username, password=self.opendata_password)
+        return None
+
+    def upsert_to_socrata(self, dataset_identifier: str, zipper: dict) -> None:
+        """
+        Upsert data to Socrata dataset.
+
+        :param dataset_identifier: Unique Socrata dataset identifier. Not the data page identifier but primary page id.
+        :param zipper: dictionary of zipped results (headers and data values)
+        :return: None
+        """
+        try:
+            self.socrata_client.upsert(dataset_identifier=dataset_identifier, payload=zipper, content_type='json')
+        except Exception as e:
+            print("Error upserting to Socrata: {}. {}".format(dataset_identifier, e))
+        return
