@@ -277,44 +277,6 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
 
-    # FIXME
-    # TODO: Write Zipcode and county data to socrata assets
-    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
-    cloud_storage = CloudStorage()
-    dt_stamp_socrata_style = DOIT_UTIL.current_date_time().replace(" ", "T")
-
-    # for key, obj in provider_objects.items():
-    #     cloud_storage.outages_as_record_dicts_list.extend(
-    #         [dataclasses.asdict(stat_obj) for stat_obj in obj.stats_objects])
-    # cloud_storage.master_outages_df = pd.DataFrame.from_records(data=cloud_storage.outages_as_record_dicts_list,
-    #                                                             columns=["style", "area", "outages", "customers"])
-
-    cloud_storage.create_socrata_acceptable_dt_string()
-    cloud_storage.create_outage_records(provider_objects=provider_objects)
-    cloud_storage.create_master_outage_dataframe()
-    cloud_storage.group_by_area()
-    cloud_storage.sum_outages()
-    cloud_storage.create_unique_id()
-    cloud_storage.create_dt_stamp_column()
-    cloud_storage.isolate_zip_style_records()
-    cloud_storage.isolate_county_style_records()
-    cloud_storage.calculate_county_outage_percentage()
-    cloud_storage.drop_customers_from_zip_df()
-    cloud_storage.drop_style_from_record_dfs()
-    cloud_storage.create_lists_of_record_dicts()
-    # TODO: Need dataset for Status of feeds.
-
-    # zip_sums_df.to_csv(path_or_buf=r".\Scratch Content\stats_obj_df_zip_test.csv")
-    # county_sums_df.to_csv(path_or_buf=r".\Scratch Content\stats_obj_df_county_test.csv")
-
-    # Note: value "2020-10-30 13:56:05" Needs the "T" between date and time for socrata to accept as dt
-    # FIXME: Refactor to use cloud storage class instead of database functionality
-    db_obj.create_socrata_client()
-    db_obj.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
-    db_obj.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
-    exit()
-
-
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
     print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")
@@ -464,6 +426,31 @@ def main():
         # Clean up for next step
         db_obj.delete_cursor()
 
+    # CLOUD STORAGE
+    print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
+    cloud_storage = CloudStorage(parser=DOIT_UTIL.PARSER)
+    cloud_storage.create_socrata_acceptable_dt_string()
+    cloud_storage.create_outage_records(provider_objects=provider_objects)
+    cloud_storage.create_master_outage_dataframe()
+    cloud_storage.group_by_area()
+    cloud_storage.sum_outages()
+    cloud_storage.create_unique_id_outages()
+    cloud_storage.create_dt_stamp_column()
+    cloud_storage.isolate_zip_style_records()
+    cloud_storage.isolate_county_style_records()
+    cloud_storage.calculate_county_outage_percentage()
+    cloud_storage.drop_customers_from_zip_df()
+    cloud_storage.drop_style_from_record_dfs()
+    cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
+    cloud_storage.correct_status_created_dt()
+    cloud_storage.create_unique_id_feed_status()
+    cloud_storage.create_lists_of_record_dicts()
+
+    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
+    cloud_storage.create_socrata_client()
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
