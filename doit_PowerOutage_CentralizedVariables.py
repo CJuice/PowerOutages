@@ -8,6 +8,7 @@ enjoy mucking about in the code.
 
 import textwrap
 
+bge_report_string_tempiate = "public/reports/{report_id}_report.json"
 credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
 database_connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
 database_flag = -9999
