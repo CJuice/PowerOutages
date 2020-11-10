@@ -15,6 +15,7 @@ class PEP(KubraParent):
     PEP specific functionality and variables for handling PEP feed data. Inherits from KubraParent and therefore
     Provider.
     """
+
     def __init__(self, provider_abbrev, style):
         super(PEP, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.md_zips_keys_only = None
@@ -80,4 +81,4 @@ class PEP(KubraParent):
 
         # Need to store the DC and MD dicts with key to make states_outages_list_dict
         self.state_to_data_list_dict = {"DC": dc_areas_list, "MD": md_areas_list}
-        return
+        return None
