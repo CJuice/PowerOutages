@@ -51,7 +51,7 @@ class Provider:
         :return: None
         """
         self.data_feed_uri = self.data_feed_uri.format(metadata_key=self.metadata_key)
-        return
+        return None
 
     def build_output_dict(self, unique_key:str) -> dict:
         """
@@ -83,7 +83,7 @@ class Provider:
         else:
             difference = datetime.now() - date_create_datetime_object
             self.data_age_minutes = round(number=(difference.seconds / 60), ndigits=1)
-        return
+        return None
 
     def detect_response_style(self) -> None:
         """
@@ -94,7 +94,7 @@ class Provider:
             self.data_feed_response_style = "XML"
         else:
             self.data_feed_response_style = "JSON"
-        return
+        return None
 
     def generate_insert_sql_statement_realtime(self):
         """
@@ -159,7 +159,7 @@ class Provider:
             self.date_created = datetime.fromisoformat(DOIT_UTIL.ZERO_TIME_STRING)
         else:
             self.date_created = f"{datetime_object:%Y-%m-%d %H:%M}"
-        return
+        return None
 
     def perform_feed_status_check_and_notification(self, alert_email_address: str) -> None:
         """
@@ -192,7 +192,7 @@ class Provider:
         for outage in self.stats_objects:
             temp_dict[str(outage)] = outage
         self.stats_objects = list(temp_dict.values())
-        return
+        return None
 
     def purge_zero_outage_zip_stats_objects(self) -> None:
         """
@@ -202,7 +202,7 @@ class Provider:
         temp_list = [outage for outage in self.stats_objects if outage.style == DOIT_UTIL.ZIP and outage.outages == 0]
         for zero_outage in temp_list:
             self.stats_objects.remove(zero_outage)
-        return
+        return None
 
     def remove_non_maryland_stat_objects(self) -> None:
         """
@@ -217,7 +217,7 @@ class Provider:
 
         for obj in non_maryland_stat_objects:
             self.stats_objects.remove(obj)
-        return
+        return None
 
     def set_status_codes(self) -> None:
         """
@@ -240,7 +240,7 @@ class Provider:
         except AttributeError as ae:
             # no metadata feed response
             pass
-        return
+        return None
 
 
 @dataclass
