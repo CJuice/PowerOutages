@@ -38,6 +38,10 @@ Revisions:
     other action. Refactored code to reduce nested code where could. Did discover two valid zip codes that are missing
     from MDP sourced zip code spatial layer behind master MD zip codes list. Contacted MDP, said to be adding soon
     and will provide update. Process could be improved with those MD zips added.
+20201110, CJuice Redesigned process for change to BGE feed. BGE feed now coming from Kubra. Added a cloud functionality
+    class for upsert of data to our open data portal, currently Socrata. Three datasets are updserted and those are
+    county, zip code, and feed status. Implemented processing and upsert at the very end so that if it were to fail
+    it would not interfere with the existing MEMA database functionality.
 """
 
 
@@ -270,7 +274,6 @@ def main():
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
-    # TODO: write feed check data to socrata asset
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -308,7 +311,6 @@ def main():
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
     #   the customer counts table using data feed values.
-    # TODO: write customer sums to socrata table with date time stamp to be able to track the change over time and pair with outage events
     print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
