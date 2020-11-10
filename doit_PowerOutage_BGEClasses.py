@@ -5,7 +5,6 @@ peculiarities of the BGE outage data not common to the other Kubra feeds.
 
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
@@ -17,54 +16,7 @@ class BGE(KubraParent):
     def __init__(self, provider_abbrev, style):
         super(BGE, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.outages_list = None
-        self.report_str_template = "public/reports/{report_id}_report.json"
-
-    # def extract_date_created(self) -> None:
-    #     """
-    #     Extract the date created from the xml response content
-    #     :return: None
-    #     """
-    #     for date_time in self.xml_element.iter("CreateDateTime"):
-    #         self.date_created = date_time.text
-    #         return
-
-    # def extract_outage_counts(self) -> None:
-    #     """
-    #     Extract the outage counts from xml.
-    #     NOTE: It appears that BGE does not provide a count of customers served for zip code areas. Set to -9999.
-    #     :return: None
-    #     """
-    #     substitution = {"County": "County", "ZIP": "ZipCode"}.get(self.style)
-    #     stats_objects_list = []
-    #     for outage in self.outages_list:
-    #         area = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
-    #                                                                             tag_name=substitution).text
-    #         outages = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
-    #                                                                                tag_name="CustomersOut").text
-    #         if self.style == "ZIP":
-    #             customers = VARS.database_flag
-    #         else:
-    #             customers = DOIT_UTIL.extract_first_immediate_child_feature_from_element(element=outage,
-    #                                                                                      tag_name="CustomersServed").text
-    #         stats_objects_list.append(Outage(abbrev=self.abbrev,
-    #                                          style=self.style,
-    #                                          area=area,
-    #                                          outages=outages,
-    #                                          customers=customers,
-    #                                          state=DOIT_UTIL.MARYLAND))
-    #     self.stats_objects = stats_objects_list
-    #     return
-
-    # def extract_outage_elements(self) -> None:
-    #     """
-    #     Extract the outage elements from the response content
-    #     :return: None
-    #     """
-    #     outage_elements_list = []
-    #     for outage in self.xml_element.iter("Outage"):
-    #         outage_elements_list.append(outage)
-    #     self.outages_list = outage_elements_list
-    #     return
+        self.report_str_template = VARS.bge_report_string_tempiate
 
     def extract_source_report(self) -> None:
         """
