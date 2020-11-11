@@ -1,28 +1,28 @@
 """
-Module contains a PEPDELParent class that inherits from Provider class. PEPDELParent class is an implementation
-specific to the peculiarities of the DEL and PEP feeds and the processing they require that is not common to all
-providers but common to them both. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
-intended to provide flexibility for future changes. It acts as an interface.
+Module contains a KubraParent class that inherits from Provider class. KubraParent class is an implementation
+specific to the peculiarities of the DEL, PEP, and BGE feeds and the processing they require that is not common to all
+providers but common to Kubra provided feeds. KubraParent was created as a result and is intended to provide
+flexibility for future changes. It acts as an interface.
 """
 
 from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
 from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 import datetime
 import pytz
+import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
 
 
-class PEPDELParent(Provider):
+class KubraParent(Provider):
     """
-    Functionality and variables common to the PEP and DEL providers. Inherits from Provider. Certain functions
-    are overloaded in the PEP and DEL classes.
+    Functionality and variables common to the Kubra feed (PEP, DEL, BGE) providers. Inherits from Provider.
+    Certain functions are overloaded in child classes.
     """
 
     MULTI_ZIP_CODE_VALUE_DELIMITER = VARS.multi_zip_code_value_delimiter
 
     def __init__(self, provider_abbrev, style):
-        super(PEPDELParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
+        super(KubraParent, self).__init__(provider_abbrev=provider_abbrev, style=style)
         self.area_list = None
         self.configuration_url = None
         self.configuration_feed_response = None
@@ -33,6 +33,7 @@ class PEPDELParent(Provider):
         self.interval_generation_data = None
         self.metadata_key_attribute = "stormcenterDeploymentId"  # Attribute override from Provider
         self.view_id = None
+        self.report_id = None
         self.report_source = None
         self.source_data_json = None
         self.source_report_json = None
@@ -46,7 +47,7 @@ class PEPDELParent(Provider):
         """
         self.configuration_url = self.configuration_url.format(instance_id=self.instance_id, view_id=self.view_id,
                                                                deployment_id=self.metadata_key)
-        return
+        return None
 
     def build_data_feed_uri(self) -> None:
         """
@@ -58,12 +59,12 @@ class PEPDELParent(Provider):
         """
         self.data_feed_uri = self.data_feed_uri.format(interval_generation_data=self.interval_generation_data,
                                                        source=self.report_source)
-        return
+        return None
 
     def extract_area_outage_lists_by_state(self) -> None:
         """
         Extract area outage lists by state from dictionary.
-        :return: none
+        :return: None
         """
         states_outages_list_dict = {}
         for state_dict in self.area_list:
@@ -72,30 +73,30 @@ class PEPDELParent(Provider):
             states_outages_list_dict[state_abbrev] = DOIT_UTIL.extract_attribute_from_dict(data_dict=state_dict,
                                                                                            attribute_name="areas")
         self.state_to_data_list_dict = states_outages_list_dict
-        return
+        return None
 
     def extract_outage_counts_by_area(self) -> None:
         """
         Extract outage counts by area from the outage dictionary, exchange state abbreviation for full name, and
         build stat objects
-        :return: none
+        :return: None
         """
         list_of_stats_objects = []
         for state_abbrev, outages_list in self.state_to_data_list_dict.items():
             state_groomed = DOIT_UTIL.exchange_state_abbrev_for_full_value(abbrev=state_abbrev)
-            for county_dict in outages_list:
-                county = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="name")
-                outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_a")
+            for area_dict in outages_list:
+                area = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="name")
+                outages_dict = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="cust_a")
                 outages = DOIT_UTIL.extract_attribute_from_dict(data_dict=outages_dict, attribute_name="val")
-                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=county_dict, attribute_name="cust_s")
+                customers = DOIT_UTIL.extract_attribute_from_dict(data_dict=area_dict, attribute_name="cust_s")
                 list_of_stats_objects.append(Outage(abbrev=self.abbrev,
                                                     style=self.style,
-                                                    area=county,
+                                                    area=area,
                                                     outages=outages,
                                                     customers=customers,
                                                     state=state_groomed))
         self.stats_objects = list_of_stats_objects
-        return
+        return None
 
     def extract_source_report(self) -> None:
         """
@@ -117,19 +118,19 @@ class PEPDELParent(Provider):
         style_dict = {DOIT_UTIL.COUNTY: county_data, DOIT_UTIL.ZIP: zip_data}
         self.report_source = DOIT_UTIL.extract_attribute_from_dict(data_dict=style_dict.get(self.style),
                                                                    attribute_name="source")
-        return
+        return None
 
     def extract_top_level_areas_list(self) -> None:
         """
         Extract the top level area key information from a json response.
-        :return: none
+        :return: None
         """
         data_json = self.data_feed_response.json()
         file_data = DOIT_UTIL.extract_attribute_from_dict(data_dict=data_json,
                                                           attribute_name="file_data")
         self.area_list = DOIT_UTIL.extract_attribute_from_dict(data_dict=file_data,
                                                                attribute_name="areas")
-        return
+        return None
 
     def process_multi_value_zips_to_single_value(self) -> None:
         """
@@ -147,7 +148,7 @@ class PEPDELParent(Provider):
         to be mappable. The new design does away with the multi-value method and simply breaks the multi into singles
         and distributes the counts as evenly as possible. This design is based around the zip code geometry layer
         instead of revolving around the business practice of PEP and DEL.
-        :return: none
+        :return: None
         """
 
         # Inspect every existing stat object to determine if it is multiple comma separated zips or a single zip
@@ -157,10 +158,10 @@ class PEPDELParent(Provider):
         for stat_obj in self.stats_objects:
 
             # If the delimiter, currently a comma, is in the .area then it is multi-value and needs to be processed
-            if PEPDELParent.MULTI_ZIP_CODE_VALUE_DELIMITER in stat_obj.area:
+            if KubraParent.MULTI_ZIP_CODE_VALUE_DELIMITER in stat_obj.area:
 
                 # Split the multi value string into a list of single value zips
-                singles = stat_obj.area.split(PEPDELParent.MULTI_ZIP_CODE_VALUE_DELIMITER)
+                singles = stat_obj.area.split(KubraParent.MULTI_ZIP_CODE_VALUE_DELIMITER)
             else:
                 continue
 
@@ -237,17 +238,17 @@ class PEPDELParent(Provider):
         # Add the new single value objects to the original stat objects list
         self.stats_objects.extend(new_stat_objs_to_append)
 
-        return
+        return None
 
     def process_date_created_to_seconds(self) -> None:
         """
         Process the Kubra date created milliseconds to a tz aware datetime obj and convert to formatted string.
-        :return:
+        :return: None
         """
         seconds = self.date_created / 1000
         tz_eastern = pytz.timezone('US/Eastern')
         dt_obj = datetime.datetime.fromtimestamp(seconds, tz=tz_eastern)
         self.date_created = dt_obj.strftime("%Y-%m-%dT%H:%M:%S")  # converted to string so dateutil.parser won't choke
 
-        return
+        return None
 

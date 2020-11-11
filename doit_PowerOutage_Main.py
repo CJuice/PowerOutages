@@ -23,20 +23,25 @@ variables and sql statements. It is not intended to be used by Utility class.
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 Author: CJuice
-Revisions: 20190327, CJuice Redesign for change to SME data feeds
-    20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
+Revisions:
+20190327, CJuice Redesign for change to SME data feeds
+20200430, CJuice Revised code to check for None in critical objects. Spawned from PEP and DEL feeds being down.
     Entire process failed. Now handles None. Notification email alerts were also modified to send fewer per provider.
     Deployed application currently sends emails to CJuice for Dev and Prod. Prod to be corrected to mjoc after redesign
     for revised feeds happens. Customer Class and Provider Class were revised to include None checks to avoid failure
-    20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
+20200512, CJuice Redesigned for new Kubra based feeds for PEP and DEL after the old feeds were turned off.
     Heavily revised Main, PEPDEL_ParentClass, PEPClasses, DELClasses ProviderURI, and did minor alterations to other
     classes for clarity or minor improvements in documentation or style but not functionality.
-    20200520, CJuice Revised PEPCO zip code harvesting after discovering issues with Exelon zip code values
+20200520, CJuice Revised PEPCO zip code harvesting after discovering issues with Exelon zip code values
     that were provided to us. Switched to identifying MD zip codes first using geometry zip list, then identifying DC
     zips based on web scraped usps zip code list, and finally printing out message on unknown zips but with no
     other action. Refactored code to reduce nested code where could. Did discover two valid zip codes that are missing
     from MDP sourced zip code spatial layer behind master MD zip codes list. Contacted MDP, said to be adding soon
     and will provide update. Process could be improved with those MD zips added.
+20201110, CJuice Redesigned process for change to BGE feed. BGE feed now coming from Kubra. Added a cloud functionality
+    class for upsert of data to our open data portal, currently Socrata. Three datasets are updserted and those are
+    county, zip code, and feed status. Implemented processing and upsert at the very end so that if it were to fail
+    it would not interfere with the existing MEMA database functionality.
 """
 
 
@@ -47,6 +52,8 @@ def main():
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveZIP
     from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
+    from PowerOutages_V2.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
+
     import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
     import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
@@ -57,6 +64,7 @@ def main():
     import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
     import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
     import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+
     import os
 
     print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
@@ -91,10 +99,10 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         section_keys = [item for item in DOIT_UTIL.PARSER[key]]
         section_values = [DOIT_UTIL.PARSER[key][section_key] for section_key in section_keys]
-        if "BGE" in key:
-            obj.soap_header_uri, obj.post_uri = section_values
-        elif "PEP" in key or "DEL" in key:
-            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id = section_values
+        if obj.abbrev in VARS.kubra_feed_providers:
+
+            # 20201014 CJuice Redesign to include use of report_id for all Kubra, following use of report_id in BGE flow.
+            obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri, obj.configuration_url, obj.instance_id, obj.view_id, obj.report_id = section_values
         else:
             obj.metadata_feed_uri, obj.data_feed_uri, obj.date_created_feed_uri = section_values
 
@@ -139,7 +147,7 @@ def main():
                 attribute_name=obj.interval_generation_data_attribute)
 
     #   Make the date created requests, for providers with a date created service, and store the response.
-    #   NOTE: For PEP and DEL this is a second call to the metadata key uri (above)
+    #   NOTE: For Kubra feeds this is a second call to the metadata key uri (above)
     print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -151,7 +159,7 @@ def main():
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
-    print(f"\tExtracting date created value...{DOIT_UTIL.current_date_time()}")
+    print(f"Extracting date created value...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -182,8 +190,8 @@ def main():
 
     print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
-        DOIT_UTIL.print_tabbed_string(value=key)
         if obj.abbrev in VARS.kubra_feed_providers:
+            DOIT_UTIL.print_tabbed_string(value=key)
             obj.build_configuration_feed_uri()
             obj.configuration_feed_response = obj.web_func_class.make_web_request(uri=obj.configuration_url)
             obj.extract_source_report()
@@ -192,24 +200,11 @@ def main():
     print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
-        if "BGE" in key:
-
-            # BGE uses POST and no metadata key.
-            # Make the POST request and include the headers and the post data as a string (is xml, not json)
-            bge_extra_header = obj.build_extra_header_for_SOAP_request()
-            bge_username, bge_password = [DOIT_UTIL.PARSER["BGE"][item] for item in DOIT_UTIL.PARSER["BGE"]]
-            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.post_uri,
-                                                                         payload=obj.POST_DATA_XML_STRING.format(
-                                                                             username=bge_username,
-                                                                             password=bge_password),
-                                                                         style="POST_data",
-                                                                         headers=bge_extra_header)
+        if obj.metadata_key in VARS.none_and_not_available:
+            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
         else:
-            if obj.metadata_key in VARS.none_and_not_available:
-                obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
-            else:
-                obj.build_data_feed_uri()
-                obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
+            obj.build_data_feed_uri()
+            obj.data_feed_response = obj.web_func_class.make_web_request(uri=obj.data_feed_uri)
 
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
@@ -218,6 +213,7 @@ def main():
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
+            print(f"Data feed response status code != 200: {key} {obj.data_feed_response.status_code}")
             continue
 
         if key in ("FES_County", "FES_ZIP"):
@@ -227,12 +223,12 @@ def main():
             obj.create_stats_objects()
             obj.extract_date_created()
 
-        elif key in ("DEL_County", "PEP_County"):
+        elif key in ("DEL_County", "PEP_County", "BGE_County"):
             obj.extract_top_level_areas_list()
             obj.extract_area_outage_lists_by_state()
             obj.extract_outage_counts_by_area()
 
-        elif key in ("DEL_ZIP", "PEP_ZIP"):
+        elif key in ("DEL_ZIP", "PEP_ZIP", "BGE_ZIP"):
             obj.extract_top_level_areas_list()
             obj.extract_area_outage_lists_by_state()
             obj.extract_outage_counts_by_area()
@@ -255,17 +251,11 @@ def main():
             obj.extract_outage_counts_from_dataset()
             obj.extract_date_created()
 
-        elif key in ("BGE_County", "BGE_ZIP"):
-            obj.xml_element = DOIT_UTIL.parse_xml_response_to_element(response_xml_str=obj.data_feed_response.text)
-            obj.extract_outage_elements()
-            obj.extract_outage_counts()
-            obj.extract_date_created()
-
         # Need to remove duplicates, isolate MD zips, correct spelling & punctuation, convert str counts to int,
         #   and process date/time
         obj.purge_duplicate_stats_objects()
         obj.purge_zero_outage_zip_stats_objects()
-        obj.remove_non_maryland_zip_stat_objects()
+        obj.remove_non_maryland_stat_objects()
         DOIT_UTIL.revise_county_name_spellings_and_punctuation(stats_objects_list=obj.stats_objects)
         DOIT_UTIL.remove_commas_from_counts(objects_list=obj.stats_objects)
         DOIT_UTIL.process_stats_objects_counts_to_integers(objects_list=obj.stats_objects, keyword="customers")
@@ -276,7 +266,6 @@ def main():
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
     print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
-    status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         obj.set_status_codes()
@@ -285,6 +274,7 @@ def main():
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
     print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
+    status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
@@ -320,7 +310,7 @@ def main():
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
-    #   the customer counts table using data feed values. Use feed when present and memory when not present.
+    #   the customer counts table using data feed values.
     print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
@@ -383,6 +373,7 @@ def main():
     # Clean up for next step
     db_obj.delete_cursor()
 
+    # TODO: Reassess. Why is this happening? Is this transaction necessary?
     # COUNTY: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
     #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
     archive_county_obj = ArchiveCounty()
@@ -436,6 +427,32 @@ def main():
 
         # Clean up for next step
         db_obj.delete_cursor()
+
+    # CLOUD STORAGE
+    print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
+    cloud_storage = CloudStorage(parser=DOIT_UTIL.PARSER)
+    cloud_storage.create_socrata_acceptable_dt_string()
+    cloud_storage.create_outage_records(provider_objects=provider_objects)
+    cloud_storage.create_master_outage_dataframe()
+    cloud_storage.group_by_area()
+    cloud_storage.sum_outages()
+    cloud_storage.create_unique_id_outages()
+    cloud_storage.create_dt_stamp_column()
+    cloud_storage.isolate_zip_style_records()
+    cloud_storage.isolate_county_style_records()
+    cloud_storage.calculate_county_outage_percentage()
+    cloud_storage.drop_customers_from_zip_df()
+    cloud_storage.drop_style_from_record_dfs()
+    cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
+    cloud_storage.correct_status_created_dt()
+    cloud_storage.create_unique_id_feed_status()
+    cloud_storage.create_lists_of_record_dicts()
+
+    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
+    cloud_storage.create_socrata_client()
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
+    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 

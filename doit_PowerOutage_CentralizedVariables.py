@@ -8,6 +8,7 @@ enjoy mucking about in the code.
 
 import textwrap
 
+bge_report_string_tempiate = "public/reports/{report_id}_report.json"
 credentials_cfg_file = "doit_PowerOutage_Credentials.cfg"
 database_connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
 database_flag = -9999
@@ -48,7 +49,7 @@ district_of_columbia_zip_code_inventory_from_web = ['20001', '20002', '20003', '
                                            '20585', '20586', '20590', '20591', '20593', '20594', '20597', '20599',
                                            '56901', '56902', '56904', '56908', '56915', '56920', '56933', '56935',
                                            '56944', '56945', '56950', '56965', '56967', '56972', '56998', '56999']
-kubra_feed_providers = ["PEP", "DEL"]  # BGE will be added in future design
+kubra_feed_providers = ["PEP", "DEL", "BGE"]
 json_file_local_location_and_name = "JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
 less_than_five = "Less than 5"
 maryland_master_inventory_zip_codes_with_geometry = {'0': 'Assateague Island', '20601': 'Waldorf', '20602': 'Waldorf',
