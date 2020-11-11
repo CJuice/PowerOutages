@@ -7,20 +7,21 @@ coordinates all of the process functionality. Imports to Main include multiple m
 
 Main is generally organized into the following order of sections: imports, variable definition/creation, 
 web requests for various provider related data, processing of response data, output of feed status to json file,
-and database transactions for 'realtime' and 'archive' and customer data.
+database transactions for 'realtime' and 'archive' and customer data, and transactions with the open data portal
+for cloud storage of outage data.
 
 Main relies on the following imported modules containing classes: ArchiveClasses, BGEClasses, CTKClasses, 
-CustomerClass, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, PEPDEL_ParentClass, 
-ProviderClasses, SMEClasses, and UtilityClass. It also relies on a CentralizedVariables python file, and 
+CustomerClass, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, 
+SMEClasses, UtilityClass. It also relies on a CentralizedVariables python file, and 
 access through a parser to a Credentials config file and a ProvidersURI config file.
 
 The process is designed as a main procedural script utilizing class functionality. For power providers, there is a 
 top level parent class called Provider. All providers are then subclassed from this parent to create child classes. 
 The child classes contain unique behavior specific to a provider. Functionality/behavior common to all providers has 
-been placed into the parent class and inherited downward into the children. For PEP and DEL, Provider is inherited by 
-the PEPDEL_ParentClass. This class organizes behavior common to both PEP and DEL providers. Both PEP and DEL 
-children inherit from PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in 
-parent classes have been overridden by methods in child classes.
+been placed into the parent class and inherited downward into the children. PEP DEL and BGE are child class that
+inherit from Kubra_ParentClass, which inherits from Provider. This class organizes behavior common to Kubra 
+feeds which are common to PEP DEL and BGE. Where necessary, some methods in parent classes have been overloaded
+by methods in child classes.
 
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
