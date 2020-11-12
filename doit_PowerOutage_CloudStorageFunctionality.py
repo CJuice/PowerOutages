@@ -57,12 +57,13 @@ class CloudStorage:
         self.feed_status_df["created"] = self.feed_status_df["created"].apply(lambda x: x.replace(" ", "T"))
         return None
 
-    def create_dt_stamp_column(self) -> None:
+    def create_dt_stamp_column(self, dataframe: pd.DataFrame) -> None:
         """
         Create and set the datetime stamp column to the Socrata acceptable value
+        :param dataframe: pandas dataframe
         :return: None
         """
-        self.grouped_sums_df["dt_stamp"] = self.socrata_dt_string
+        dataframe["dt_stamp"] = self.socrata_dt_string
         return None
 
     def create_feed_status_dataframe(self, status_check_output: dict) -> None:
