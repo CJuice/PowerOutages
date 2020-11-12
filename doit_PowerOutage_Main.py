@@ -437,7 +437,7 @@ def main():
     cloud_storage.group_by_area()
     cloud_storage.sum_outages()
     cloud_storage.create_unique_id_outages()
-    cloud_storage.create_dt_stamp_column()
+    cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.grouped_sums_df)
     cloud_storage.isolate_zip_style_records()
     cloud_storage.isolate_county_style_records()
     cloud_storage.calculate_county_outage_percentage()
@@ -446,6 +446,7 @@ def main():
     cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
     cloud_storage.correct_status_created_dt()
     cloud_storage.create_unique_id_feed_status()
+    cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.feed_status_df)
     cloud_storage.create_lists_of_record_dicts()
 
     print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
