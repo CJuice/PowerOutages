@@ -5,12 +5,12 @@ providers but common to Kubra provided feeds. KubraParent was created as a resul
 flexibility for future changes. It acts as an interface.
 """
 
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages.doit_PowerOutage_ProviderClasses import Provider
 import datetime
 import pytz
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class KubraParent(Provider):

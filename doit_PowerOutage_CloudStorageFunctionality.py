@@ -3,7 +3,7 @@ Class file for cloud storage of outage related data.
 Contains variables and functionality for processing and upserting data to our Socrata open data portal
 """
 
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from sodapy import Socrata
 import pandas as pd
 import dataclasses

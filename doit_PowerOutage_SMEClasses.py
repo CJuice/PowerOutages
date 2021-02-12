@@ -3,9 +3,9 @@ Module contains a SME class that inherits from Provider class. SME class is an i
 peculiarities of the SME feeds and the processing they require that is not common to all providers.
 """
 
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Outage
-from PowerOutages_V2.doit_PowerOutage_ProviderClasses import Provider
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages.doit_PowerOutage_ProviderClasses import Outage
+from PowerOutages.doit_PowerOutage_ProviderClasses import Provider
 
 
 class SME(Provider):

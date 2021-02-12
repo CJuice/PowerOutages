@@ -5,7 +5,7 @@ that is not common to all providers. PEP and DEL had shared functionality. PEPDE
 intended to provide flexibility for future changes. It acts as an interface. DEL inherits from the PEPDELParent class.
 """
 
-from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
+from PowerOutages.doit_PowerOutage_Kubra_ParentClass import KubraParent
 
 
 class DEL(KubraParent):

@@ -48,22 +48,22 @@ Revisions:
 def main():
 
     # IMPORTS
-    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveCounty
-    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ArchiveZIP
-    from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-    from PowerOutages_V2.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
-    from PowerOutages_V2.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
+    from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveCounty
+    from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveZIP
+    from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+    from PowerOutages.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
 
-    import PowerOutages_V2.doit_PowerOutage_BGEClasses as BGEMod
-    import PowerOutages_V2.doit_PowerOutage_CustomerClass as Customer
-    import PowerOutages_V2.doit_PowerOutage_CTKClasses as CTKMod
-    import PowerOutages_V2.doit_PowerOutage_DatabaseFunctionality as DbMod
-    import PowerOutages_V2.doit_PowerOutage_DELClasses as DELMod
-    import PowerOutages_V2.doit_PowerOutage_EUCClasses as EUCMod
-    import PowerOutages_V2.doit_PowerOutage_FESClasses as FESMod
-    import PowerOutages_V2.doit_PowerOutage_PEPClasses as PEPMod
-    import PowerOutages_V2.doit_PowerOutage_SMEClasses as SMEMod
-    import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+    import PowerOutages.doit_PowerOutage_BGEClasses as BGEMod
+    import PowerOutages.doit_PowerOutage_CustomerClass as Customer
+    import PowerOutages.doit_PowerOutage_CTKClasses as CTKMod
+    import PowerOutages.doit_PowerOutage_DatabaseFunctionality as DbMod
+    import PowerOutages.doit_PowerOutage_DELClasses as DELMod
+    import PowerOutages.doit_PowerOutage_EUCClasses as EUCMod
+    import PowerOutages.doit_PowerOutage_FESClasses as FESMod
+    import PowerOutages.doit_PowerOutage_PEPClasses as PEPMod
+    import PowerOutages.doit_PowerOutage_SMEClasses as SMEMod
+    import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
 
     import os
 

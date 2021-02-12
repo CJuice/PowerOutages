@@ -6,8 +6,8 @@ than hard coded values of unknown age.
 """
 
 from dataclasses import dataclass
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class Customer:

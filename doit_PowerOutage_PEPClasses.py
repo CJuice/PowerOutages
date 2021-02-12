@@ -5,9 +5,9 @@ that is not common to all providers. PEP and DEL had shared functionality. Kubra
 intended to provide flexibility for future changes. It acts as an interface. PEP inherits from the KubraParent class.
 """
 
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
+import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages.doit_PowerOutage_Kubra_ParentClass import KubraParent
 
 
 class PEP(KubraParent):

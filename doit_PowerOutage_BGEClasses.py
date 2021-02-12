@@ -3,9 +3,9 @@ Module contains a BGE class that inherits from Kubra parent class. BGE class is 
 peculiarities of the BGE outage data not common to the other Kubra feeds.
 """
 
-from PowerOutages_V2.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
-from PowerOutages_V2.doit_PowerOutage_Kubra_ParentClass import KubraParent
-import PowerOutages_V2.doit_PowerOutage_CentralizedVariables as VARS
+from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+from PowerOutages.doit_PowerOutage_Kubra_ParentClass import KubraParent
+import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
 
 
 class BGE(KubraParent):
