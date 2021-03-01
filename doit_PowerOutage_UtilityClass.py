@@ -40,19 +40,19 @@ class Utility:
         return data_feed_uri.format(metadata_key=metadata_key)
 
     @staticmethod
-    def current_date_time(tz_naive: bool = True) -> str:
+    def current_date_time(tz_aware: bool = False) -> str:
         """
         Create a string representation of the current date and time.
-        :param tz_naive: boolean control for returning timezone naive or aware datetime stamp string
+        :param tz_aware: boolean control for returning timezone naive or aware datetime stamp string
         :return: string representation of date and time
         """
         # TODO: Adjust to use format '%Y-%m-%dT%H:%M:%S%z' after finish assessing implications and effects on Osprey db
-        if tz_naive:
-            return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
-        else:
+        if tz_aware:
             eastern_tz = timezone('US/Eastern')
             loc_dt = eastern_tz.localize(datetime.now())
             return loc_dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+        else:
+            return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
 
     @staticmethod
     def exchange_state_abbrev_for_full_value(abbrev: str) -> str:
