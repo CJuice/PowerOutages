@@ -6,7 +6,7 @@ TODO: Create OpenDataPortal and ArcGisOnline subclasses that inherit from CloudS
 
 from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from sodapy import Socrata
-import arcgis
+# import arcgis
 import dataclasses
 import pandas as pd
 
@@ -118,7 +118,7 @@ class CloudStorage:
         #TODO: incorporate utc offset so tz aware, use '%Y-%m-%dT%H:%M:%S%z'. AGOL recognizes as valid also.
         #   Socrata field type as floating or fixed? How will the type affect downstream apps
         #   MEMA sql db may not like new format! Check first or use separate cloud format and a mema db format
-        self.socrata_dt_string = DOIT_UTIL.current_date_time(tz_aware=False).replace(" ", "T")
+        self.socrata_dt_string = DOIT_UTIL.current_date_time(tz_aware=True).replace(" ", "T")
         return None
 
     def create_socrata_client(self) -> None:

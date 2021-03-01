@@ -104,7 +104,7 @@ class Provider:
         :return: None
         """
         # TODO: Assess if sql database will take a tz aware datetime value
-        self.date_updated = DOIT_UTIL.current_date_time(tz_aware=False)
+        self.date_updated = DOIT_UTIL.current_date_time(tz_aware=True)
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP:
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
