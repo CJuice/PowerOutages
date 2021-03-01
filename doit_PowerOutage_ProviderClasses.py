@@ -70,6 +70,7 @@ class Provider:
     def calculate_data_age_minutes(self) -> None:
         """
         Determine the difference between two date time values.
+        NOTE: Did not convert the datetime values involved in difference calculation to be time zone aware.
         :return: None
         """
         try:
@@ -102,7 +103,8 @@ class Provider:
         For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
         :return: None
         """
-        self.date_updated = DOIT_UTIL.current_date_time()
+        # TODO: Assess if sql database will take a tz aware datetime value
+        self.date_updated = DOIT_UTIL.current_date_time(tz_naive=False)
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP:
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
@@ -144,6 +146,7 @@ class Provider:
         """
         Use a dateutil parser to interpret inconsistent/varying date string formats and format them into specific style.
         NOTE: Valuable Resource - https://dateutil.readthedocs.io/en/stable/parser.html
+        NOTE: Since date created comes from providers it is not being converted to timezone aware
         :return: None
         """
         try:
