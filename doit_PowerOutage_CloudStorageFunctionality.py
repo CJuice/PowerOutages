@@ -1,12 +1,14 @@
 """
 Class file for cloud storage of outage related data.
 Contains variables and functionality for processing and upserting data to our Socrata open data portal
+TODO: Create OpenDataPortal and ArcGisOnline subclasses that inherit from CloudStorage
 """
 
 from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 from sodapy import Socrata
-import pandas as pd
+import arcgis
 import dataclasses
+import pandas as pd
 
 
 class CloudStorage:
@@ -54,7 +56,7 @@ class CloudStorage:
         Replace space with 'T' so that Socrata will accept/recognize the datetime values as that type instead of text
         :return: None
         """
-        self.feed_status_df["created"] = self.feed_status_df["created"].apply(lambda x: x.replace(" ", "T"))
+        self.feed_status_df["created"] = self.feed_status_df["created"].str.replace(" ", "T")
         return None
 
     def create_dt_stamp_column(self, dataframe: pd.DataFrame) -> None:
@@ -113,7 +115,10 @@ class CloudStorage:
         NOTE: Socrata requires a 'T' between date and time for string to be recognized. No spaces.
         :return: None
         """
-        self.socrata_dt_string = DOIT_UTIL.current_date_time().replace(" ", "T")
+        #TODO: incorporate utc offset so tz aware, use '%Y-%m-%dT%H:%M:%S%z'. AGOL recognizes as valid also.
+        #   Socrata field type as floating or fixed? How will the type affect downstream apps
+        #   MEMA sql db may not like new format! Check first or use separate cloud format and a mema db format
+        self.socrata_dt_string = DOIT_UTIL.current_date_time(tz_naive=False).replace(" ", "T")
         return None
 
     def create_socrata_client(self) -> None:
@@ -211,3 +216,19 @@ class CloudStorage:
         except Exception as e:
             print("Error upserting to Socrata: {}. {}".format(dataset_identifier, e))
         return
+
+
+class OpenData(CloudStorage):
+    """
+
+    """
+    def __init__(self, parser):
+        super(CloudStorage, self).__init__(parser=parser)
+
+
+class ArcGISOnline(CloudStorage):
+    """
+
+    """
+    def __init__(self, parser):
+        super(CloudStorage, self).__init__(parser=parser)
