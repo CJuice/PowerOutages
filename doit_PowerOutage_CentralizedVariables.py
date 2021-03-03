@@ -4,6 +4,8 @@ exceed the PEP line length guideline, and other values that may need to be edite
 editing easier for non-developers by having a single location for the variables so that they do not need to search
 through and interact with the code. This avoids introduction of errors and also makes life easier for those who do not
 enjoy mucking about in the code.
+Revisions:
+    20210302, CJuice, added 20880 and 20896 to zip code dict for those with geom after updating MEMA map service
 """
 
 import textwrap
@@ -122,10 +124,11 @@ maryland_master_inventory_zip_codes_with_geometry = {'0': 'Assateague Island', '
                                                      '20876': 'Germantown', '20877': 'Gaithersburg',
                                                      '20878': 'Gaithersburg',
                                                      '20879': 'Gaithersburg', '20882': 'Gaithersburg',
+                                                     '20880': 'Washington Grove',
                                                      '20886': 'Montgomery Village', '20889': 'Bethesda',
                                                      '20892': 'Bethesda',
                                                      '20894': 'Bethesda', '20895': 'Kensington',
-                                                     '20899': 'Gaithersburg',
+                                                     '20896': 'Garrett Park', '20899': 'Gaithersburg',
                                                      '20901': 'Silver Spring', '20902': 'Silver Spring',
                                                      '20903': 'Silver Spring',
                                                      '20904': 'Silver Spring', '20905': 'Silver Spring',
