@@ -24,12 +24,11 @@ class CloudStorage:
         self.grouped_sums_df = None
         self.master_groupby_area = None
         self.master_outages_df = None
-        self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
-        self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
-        self.opendata_password = parser["OPENDATA"]["PASSWORD"]
-        self.opendata_username = parser["OPENDATA"]["USERNAME"]
+        # self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
+        # self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
+        # self.password = None
+        # self.username = None
         self.outages_as_record_dicts_list = []
-        self.socrata_client = None
         self.socrata_dt_string = None
         self.zipcode_outage_records_df = None
         self.zipcode_zipper = None
@@ -121,20 +120,6 @@ class CloudStorage:
         self.socrata_dt_string = DOIT_UTIL.current_date_time().replace(" ", "T")
         return None
 
-    def create_socrata_client(self) -> None:
-        """
-        Create and return a Socrata client for use.
-
-        NOTE_1: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
-            will not substitute for 'opendata.maryland.gov'.
-
-        :param maryland_domain: domain for maryland open data portal.
-        :return: Socrata connection client
-        """
-        self.socrata_client = Socrata(domain=self.opendata_domain, app_token=self.opendata_apptoken,
-                                      username=self.opendata_username, password=self.opendata_password)
-        return None
-
     def create_unique_id_feed_status(self) -> None:
         """
         Combine provider style key with socrata acceptable datetime string to make a record unique id for feed status
@@ -146,7 +131,7 @@ class CloudStorage:
     def create_unique_id_outages(self) -> None:
         """
         Combine area value with socrata acceptable datetime string to make a record unique id for group sums
-
+        # TODO: If move to tz aware this unique_id will change, would need to revise existing data
         :return:
         """
         self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.socrata_dt_string
@@ -203,6 +188,34 @@ class CloudStorage:
         self.grouped_sums_df = self.master_groupby_area.sum()
         return None
 
+
+class OpenData:
+    """
+
+    """
+    def __init__(self, parser):
+        # super(CloudStorage, self).__init__(parser=parser)
+        # TODO: Extract socrata specific functionality from parent class to here
+        self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
+        self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
+        self.password = parser["OPENDATA"]["PASSWORD"]
+        self.username = parser["OPENDATA"]["USERNAME"]
+        self.socrata_client = None
+
+    def create_socrata_client(self) -> None:
+        """
+        Create and return a Socrata client for use.
+
+        NOTE_1: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
+            will not substitute for 'opendata.maryland.gov'.
+
+        :param maryland_domain: domain for maryland open data portal.
+        :return: Socrata connection client
+        """
+        self.socrata_client = Socrata(domain=self.opendata_domain, app_token=self.opendata_apptoken,
+                                      username=self.username, password=self.password)
+        return None
+
     def upsert_to_socrata(self, dataset_identifier: str, zipper: dict) -> None:
         """
         Upsert data to Socrata dataset.
@@ -218,17 +231,12 @@ class CloudStorage:
         return
 
 
-class OpenData(CloudStorage):
+class ArcGISOnline:
     """
 
     """
     def __init__(self, parser):
-        super(CloudStorage, self).__init__(parser=parser)
-
-
-class ArcGISOnline(CloudStorage):
-    """
-
-    """
-    def __init__(self, parser):
-        super(CloudStorage, self).__init__(parser=parser)
+        # super(CloudStorage, self).__init__(parser=parser)
+        self.md_org_url = parser["ARCGIS"]["MD_ORG_URL"]
+        self.password = parser["ARCGIS"]["PASSWORD"]
+        self.username = parser["ARCGIS"]["USERNAME"]

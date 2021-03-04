@@ -50,9 +50,11 @@ def main():
     # IMPORTS
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveCounty
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveZIP
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import ArcGISOnline
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import OpenData
     from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
-    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
 
     import PowerOutages.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages.doit_PowerOutage_CustomerClass as Customer
@@ -71,9 +73,9 @@ def main():
 
     # VARIABLES
     _root_project_path = os.path.dirname(__file__)
-    centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
-    credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
-    DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
+    provider_uri_cfg_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
+    credentials_cfg_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
+    DOIT_UTIL.PARSER.read(filenames=[credentials_cfg_path, provider_uri_cfg_path])
     output_json_file = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
@@ -430,6 +432,7 @@ def main():
 
     # CLOUD STORAGE
     print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
+    # Generic processing, not specific to County or ZIP Code
     cloud_storage = CloudStorage(parser=DOIT_UTIL.PARSER)
     cloud_storage.create_socrata_acceptable_dt_string()
     cloud_storage.create_outage_records(provider_objects=provider_objects)
@@ -438,22 +441,32 @@ def main():
     cloud_storage.sum_outages()
     cloud_storage.create_unique_id_outages()
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.grouped_sums_df)
+
+    # Data separated by area type (County vs ZIP)
     cloud_storage.isolate_zip_style_records()
     cloud_storage.isolate_county_style_records()
     cloud_storage.calculate_county_outage_percentage()
     cloud_storage.drop_customers_from_zip_df()
     cloud_storage.drop_style_from_record_dfs()
+
+    # Feed Status Data
     cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
     cloud_storage.correct_status_created_dt()
     cloud_storage.create_unique_id_feed_status()
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.feed_status_df)
+
+    # Prepare the three data realms for upsert
     cloud_storage.create_lists_of_record_dicts()
 
     print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
-    cloud_storage.create_socrata_client()
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
+    open_data = OpenData(parser=DOIT_UTIL.PARSER)
+    open_data.create_socrata_client()
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
+
+    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
+    arcgis_online = ArcGISOnline(parser=DOIT_UTIL.PARSER)
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
