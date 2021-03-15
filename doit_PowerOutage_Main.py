@@ -432,9 +432,10 @@ def main():
 
     # CLOUD STORAGE
     print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
+
     # Generic processing, not specific to County or ZIP Code
     cloud_storage = CloudStorage(parser=DOIT_UTIL.PARSER)
-    cloud_storage.create_socrata_acceptable_dt_string()
+    cloud_storage.create_cloud_acceptable_dt_string()
     cloud_storage.create_outage_records(provider_objects=provider_objects)
     cloud_storage.create_master_outage_dataframe()
     cloud_storage.group_by_area()
@@ -443,30 +444,73 @@ def main():
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.grouped_sums_df)
 
     # Data separated by area type (County vs ZIP)
-    cloud_storage.isolate_zip_style_records()
     cloud_storage.isolate_county_style_records()
+    cloud_storage.isolate_zip_style_records()
     cloud_storage.calculate_county_outage_percentage()
     cloud_storage.drop_customers_from_zip_df()
-    cloud_storage.drop_style_from_record_dfs()
+    CloudStorage.drop_style_from_record_dfs(data_dataframe=cloud_storage.county_outage_records_df)
+    CloudStorage.drop_style_from_record_dfs(data_dataframe=cloud_storage.zipcode_outage_records_df)
 
     # Feed Status Data
     cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
     cloud_storage.correct_status_created_dt()
     cloud_storage.create_unique_id_feed_status()
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.feed_status_df)
+    cloud_storage.correct_data_age_field_name()
 
     # Prepare the three data realms for upsert
-    cloud_storage.create_lists_of_record_dicts()
+    # FIXME: The tz aware timestamps won't upsert to socrata. It will accept/upsert a dt stamp that is naive.
+    #   TODO: Try converting the tz aware dt to a string value with quotes?? probably not it
+    #   TODO: Try altering the format of the socrata data transform?? https://dev.socrata.com/docs/transforms/to_floating_timestamp.html
+    # Did try altering and couldn't get it to accept. Move to naive format for socrata and tz aware for arcgis online
+    #   TODO: Experiment using the jupyter notebook for rapid testing
+    cloud_storage.county_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.county_outage_records_df)
+    cloud_storage.zipcode_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.zipcode_outage_records_df)
+    cloud_storage.feed_status_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.feed_status_df)
+
+    # TODO: DEVELOPMENT
+    cloud_storage.county_outage_records_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\countyoutagesdf.csv", index=False)
+    cloud_storage.zipcode_outage_records_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\zipcodeoutagesdf.csv", index=False)
+    cloud_storage.feed_status_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\feedstatusdf.csv", index=False)
 
     print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
+    print("Open Data Portal")
     open_data = OpenData(parser=DOIT_UTIL.PARSER)
     open_data.create_socrata_client()
-    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
-    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
-    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
 
-    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
-    arcgis_online = ArcGISOnline(parser=DOIT_UTIL.PARSER)
+    print("Upsert Results: County, ZIP, Feed Status...")
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"],
+                                zipper=cloud_storage.county_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"],
+                                zipper=cloud_storage.zipcode_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"],
+                                zipper=cloud_storage.feed_status_zipper)
+
+    print("ArcGIS Online")
+    gis_connection = ArcGISOnline.create_gis_connection()
+    agol_style_to_df_dict = {
+        # DOIT_UTIL.COUNTY: cloud_storage.county_outage_records_df,
+        DOIT_UTIL.ZIP: cloud_storage.zipcode_outage_records_df
+    }
+
+    # TODO: Add exception handling for Arcgis online wackiness
+    for style_type, style_df in agol_style_to_df_dict.items():
+        print(style_type)
+        # style_df.to_csv(
+        #     r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\{style_type}df.csv".format(style_type=style_type),
+        #     index=False)
+        arc_cloud_obj = ArcGISOnline(parser=DOIT_UTIL.PARSER, style=style_type, gis_connection=gis_connection,
+                                     data_df=style_df)
+        arc_cloud_obj.drop_unnecessary_fields()
+        arc_cloud_obj.localize_dt_values()
+        arc_cloud_obj.csv_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.csv_item_id)
+        arc_cloud_obj.write_temp_csv()
+        arc_cloud_obj.update_csv_item()
+        arc_cloud_obj.hosted_table_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.hosted_table_item_id)
+        arc_cloud_obj.create_arcgis_features_table()
+        arc_cloud_obj.analyze_table()
+        arc_cloud_obj.delete_features()
+        arc_cloud_obj.append_new_outage_data()
 
     print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
 
