@@ -250,7 +250,6 @@ class ArcGISOnline:
     PATH_PICKER_DICT = {DOIT_UTIL.ZIP: f"./TEMP_AGOL_CSV/{DOIT_UTIL.ZIP}_temp.csv",
                         DOIT_UTIL.COUNTY: f"./TEMP_AGOL_CSV/{DOIT_UTIL.COUNTY}_temp.csv"}
 
-    # TODO: Refactor this. Only need a single class object generic to agol, can use on county or zip
     def __init__(self, parser: configparser.ConfigParser, style: str, gis_connection: arcgis.gis.GIS, data_df: pd.DataFrame):
         self.analyze_result = None
         self.csv_item = None
@@ -270,14 +269,13 @@ class ArcGISOnline:
         """
         self.analyze_result = self.gis_connection.content.analyze(item=self.csv_item.id)
 
-    # @staticmethod
     def append_new_outage_data(self) -> None:
         """
         TODO
         :return:
         """
         append_result = self.features_table.append(
-            item_id=self.hosted_table_item.id,
+            item_id=self.csv_item.id,
             upload_format='csv',
             source_info=self.analyze_result,
             upsert=False,
@@ -312,7 +310,6 @@ class ArcGISOnline:
         """
         self.data_dataframe.drop(columns=["uid",], inplace=True)
 
-    # @staticmethod
     def get_arcgis_item(self, item_id: str) -> arcgis.gis.Item:
         """
         TODO
@@ -321,7 +318,6 @@ class ArcGISOnline:
         """
         return self.gis_connection.content.get(itemid=item_id)
 
-    # @staticmethod
     def create_arcgis_features_table(self):
         """
         TODO
@@ -343,6 +339,7 @@ class ArcGISOnline:
             :param dt_str:
             :return:
             """
+            # TODO: Assess if there is a way to set the tz on datetime instead of using localize
             dt_value = datetime.strptime(dt_str, VARS.datetime_format_str_naive)
             loc_dt = VARS.eastern_tz.localize(dt_value)
             return loc_dt.strftime(VARS.datetime_format_str_aware)
