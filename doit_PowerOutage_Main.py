@@ -459,11 +459,6 @@ def main():
     cloud_storage.correct_data_age_field_name()
 
     # Prepare the three data realms for upsert
-    # FIXME: The tz aware timestamps won't upsert to socrata. It will accept/upsert a dt stamp that is naive.
-    #   TODO: Try converting the tz aware dt to a string value with quotes?? probably not it
-    #   TODO: Try altering the format of the socrata data transform?? https://dev.socrata.com/docs/transforms/to_floating_timestamp.html
-    # Did try altering and couldn't get it to accept. Move to naive format for socrata and tz aware for arcgis online
-    #   TODO: Experiment using the jupyter notebook for rapid testing
     cloud_storage.county_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.county_outage_records_df)
     cloud_storage.zipcode_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.zipcode_outage_records_df)
     cloud_storage.feed_status_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.feed_status_df)
@@ -489,20 +484,20 @@ def main():
     print("ArcGIS Online")
     gis_connection = ArcGISOnline.create_gis_connection()
     agol_style_to_df_dict = {
-        # DOIT_UTIL.COUNTY: cloud_storage.county_outage_records_df,
+        DOIT_UTIL.COUNTY: cloud_storage.county_outage_records_df,
         DOIT_UTIL.ZIP: cloud_storage.zipcode_outage_records_df
     }
 
     # TODO: Add exception handling for Arcgis online wackiness
     for style_type, style_df in agol_style_to_df_dict.items():
         print(style_type)
-        # style_df.to_csv(
-        #     r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\{style_type}df.csv".format(style_type=style_type),
-        #     index=False)
         arc_cloud_obj = ArcGISOnline(parser=DOIT_UTIL.PARSER, style=style_type, gis_connection=gis_connection,
                                      data_df=style_df)
         arc_cloud_obj.drop_unnecessary_fields()
         arc_cloud_obj.localize_dt_values()
+        # style_df.to_csv(
+        #     r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\{style_type}df.csv".format(style_type=style_type),
+        #     index=False)
         arc_cloud_obj.csv_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.csv_item_id)
         arc_cloud_obj.write_temp_csv()
         arc_cloud_obj.update_csv_item()
