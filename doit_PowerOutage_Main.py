@@ -282,153 +282,153 @@ def main():
         status_check_output_dict.update(obj.build_output_dict(unique_key=key))
     DOIT_UTIL.write_to_file(file=output_json_file, content=status_check_output_dict)
 
-    # # DATABASE TRANSACTIONS
-    # #   Prepare for database transactions and establish a connection.
-    # print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")
-    # db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
-    # db_obj.create_database_connection_string()
-    # db_obj.establish_database_connection()
-    #
-    # # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
-    # db_obj.create_database_cursor()
-    # print(f"RealTime counts update process initiated...{DOIT_UTIL.current_date_time()}")
-    # for key, obj in provider_objects.items():
-    #     DOIT_UTIL.print_tabbed_string(value=key)
-    #
-    #     # Need to delete existing records from database table for every/all provider. All the same WRT delete.
-    #     db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
-    #
-    #     try:
-    #         realtime_insert_generator = obj.generate_insert_sql_statement_realtime()
-    #         for sql_statement in realtime_insert_generator:
-    #             db_obj.execute_sql_statement(sql_statement=sql_statement)
-    #     except TypeError as te:
-    #         print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
-    #     else:
-    #         db_obj.commit_changes()
-    #         print(f"Records inserted ({DOIT_UTIL.current_date_time()}): {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
-    #
-    # # Clean up for next step
-    # db_obj.delete_cursor()
-    #
-    # # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
-    # #   the customer counts table using data feed values.
-    # print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
-    # db_obj.create_database_cursor()
-    # cust_obj = Customer.Customer()
-    # cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
-    # customer_count_update_generator = cust_obj.generate_insert_sql_statement_customer_count()
-    # try:
-    #     for statement in customer_count_update_generator:
-    #         db_obj.execute_sql_statement(sql_statement=statement)
-    # except Exception as e:
-    #     # TODO: Refine exception handling when determine what issue types could be
-    #     print(f"CUSTOMER COUNT process. Database operation error. {e}")
-    # db_obj.commit_changes()
-    #
-    # # Clean up for next step
-    # db_obj.delete_cursor()
-    #
-    # # ARCHIVE STEPS
-    # # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
-    # print(f"Archive counts update process initiated...{DOIT_UTIL.current_date_time()}")
-    # archive_zip_obj = ArchiveZIP()
-    # db_obj.create_database_cursor()
-    #
-    # # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
-    # print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time()}")
-    # for key, obj in provider_objects.items():
-    #     DOIT_UTIL.print_tabbed_string(value=key)
-    #     if obj.style == DOIT_UTIL.COUNTY:
-    #         continue
-    #     if obj.stats_objects in VARS.none_and_not_available:
-    #         continue
-    #
-    #     for stat_obj in obj.stats_objects:
-    #         try:
-    #
-    #             # if exists already, add outages and revise provider abbreviation to indicate multiple ('MULTI')
-    #             archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].outages += stat_obj.outages
-    #             archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].abbrev = VARS.multiple_providers
-    #         except KeyError as ke:
-    #
-    #             # Zip key does not exist already so add zip key to dictionary and store dataclass object as value
-    #             archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area] = ZipCodeCountAggregated(
-    #                 area=stat_obj.area,
-    #                 abbrev=stat_obj.abbrev,
-    #                 outages=stat_obj.outages,
-    #                 date_created=obj.date_created,
-    #                 date_updated=obj.date_updated)
-    #
-    # # Insertion into Archive_PowerOutagesZipcode
-    # try:
-    #     zip_archive_insert_generator = archive_zip_obj.generate_insert_sql_statement_archive()
-    #     for sql_statement in zip_archive_insert_generator:
-    #         db_obj.execute_sql_statement(sql_statement=sql_statement)
-    # except Exception as e:
-    #     print(f"ARCHIVE ZIP process. Database insertion operation error. {e}")
-    #     exit()
-    # else:
-    #     db_obj.commit_changes()
-    #     print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode...{DOIT_UTIL.current_date_time()}")
-    #
-    # # Clean up for next step
-    # db_obj.delete_cursor()
-    #
-    # # TODO: Reassess. Why is this happening? Is this transaction necessary?
-    # # COUNTY: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
-    # #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
-    # archive_county_obj = ArchiveCounty()
-    # try:
-    #     db_obj.create_database_cursor()
-    #     db_obj.execute_sql_statement(sql_statement=VARS.sql_select_counties_viewforarchive)
-    #     db_obj.fetch_all_from_selection()
-    # except Exception as e:
-    #     # TODO: Refine exception handling when determine what issue types could be
-    #     print(f"ARCHIVE County process. Database selection operation error. {e}")
-    #     exit()
-    # else:
-    #     archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
-    # finally:
-    #
-    #     # Clean up for next step
-    #     db_obj.delete_cursor()
-    #
-    # #   Insertion into Archive_PowerOutagesCounty
-    # try:
-    #     db_obj.create_database_cursor()
-    #     county_archive_insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
-    #     for sql_statement in county_archive_insert_generator:
-    #         db_obj.execute_sql_statement(sql_statement=sql_statement)
-    # except Exception as e:
-    #     # TODO: Refine exception handling when determine what issue types could be
-    #     print(f"ARCHIVE County process. Database insertion operation error. {e}")
-    #     print(e)
-    #     exit()
-    # else:
-    #     db_obj.commit_changes()
-    #     print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
-    # finally:
-    #
-    #     # Clean up for next step
-    #     db_obj.delete_cursor()
-    #
-    # #   Update RealTime_TaskTracking
-    # try:
-    #     db_obj.create_database_cursor()
-    #     sql_task_tracking_update = VARS.sql_update_task_tracking_table.format(now=DOIT_UTIL.current_date_time())
-    #     db_obj.execute_sql_statement(sql_statement=sql_task_tracking_update)
-    # except Exception as e:
-    #     print(f"Task Tracking update. Database insertion operation error. {e}")
-    #     print(e)
-    #     exit()
-    # else:
-    #     db_obj.commit_changes()
-    #     print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
-    # finally:
-    #
-    #     # Clean up for next step
-    #     db_obj.delete_cursor()
+    # DATABASE TRANSACTIONS
+    #   Prepare for database transactions and establish a connection.
+    print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")
+    db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
+    db_obj.create_database_connection_string()
+    db_obj.establish_database_connection()
+
+    # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
+    db_obj.create_database_cursor()
+    print(f"RealTime counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
+
+        # Need to delete existing records from database table for every/all provider. All the same WRT delete.
+        db_obj.delete_records(style=obj.style, provider_abbrev=obj.abbrev)
+
+        try:
+            realtime_insert_generator = obj.generate_insert_sql_statement_realtime()
+            for sql_statement in realtime_insert_generator:
+                db_obj.execute_sql_statement(sql_statement=sql_statement)
+        except TypeError as te:
+            print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
+        else:
+            db_obj.commit_changes()
+            print(f"Records inserted ({DOIT_UTIL.current_date_time()}): {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+
+    # Clean up for next step
+    db_obj.delete_cursor()
+
+    # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
+    #   the customer counts table using data feed values.
+    print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    db_obj.create_database_cursor()
+    cust_obj = Customer.Customer()
+    cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
+    customer_count_update_generator = cust_obj.generate_insert_sql_statement_customer_count()
+    try:
+        for statement in customer_count_update_generator:
+            db_obj.execute_sql_statement(sql_statement=statement)
+    except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
+        print(f"CUSTOMER COUNT process. Database operation error. {e}")
+    db_obj.commit_changes()
+
+    # Clean up for next step
+    db_obj.delete_cursor()
+
+    # ARCHIVE STEPS
+    # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
+    print(f"Archive counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    archive_zip_obj = ArchiveZIP()
+    db_obj.create_database_cursor()
+
+    # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
+    print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time()}")
+    for key, obj in provider_objects.items():
+        DOIT_UTIL.print_tabbed_string(value=key)
+        if obj.style == DOIT_UTIL.COUNTY:
+            continue
+        if obj.stats_objects in VARS.none_and_not_available:
+            continue
+
+        for stat_obj in obj.stats_objects:
+            try:
+
+                # if exists already, add outages and revise provider abbreviation to indicate multiple ('MULTI')
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].outages += stat_obj.outages
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area].abbrev = VARS.multiple_providers
+            except KeyError as ke:
+
+                # Zip key does not exist already so add zip key to dictionary and store dataclass object as value
+                archive_zip_obj.master_aggregated_zip_count_objects_dict[stat_obj.area] = ZipCodeCountAggregated(
+                    area=stat_obj.area,
+                    abbrev=stat_obj.abbrev,
+                    outages=stat_obj.outages,
+                    date_created=obj.date_created,
+                    date_updated=obj.date_updated)
+
+    # Insertion into Archive_PowerOutagesZipcode
+    try:
+        zip_archive_insert_generator = archive_zip_obj.generate_insert_sql_statement_archive()
+        for sql_statement in zip_archive_insert_generator:
+            db_obj.execute_sql_statement(sql_statement=sql_statement)
+    except Exception as e:
+        print(f"ARCHIVE ZIP process. Database insertion operation error. {e}")
+        exit()
+    else:
+        db_obj.commit_changes()
+        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode...{DOIT_UTIL.current_date_time()}")
+
+    # Clean up for next step
+    db_obj.delete_cursor()
+
+    # TODO: Reassess. Why is this happening? Is this transaction necessary?
+    # COUNTY: Get selection from PowerOutages_PowerOutagesViewForArchive and write to Archive_PowerOutagesCounty
+    #   Selection from PowerOutages_PowerOutagesViewForArchive, all fields except geometry, for insertion
+    archive_county_obj = ArchiveCounty()
+    try:
+        db_obj.create_database_cursor()
+        db_obj.execute_sql_statement(sql_statement=VARS.sql_select_counties_viewforarchive)
+        db_obj.fetch_all_from_selection()
+    except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
+        print(f"ARCHIVE County process. Database selection operation error. {e}")
+        exit()
+    else:
+        archive_county_obj.build_list_of_archive_data_record_objects(selection=db_obj.selection)
+    finally:
+
+        # Clean up for next step
+        db_obj.delete_cursor()
+
+    #   Insertion into Archive_PowerOutagesCounty
+    try:
+        db_obj.create_database_cursor()
+        county_archive_insert_generator = archive_county_obj.generate_county_archive_insert_sql_statement()
+        for sql_statement in county_archive_insert_generator:
+            db_obj.execute_sql_statement(sql_statement=sql_statement)
+    except Exception as e:
+        # TODO: Refine exception handling when determine what issue types could be
+        print(f"ARCHIVE County process. Database insertion operation error. {e}")
+        print(e)
+        exit()
+    else:
+        db_obj.commit_changes()
+        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
+    finally:
+
+        # Clean up for next step
+        db_obj.delete_cursor()
+
+    #   Update RealTime_TaskTracking
+    try:
+        db_obj.create_database_cursor()
+        sql_task_tracking_update = VARS.sql_update_task_tracking_table.format(now=DOIT_UTIL.current_date_time())
+        db_obj.execute_sql_statement(sql_statement=sql_task_tracking_update)
+    except Exception as e:
+        print(f"Task Tracking update. Database insertion operation error. {e}")
+        print(e)
+        exit()
+    else:
+        db_obj.commit_changes()
+        print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
+    finally:
+
+        # Clean up for next step
+        db_obj.delete_cursor()
 
     # CLOUD STORAGE
     print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
