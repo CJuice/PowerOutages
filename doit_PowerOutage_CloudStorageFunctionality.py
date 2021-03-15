@@ -303,12 +303,13 @@ class ArcGISOnline:
         print(f"Delete Features: {delete_results}")
         return None
 
-    def drop_unnecessary_fields(self):
+    def drop_unnecessary_fields(self) -> None:
         """
         TODO
         :return:
         """
         self.data_dataframe.drop(columns=["uid",], inplace=True)
+        return None
 
     def get_arcgis_item(self, item_id: str) -> arcgis.gis.Item:
         """
