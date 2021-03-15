@@ -435,7 +435,7 @@ def main():
 
     # Generic processing, not specific to County or ZIP Code
     cloud_storage = CloudStorage()
-    cloud_storage.create_cloud_acceptable_dt_string()
+    # cloud_storage.create_cloud_acceptable_dt_string()
     cloud_storage.create_outage_records(provider_objects=provider_objects)
     cloud_storage.create_master_outage_dataframe()
     cloud_storage.group_by_area()
