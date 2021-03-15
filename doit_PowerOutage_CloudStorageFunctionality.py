@@ -28,7 +28,7 @@ class CloudStorage:
         self.master_groupby_area = None
         self.master_outages_df = None
         self.outages_as_record_dicts_list = []
-        self.cloud_acceptable_dt_string = None
+        self.cloud_acceptable_process_run_dt_str = None
         self.zipcode_outage_records_df = None
         self.zipcode_zipper = None
 
@@ -63,7 +63,7 @@ class CloudStorage:
         :param dataframe: pandas dataframe
         :return: None
         """
-        dataframe[VARS.date_time_field_name] = self.cloud_acceptable_dt_string
+        dataframe[VARS.date_time_field_name] = self.cloud_acceptable_process_run_dt_str
         return None
 
     def create_feed_status_dataframe(self, status_check_output: dict) -> None:
@@ -106,21 +106,12 @@ class CloudStorage:
             self.outages_as_record_dicts_list.extend([dataclasses.asdict(stat_obj) for stat_obj in obj.stats_objects])
         return None
 
-    def create_cloud_acceptable_dt_string(self) -> None:
-        """
-        Create a socrata acceptable datetime string by replacing space with 'T' to indicate time is present
-        NOTE: Socrata at least, requires a 'T' between date and time for string to be recognized. No spaces.
-        :return: None
-        """
-        self.cloud_acceptable_dt_string = DOIT_UTIL.current_date_time_str().replace(" ", "T")
-        return None
-
     def create_unique_id_feed_status(self) -> None:
         """
         Combine provider style key with socrata acceptable datetime string to make a record unique id for feed status
         :return: None
         """
-        self.feed_status_df["uid"] = self.feed_status_df["prov_style"] + self.cloud_acceptable_dt_string
+        self.feed_status_df["uid"] = self.feed_status_df["prov_style"] + self.cloud_acceptable_process_run_dt_str
         return None
 
     def create_unique_id_outages(self) -> None:
@@ -129,7 +120,7 @@ class CloudStorage:
         # TODO: If move to tz aware this unique_id will change, would need to revise existing data
         :return:
         """
-        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.cloud_acceptable_dt_string
+        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.cloud_acceptable_process_run_dt_str
 
     def drop_customers_from_zip_df(self) -> None:
         """
@@ -191,6 +182,23 @@ class CloudStorage:
         self.grouped_sums_df = self.master_groupby_area.sum()
         return None
 
+    @property
+    def cloud_acceptable_process_run_dt_str(self):
+        """
+        get attribute
+        :return: attribute str
+        """
+        return self.__cloud_acceptable_dt_string
+
+    @cloud_acceptable_process_run_dt_str.setter
+    def cloud_acceptable_process_run_dt_str(self, value: None):
+        """
+        Create a socrata acceptable datetime string by replacing space with 'T', to indicate time is present after date
+        NOTE: Socrata at least, requires a 'T' between date and time for string to be recognized. No spaces.
+        :param value: required but not used
+        :return:
+        """
+        self.__cloud_acceptable_dt_string = DOIT_UTIL.current_date_time_str().replace(" ", "T")
 
 class OpenData:
     """
@@ -289,6 +297,7 @@ class ArcGISOnline:
     def delete_features(self) -> None:
         """
         TODO
+        TODO: ESRI exceptions encountered during development: "Exception: Token Required", may be able to use rollback=True if switch to upsert=True but need to test
         :param self:
         :return:
         """
@@ -298,25 +307,25 @@ class ArcGISOnline:
 
     def drop_unnecessary_fields(self) -> None:
         """
-        TODO
-        :return:
+        Drop fields from source dataframe that are not needed for arcgis online
+        :return: None
         """
         self.data_dataframe.drop(columns=["uid",], inplace=True)
         return None
 
     def get_arcgis_item(self, item_id: str) -> arcgis.gis.Item:
         """
-        TODO
-        :param item_id:
-        :return:
+        Get an arcgis online Item using the item id.
+        :param item_id: unique id for the item
+        :return: Item object
         """
         return self.gis_connection.content.get(itemid=item_id)
 
-    def create_arcgis_features_table(self):
+    def create_arcgis_features_table(self) -> None:
         """
-        TODO
-        # only works when the csv is published to hosted table
-        :return:
+        Create a feature table for the hosted data table.
+        NOTE: only works when the csv is published to hosted table
+        :return: None
         """
         self.features_table = arcgis.features.Table.fromitem(self.hosted_table_item)
 
