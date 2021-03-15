@@ -9,12 +9,16 @@ Revisions:
 """
 
 import textwrap
+from pytz import timezone
 
 bge_report_string_tempiate = "public/reports/{report_id}_report.json"
 # credentials_cfg_file = "doit_PowerOutage_Credentials - PROD.cfg"  # PRODUCTION
 credentials_cfg_file = "doit_PowerOutage_Credentials - DEV.cfg"  # DEVELOPMENT
 database_connection_string = "DSN={database_name};UID={database_user};PWD={database_password}"
 database_flag = -9999
+date_time_field_name = "dt_stamp"
+datetime_format_str_naive = '%Y-%m-%dT%H:%M:%S'
+datetime_format_str_aware = '%Y-%m-%dT%H:%M:%S%z'
 district_of_columbia_zip_code_inventory_from_web = ['20001', '20002', '20003', '20004', '20005', '20006', '20007', '20008',
                                            '20009', '20010', '20011', '20012', '20013', '20015', '20016', '20017',
                                            '20018', '20019', '20020', '20022', '20023', '20024', '20026', '20027',
@@ -52,6 +56,7 @@ district_of_columbia_zip_code_inventory_from_web = ['20001', '20002', '20003', '
                                            '20585', '20586', '20590', '20591', '20593', '20594', '20597', '20599',
                                            '56901', '56902', '56904', '56908', '56915', '56920', '56933', '56935',
                                            '56944', '56945', '56950', '56965', '56967', '56972', '56998', '56999']
+eastern_tz = timezone('US/Eastern')
 kubra_feed_providers = ["PEP", "DEL", "BGE"]
 json_file_local_location_and_name = "JSON_Outputs\PowerOutageFeeds_StatusJSON.json"
 less_than_five = "Less than 5"
