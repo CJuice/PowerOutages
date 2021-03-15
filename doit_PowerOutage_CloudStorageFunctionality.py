@@ -5,10 +5,16 @@ TODO: Create OpenDataPortal and ArcGisOnline subclasses that inherit from CloudS
 """
 
 from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
+import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
+
 from sodapy import Socrata
-# import arcgis
+import arcgis
+# from arcgis.features import Table
 import dataclasses
 import pandas as pd
+from datetime import datetime
+# from pytz import timezone
+import configparser
 
 
 class CloudStorage:
@@ -29,7 +35,7 @@ class CloudStorage:
         # self.password = None
         # self.username = None
         self.outages_as_record_dicts_list = []
-        self.socrata_dt_string = None
+        self.cloud_acceptable_dt_string = None
         self.zipcode_outage_records_df = None
         self.zipcode_zipper = None
 
@@ -64,7 +70,7 @@ class CloudStorage:
         :param dataframe: pandas dataframe
         :return: None
         """
-        dataframe["dt_stamp"] = self.socrata_dt_string
+        dataframe[VARS.date_time_field_name] = self.cloud_acceptable_dt_string
         return None
 
     def create_feed_status_dataframe(self, status_check_output: dict) -> None:
@@ -78,16 +84,15 @@ class CloudStorage:
         self.feed_status_df = pd.DataFrame(data=status_check_output).transpose().reset_index().rename(columns={"index": "prov_style"})
         return None
 
-    def create_lists_of_record_dicts(self) -> None:
+    @staticmethod
+    def create_lists_of_record_dicts(data_dataframe: pd.DataFrame) -> list:
         """
-        Create list of record data from record dataframes for upsert payload to socrata open data portal.
-        Performs the action on the county, zipcode, and feed status dataframes in one call.
-        :return: None
+        Create list of record data from record dataframes.
+        For upsert payload to socrata open data portal.
+        :param data_dataframe: pandas dataframe
+        :return: list of dict records
         """
-        self.county_zipper = self.county_outage_records_df.to_dict(orient="records")
-        self.zipcode_zipper = self.zipcode_outage_records_df.to_dict(orient="records")
-        self.feed_status_zipper = self.feed_status_df.to_dict(orient="records")
-        return None
+        return data_dataframe.to_dict(orient="records")
 
     def create_master_outage_dataframe(self) -> None:
         """
@@ -108,16 +113,13 @@ class CloudStorage:
             self.outages_as_record_dicts_list.extend([dataclasses.asdict(stat_obj) for stat_obj in obj.stats_objects])
         return None
 
-    def create_socrata_acceptable_dt_string(self) -> None:
+    def create_cloud_acceptable_dt_string(self) -> None:
         """
-        Create a socrata acceptable datetime string by replacing space with 'T'
-        NOTE: Socrata requires a 'T' between date and time for string to be recognized. No spaces.
+        Create a socrata acceptable datetime string by replacing space with 'T' to indicate time is present
+        NOTE: Socrata at least, requires a 'T' between date and time for string to be recognized. No spaces.
         :return: None
         """
-        #TODO: incorporate utc offset so tz aware, use '%Y-%m-%dT%H:%M:%S%z'. AGOL recognizes as valid also.
-        #   Socrata field type as floating or fixed? How will the type affect downstream apps
-        #   MEMA sql db may not like new format! Check first or use separate cloud format and a mema db format
-        self.socrata_dt_string = DOIT_UTIL.current_date_time().replace(" ", "T")
+        self.cloud_acceptable_dt_string = DOIT_UTIL.current_date_time().replace(" ", "T")
         return None
 
     def create_unique_id_feed_status(self) -> None:
@@ -125,7 +127,7 @@ class CloudStorage:
         Combine provider style key with socrata acceptable datetime string to make a record unique id for feed status
         :return: None
         """
-        self.feed_status_df["uid"] = self.feed_status_df["prov_style"] + self.socrata_dt_string
+        self.feed_status_df["uid"] = self.feed_status_df["prov_style"] + self.cloud_acceptable_dt_string
         return None
 
     def create_unique_id_outages(self) -> None:
@@ -134,7 +136,7 @@ class CloudStorage:
         # TODO: If move to tz aware this unique_id will change, would need to revise existing data
         :return:
         """
-        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.socrata_dt_string
+        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.cloud_acceptable_dt_string
 
     def drop_customers_from_zip_df(self) -> None:
         """
@@ -146,14 +148,14 @@ class CloudStorage:
         self.zipcode_outage_records_df.drop(columns=["customers"], inplace=True)
         return None
 
-    def drop_style_from_record_dfs(self) -> None:
+    @staticmethod
+    def drop_style_from_record_dfs(data_dataframe: pd.DataFrame) -> None:
         """
         Drop the 'style' field from the zip code, and county dataframes
         :return: None
         """
         drop_field = "style"
-        self.zipcode_outage_records_df.drop(columns=[drop_field], inplace=True)
-        self.county_outage_records_df.drop(columns=[drop_field], inplace=True)
+        data_dataframe.drop(columns=[drop_field], inplace=True)
         return None
 
     def isolate_county_style_records(self) -> None:
@@ -180,6 +182,14 @@ class CloudStorage:
         self.master_groupby_area = self.master_outages_df.groupby(by=["style", "area"], axis=0, as_index=False)
         return None
 
+    def correct_data_age_field_name(self) -> None:
+        """
+        TODO
+        :return:
+        """
+        self.feed_status_df.rename(columns={"data age (min)": "data_age_min"}, inplace=True)
+        return None
+
     def sum_outages(self) -> None:
         """
         Operate on the master groupby and sum the outage data for each group
@@ -191,11 +201,10 @@ class CloudStorage:
 
 class OpenData:
     """
-
+    TODO
     """
     def __init__(self, parser):
         # super(CloudStorage, self).__init__(parser=parser)
-        # TODO: Extract socrata specific functionality from parent class to here
         self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
         self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
         self.password = parser["OPENDATA"]["PASSWORD"]
@@ -216,27 +225,150 @@ class OpenData:
                                       username=self.username, password=self.password)
         return None
 
-    def upsert_to_socrata(self, dataset_identifier: str, zipper: dict) -> None:
+    def upsert_to_socrata(self, dataset_identifier: str, zipper: list) -> None:
         """
         Upsert data to Socrata dataset.
 
         :param dataset_identifier: Unique Socrata dataset identifier. Not the data page identifier but primary page id.
-        :param zipper: dictionary of zipped results (headers and data values)
+        :param zipper: list of dictionaries of records (headers and data values)
         :return: None
         """
         try:
-            self.socrata_client.upsert(dataset_identifier=dataset_identifier, payload=zipper, content_type='json')
+            result = self.socrata_client.upsert(dataset_identifier=dataset_identifier, payload=zipper, content_type='json')
         except Exception as e:
             print("Error upserting to Socrata: {}. {}".format(dataset_identifier, e))
+        else:
+            print(result)
         return
 
 
 class ArcGISOnline:
     """
-
+    TODO
     """
-    def __init__(self, parser):
-        # super(CloudStorage, self).__init__(parser=parser)
-        self.md_org_url = parser["ARCGIS"]["MD_ORG_URL"]
-        self.password = parser["ARCGIS"]["PASSWORD"]
-        self.username = parser["ARCGIS"]["USERNAME"]
+
+    PATH_PICKER_DICT = {DOIT_UTIL.ZIP: f"./TEMP_AGOL_CSV/{DOIT_UTIL.ZIP}_temp.csv",
+                        DOIT_UTIL.COUNTY: f"./TEMP_AGOL_CSV/{DOIT_UTIL.COUNTY}_temp.csv"}
+
+    # TODO: Refactor this. Only need a single class object generic to agol, can use on county or zip
+    def __init__(self, parser: configparser.ConfigParser, style: str, gis_connection: arcgis.gis.GIS, data_df: pd.DataFrame):
+        self.analyze_result = None
+        self.csv_item = None
+        self.csv_item_id = parser["ARCGIS"][f"{style}_CSV_ITEM_ID"]
+        self.data_dataframe = data_df
+        self.hosted_table_item = None
+        self.hosted_table_item_id = parser["ARCGIS"][f"{style}_HOSTED_TABLE_ITEM_ID"]
+        self.features_table = None
+        self.gis_connection = gis_connection
+        self.style = style
+        self.temp_csv_path = ArcGISOnline.PATH_PICKER_DICT.get(self.style)
+
+    def analyze_table(self) -> None:
+        """
+        TODO
+        :return:
+        """
+        self.analyze_result = self.gis_connection.content.analyze(item=self.csv_item.id)
+
+    # @staticmethod
+    def append_new_outage_data(self) -> None:
+        """
+        TODO
+        :return:
+        """
+        append_result = self.features_table.append(
+            item_id=self.hosted_table_item.id,
+            upload_format='csv',
+            source_info=self.analyze_result,
+            upsert=False,
+        )
+        print(f"Append Result: {append_result}")
+        return None
+
+    @staticmethod
+    def create_gis_connection() -> arcgis.gis.GIS:
+        """
+        TODO
+        :return:
+        """
+        return arcgis.gis.GIS(url=DOIT_UTIL.PARSER["ARCGIS"]["MD_ORG_URL"],
+                              username=DOIT_UTIL.PARSER["ARCGIS"]["USERNAME"],
+                              password=DOIT_UTIL.PARSER["ARCGIS"]["PASSWORD"])
+
+    def delete_features(self) -> None:
+        """
+        TODO
+        :param self:
+        :return:
+        """
+        delete_results = self.features_table.delete_features(where="1=1", return_delete_results=True)
+        print(f"Delete Features: {delete_results}")
+        return None
+
+    def drop_unnecessary_fields(self):
+        """
+        TODO
+        :return:
+        """
+        self.data_dataframe.drop(columns=["uid",], inplace=True)
+
+    # @staticmethod
+    def get_arcgis_item(self, item_id: str) -> arcgis.gis.Item:
+        """
+        TODO
+        :param item_id:
+        :return:
+        """
+        return self.gis_connection.content.get(itemid=item_id)
+
+    # @staticmethod
+    def create_arcgis_features_table(self):
+        """
+        TODO
+        # only works when the csv is published to hosted table
+        :return:
+        """
+        self.features_table = arcgis.features.Table.fromitem(self.hosted_table_item)
+
+    def localize_dt_values(self) -> None:
+        """
+        TODO
+        :return:
+        """
+        def inner_localize_func(dt_str: str):
+            """
+            TODO
+            Note: For performance improvement, placed creation of eastern tz object in centralized variables so only
+            instantiate once. Instantiation seemed costly.
+            :param dt_str:
+            :return:
+            """
+            dt_value = datetime.strptime(dt_str, VARS.datetime_format_str_naive)
+            loc_dt = VARS.eastern_tz.localize(dt_value)
+            return loc_dt.strftime(VARS.datetime_format_str_aware)
+
+        # FIXME: SettingWithCopyWarning on this dt adjustment
+        self.data_dataframe[VARS.date_time_field_name] = self.data_dataframe[VARS.date_time_field_name].apply(inner_localize_func)
+        return None
+
+    def update_csv_item(self):
+        """
+        TODO
+        :return:
+        """
+        update_result = self.csv_item.update(data=self.temp_csv_path)
+        print(f"Update CSV Item Result: {update_result}")
+        return None
+
+    def write_temp_csv(self) -> None:
+        """
+        TODO: Need to write zipcode and also county data to temp csv so that can upload to arcgis online.
+        :return:
+        """
+        self.data_dataframe.to_csv(path_or_buf=self.temp_csv_path, index=False)
+        return None
+
+
+
+
+
