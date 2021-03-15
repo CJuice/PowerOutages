@@ -463,13 +463,8 @@ def main():
     cloud_storage.zipcode_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.zipcode_outage_records_df)
     cloud_storage.feed_status_zipper = CloudStorage.create_lists_of_record_dicts(cloud_storage.feed_status_df)
 
-    # TODO: DEVELOPMENT
-    cloud_storage.county_outage_records_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\countyoutagesdf.csv", index=False)
-    cloud_storage.zipcode_outage_records_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\zipcodeoutagesdf.csv", index=False)
-    cloud_storage.feed_status_df.to_csv(r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\feedstatusdf.csv", index=False)
-
     print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
-    print("Open Data Portal")
+    print("OPEN DATA PORTAL")
     open_data = OpenData(parser=DOIT_UTIL.PARSER)
     open_data.create_socrata_client()
 
@@ -481,7 +476,7 @@ def main():
     open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"],
                                 zipper=cloud_storage.feed_status_zipper)
 
-    print("ArcGIS Online")
+    print("ARCGIS ONLINE")
     gis_connection = ArcGISOnline.create_gis_connection()
     agol_style_to_df_dict = {
         DOIT_UTIL.COUNTY: cloud_storage.county_outage_records_df,
@@ -495,9 +490,6 @@ def main():
                                      data_df=style_df)
         arc_cloud_obj.drop_unnecessary_fields()
         arc_cloud_obj.localize_dt_values()
-        # style_df.to_csv(
-        #     r"C:\Users\Conrad.Schaefer\Documents\DoIT_MEMA_PowerOutage\PowerOutages\Scratch Content\{style_type}df.csv".format(style_type=style_type),
-        #     index=False)
         arc_cloud_obj.csv_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.csv_item_id)
         arc_cloud_obj.write_temp_csv()
         arc_cloud_obj.update_csv_item()
