@@ -1,28 +1,25 @@
 """
-Class file for cloud storage of outage related data.
-Contains variables and functionality for processing and upserting data to our Socrata open data portal
-TODO: Create OpenDataPortal and ArcGisOnline subclasses that inherit from CloudStorage
+Class file for data preparation and cloud storage.
+CloudStorage is a class for data preparation
 """
+
 
 from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
-
+from datetime import datetime
 from sodapy import Socrata
 import arcgis
-# from arcgis.features import Table
+import configparser
 import dataclasses
 import pandas as pd
-from datetime import datetime
-# from pytz import timezone
-import configparser
 
 
 class CloudStorage:
     """
-    Variables and functionality for processing and cloud interactions of outage data.
+    For processing outage data prior to platform specific needs.
     """
 
-    def __init__(self, parser):
+    def __init__(self):
         self.county_outage_records_df = None
         self.county_zipper = None
         self.feed_status_df = None
@@ -30,10 +27,6 @@ class CloudStorage:
         self.grouped_sums_df = None
         self.master_groupby_area = None
         self.master_outages_df = None
-        # self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
-        # self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
-        # self.password = None
-        # self.username = None
         self.outages_as_record_dicts_list = []
         self.cloud_acceptable_dt_string = None
         self.zipcode_outage_records_df = None
@@ -85,14 +78,14 @@ class CloudStorage:
         return None
 
     @staticmethod
-    def create_lists_of_record_dicts(data_dataframe: pd.DataFrame) -> list:
+    def create_lists_of_record_dicts(dataframe: pd.DataFrame) -> list:
         """
         Create list of record data from record dataframes.
         For upsert payload to socrata open data portal.
-        :param data_dataframe: pandas dataframe
+        :param dataframe: pandas dataframe
         :return: list of dict records
         """
-        return data_dataframe.to_dict(orient="records")
+        return dataframe.to_dict(orient="records")
 
     def create_master_outage_dataframe(self) -> None:
         """
@@ -119,7 +112,7 @@ class CloudStorage:
         NOTE: Socrata at least, requires a 'T' between date and time for string to be recognized. No spaces.
         :return: None
         """
-        self.cloud_acceptable_dt_string = DOIT_UTIL.current_date_time().replace(" ", "T")
+        self.cloud_acceptable_dt_string = DOIT_UTIL.current_date_time_str().replace(" ", "T")
         return None
 
     def create_unique_id_feed_status(self) -> None:

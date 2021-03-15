@@ -40,7 +40,7 @@ class Utility:
         return data_feed_uri.format(metadata_key=metadata_key)
 
     @staticmethod
-    def current_date_time(tz_aware: bool = False) -> str:
+    def current_date_time_str(tz_aware: bool = False) -> str:
         """
         Create a string representation of the current date and time.
         :param tz_aware: boolean control for returning timezone naive or aware datetime stamp string
