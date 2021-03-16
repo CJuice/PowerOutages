@@ -10,7 +10,9 @@ Revisions:
 
 import textwrap
 from pytz import timezone
+import os
 
+_root_project_path = os.path.dirname(__file__)
 bge_report_string_tempiate = "public/reports/{report_id}_report.json"
 # credentials_cfg_file = "doit_PowerOutage_Credentials - PROD.cfg"  # PRODUCTION
 credentials_cfg_file = "doit_PowerOutage_Credentials - DEV.cfg"  # DEVELOPMENT

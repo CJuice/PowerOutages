@@ -248,8 +248,8 @@ class ArcGISOnline:
     TODO
     """
 
-    PATH_PICKER_DICT = {DOIT_UTIL.ZIP: f"./TEMP_AGOL_CSV/{DOIT_UTIL.ZIP}_temp.csv",
-                        DOIT_UTIL.COUNTY: f"./TEMP_AGOL_CSV/{DOIT_UTIL.COUNTY}_temp.csv"}
+    PATH_PICKER_DICT = {DOIT_UTIL.ZIP: fr"{VARS._root_project_path}/TEMP_AGOL_CSV/{DOIT_UTIL.ZIP}_temp.csv",
+                        DOIT_UTIL.COUNTY: fr"{VARS._root_project_path}/TEMP_AGOL_CSV/{DOIT_UTIL.COUNTY}_temp.csv"}
 
     def __init__(self, parser: configparser.ConfigParser, style: str, gis_connection: arcgis.gis.GIS, data_df: pd.DataFrame):
         self.analyze_result = None

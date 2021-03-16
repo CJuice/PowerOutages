@@ -72,11 +72,10 @@ def main():
     print(f"Initiated process @ {DOIT_UTIL.current_date_time_str()}")
 
     # VARIABLES
-    _root_project_path = os.path.dirname(__file__)
-    provider_uri_cfg_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
-    credentials_cfg_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
+    provider_uri_cfg_path = os.path.join(VARS._root_project_path, VARS.provider_uri_cfg_file)
+    credentials_cfg_path = os.path.join(VARS._root_project_path, VARS.credentials_cfg_file)
     DOIT_UTIL.PARSER.read(filenames=[credentials_cfg_path, provider_uri_cfg_path])
-    output_json_file = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
+    output_json_file = os.path.join(VARS._root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
