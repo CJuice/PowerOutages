@@ -434,7 +434,6 @@ def main():
 
     # Generic processing, not specific to County or ZIP Code
     cloud_storage = CloudStorage()
-    # cloud_storage.create_cloud_acceptable_dt_string()
     cloud_storage.create_outage_records(provider_objects=provider_objects)
     cloud_storage.create_master_outage_dataframe()
     cloud_storage.group_by_area()
@@ -457,7 +456,7 @@ def main():
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.feed_status_df)
     cloud_storage.correct_data_age_field_name()
 
-    # Prepare the three data realms for upsert
+    # Prepare the three data realms for upsert to open data platform
     cloud_storage.county_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.county_outage_records_df)
     cloud_storage.zipcode_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.zipcode_outage_records_df)
     cloud_storage.feed_status_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.feed_status_df)
@@ -482,7 +481,7 @@ def main():
         DOIT_UTIL.ZIP: cloud_storage.zipcode_outage_records_df
     }
 
-    # TODO: Add exception handling for Arcgis online wackiness
+    # TODO: Add exception handling for Arcgis online wackiness once observe process failures
     for style_type, style_df in agol_style_to_df_dict.items():
         print(style_type)
         arc_cloud_obj = ArcGISOnline(parser=DOIT_UTIL.PARSER, style=style_type, gis_connection=gis_connection,

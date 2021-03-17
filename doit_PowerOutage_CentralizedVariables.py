@@ -6,6 +6,7 @@ through and interact with the code. This avoids introduction of errors and also 
 enjoy mucking about in the code.
 Revisions:
     20210302, CJuice, added 20880 and 20896 to zip code dict for those with geom after updating MEMA map service
+    20210317, CJuice, added dt stamp, root path, timezone
 """
 
 import textwrap
