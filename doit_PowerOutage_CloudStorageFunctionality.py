@@ -1,6 +1,8 @@
 """
-Class file for data preparation and cloud storage.
+Classes for data preparation and cloud storage.
 CloudStorage is a class for data preparation
+OpenData is a class for Socrata open data portal platform specific functionality
+ArcGISOnline is a class for ArcGIS Online specific functionality
 """
 
 
@@ -70,7 +72,6 @@ class CloudStorage:
         """
         Create a pandas dataframe from a dict of provider feed status checks.
         Function creates dataframe, transposes data, resets index, and renames column before returning.
-
         :param status_check_output: dict of feed status check information
         :return: None
         """
@@ -117,8 +118,7 @@ class CloudStorage:
     def create_unique_id_outages(self) -> None:
         """
         Combine area value with socrata acceptable datetime string to make a record unique id for group sums
-        # TODO: If move to tz aware this unique_id will change, would need to revise existing data
-        :return:
+        :return: None
         """
         self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.cloud_acceptable_process_run_dt_str
 
@@ -168,8 +168,8 @@ class CloudStorage:
 
     def correct_data_age_field_name(self) -> None:
         """
-        TODO
-        :return:
+        Correct the field name to meet platform requirements of no space or special character
+        :return: None
         """
         self.feed_status_df.rename(columns={"data age (min)": "data_age_min"}, inplace=True)
         return None
@@ -183,7 +183,7 @@ class CloudStorage:
         return None
 
     @property
-    def cloud_acceptable_process_run_dt_str(self):
+    def cloud_acceptable_process_run_dt_str(self) -> str:
         """
         get attribute
         :return: attribute str
@@ -191,21 +191,22 @@ class CloudStorage:
         return self.__cloud_acceptable_dt_string
 
     @cloud_acceptable_process_run_dt_str.setter
-    def cloud_acceptable_process_run_dt_str(self, value: None):
+    def cloud_acceptable_process_run_dt_str(self, value: None) -> None:
         """
         Create a socrata acceptable datetime string by replacing space with 'T', to indicate time is present after date
         NOTE: Socrata at least, requires a 'T' between date and time for string to be recognized. No spaces.
         :param value: required but not used
-        :return:
+        :return: None
         """
         self.__cloud_acceptable_dt_string = DOIT_UTIL.current_date_time_str().replace(" ", "T")
 
+
 class OpenData:
     """
-    TODO
+    Class for Socrata Open Data Platform specific functionality
     """
+
     def __init__(self, parser):
-        # super(CloudStorage, self).__init__(parser=parser)
         self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
         self.opendata_domain = parser["OPENDATA"]["DOMAIN"]
         self.password = parser["OPENDATA"]["PASSWORD"]
@@ -215,11 +216,8 @@ class OpenData:
     def create_socrata_client(self) -> None:
         """
         Create and return a Socrata client for use.
-
         NOTE_1: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
             will not substitute for 'opendata.maryland.gov'.
-
-        :param maryland_domain: domain for maryland open data portal.
         :return: Socrata connection client
         """
         self.socrata_client = Socrata(domain=self.opendata_domain, app_token=self.opendata_apptoken,
@@ -240,14 +238,15 @@ class OpenData:
             print("Error upserting to Socrata: {}. {}".format(dataset_identifier, e))
         else:
             print(result)
-        return
+        return None
 
 
 class ArcGISOnline:
     """
-    TODO
+    Class for ArcGIS Online specific functionality
     """
 
+    # Class Variables
     PATH_PICKER_DICT = {DOIT_UTIL.ZIP: fr"{VARS._root_project_path}/TEMP_AGOL_CSV/{DOIT_UTIL.ZIP}_temp.csv",
                         DOIT_UTIL.COUNTY: fr"{VARS._root_project_path}/TEMP_AGOL_CSV/{DOIT_UTIL.COUNTY}_temp.csv"}
 
@@ -265,15 +264,16 @@ class ArcGISOnline:
 
     def analyze_table(self) -> None:
         """
-        TODO
+        Esri required analysis of csv item before publishing or generating features
         :return:
         """
         self.analyze_result = self.gis_connection.content.analyze(item=self.csv_item.id)
+        return None
 
     def append_new_outage_data(self) -> None:
         """
-        TODO
-        :return:
+        Esri update of an existing hosted feature layer using append functionality
+        :return: None
         """
         append_result = self.features_table.append(
             item_id=self.csv_item.id,
@@ -287,8 +287,8 @@ class ArcGISOnline:
     @staticmethod
     def create_gis_connection() -> arcgis.gis.GIS:
         """
-        TODO
-        :return:
+        Create and return a connection object for ArcGIS Online
+        :return: GIS connection object
         """
         return arcgis.gis.GIS(url=DOIT_UTIL.PARSER["ARCGIS"]["MD_ORG_URL"],
                               username=DOIT_UTIL.PARSER["ARCGIS"]["USERNAME"],
@@ -296,10 +296,9 @@ class ArcGISOnline:
 
     def delete_features(self) -> None:
         """
-        TODO
+        Delete existing features in ArcGIS Online features table
         TODO: ESRI exceptions encountered during development: "Exception: Token Required", may be able to use rollback=True if switch to upsert=True but need to test
-        :param self:
-        :return:
+        :return: None
         """
         delete_results = self.features_table.delete_features(where="1=1", return_delete_results=True)
         print(f"Delete Features: {delete_results}")
@@ -328,21 +327,21 @@ class ArcGISOnline:
         :return: None
         """
         self.features_table = arcgis.features.Table.fromitem(self.hosted_table_item)
+        return None
 
     def localize_dt_values(self) -> None:
         """
-        TODO
+        Convert a naive datetime value to a timezone aware value
         :return:
         """
         def inner_localize_func(dt_str: str):
             """
-            TODO
+            Localize a naive datetime value to be timezone aware
             Note: For performance improvement, placed creation of eastern tz object in centralized variables so only
             instantiate once. Instantiation seemed costly.
-            :param dt_str:
-            :return:
+            :param dt_str: string representation of naive datetime value
+            :return: string representation of timezone aware datetime value
             """
-            # TODO: Assess if there is a way to set the tz on datetime instead of using localize
             dt_value = datetime.strptime(dt_str, VARS.datetime_format_str_naive)
             loc_dt = VARS.eastern_tz.localize(dt_value)
             return loc_dt.strftime(VARS.datetime_format_str_aware)
@@ -351,10 +350,10 @@ class ArcGISOnline:
         self.data_dataframe[VARS.date_time_field_name] = self.data_dataframe[VARS.date_time_field_name].apply(inner_localize_func)
         return None
 
-    def update_csv_item(self):
+    def update_csv_item(self) -> None:
         """
-        TODO
-        :return:
+        Esri update item using csv, a path is required.
+        :return: None
         """
         update_result = self.csv_item.update(data=self.temp_csv_path)
         print(f"Update CSV Item Result: {update_result}")
@@ -362,7 +361,7 @@ class ArcGISOnline:
 
     def write_temp_csv(self) -> None:
         """
-        TODO: Need to write zipcode and also county data to temp csv so that can upload to arcgis online.
+        Write outage dataframe to csv so that have a path to provide the update function for arcgis online.
         :return:
         """
         self.data_dataframe.to_csv(path_or_buf=self.temp_csv_path, index=False)
