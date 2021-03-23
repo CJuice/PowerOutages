@@ -18,6 +18,7 @@ import arcgis
 import configparser
 import dataclasses
 import pandas as pd
+import time
 
 
 class CloudStorage:
@@ -279,13 +280,33 @@ class ArcGISOnline:
         Esri update of an existing hosted feature layer using append functionality
         :return: None
         """
-        append_result = self.features_table.append(
-            item_id=self.csv_item.id,
-            upload_format='csv',
-            source_info=self.analyze_result,
-            upsert=False,
-        )
-        print(f"Append Result: {append_result}")
+        attempt_ceiling = 3
+        for i in range(0, attempt_ceiling):
+            try:
+                append_result = self.features_table.append(
+                    item_id=self.csv_item.id,
+                    upload_format='csv',
+                    source_info=self.analyze_result,
+                    upsert=False,
+                )
+            except Exception as e:
+
+                # Esri exception is generic so there is no specific type to look for.
+                print(f"ATTEMPT {i + 1} OF {attempt_ceiling} FAILED. Exception in ESRI arcgis.features.Table.append()\n{e}")
+                time.sleep(2)
+                continue
+            else:
+                print(f"Append Result: {append_result}")
+                break
+        return None
+
+    def create_arcgis_features_table(self) -> None:
+        """
+        Create a feature table for the hosted data table.
+        NOTE: only works when the csv is published to hosted table
+        :return: None
+        """
+        self.features_table = arcgis.features.Table.fromitem(self.hosted_table_item)
         return None
 
     @staticmethod
@@ -323,15 +344,6 @@ class ArcGISOnline:
         :return: Item object
         """
         return self.gis_connection.content.get(itemid=item_id)
-
-    def create_arcgis_features_table(self) -> None:
-        """
-        Create a feature table for the hosted data table.
-        NOTE: only works when the csv is published to hosted table
-        :return: None
-        """
-        self.features_table = arcgis.features.Table.fromitem(self.hosted_table_item)
-        return None
 
     def localize_dt_values(self) -> None:
         """
