@@ -42,11 +42,6 @@ class CloudStorage:
     def calculate_county_outage_percentage(self) -> None:
         """
         Calculate the outage percentage for each county using the outage counts and customer counts, multiplied by 100
-
-        Note: Encountered classic "SettingWithCopyWarning: A value is trying to be set on a copy of a slice from
-        a DataFrame. Try using .loc[row_indexer,col_indexer] = value instead." Revised functionality but still
-        throws a SettingWithCopyWarning. Tried multiple ways but did not succeed so used context manager to change
-        mode > chained assignment.
         :return: None
         """
         self.county_outage_records_df["percent_out"] = self.county_outage_records_df.loc[:, "outages"] / self.county_outage_records_df.loc[:, "customers"] * 100
@@ -354,20 +349,6 @@ class ArcGISOnline:
             just need to broadcast adjusted value
         :return:
         """
-        def inner_localize_func(dt_str: str):
-            """
-            Localize a naive datetime value to be timezone aware
-            Note: For performance improvement, placed creation of eastern tz object in centralized variables so only
-            instantiate once. Instantiation seemed costly.
-            Note: Known SettingWithCopyWarning warning, redesigned to use iloc instead of apply but still present
-
-            :param dt_str: string representation of naive datetime value
-            :return: string representation of timezone aware datetime value
-            """
-            dt_value = datetime.strptime(dt_str, VARS.datetime_format_str_naive)
-            loc_dt = VARS.eastern_tz.localize(dt_value)
-            return loc_dt.strftime(VARS.datetime_format_str_aware)
-
         try:
 
             # safeguard against rare scenario where there are zero outage records in dataframe
@@ -376,7 +357,9 @@ class ArcGISOnline:
             print(ie)
             print(f"{self.style} data_dataframe size: {self.data_dataframe.size}")
         else:
-            self.data_dataframe[VARS.date_time_field_name] = inner_localize_func(dt_naive_value)
+            dt_naive_string = datetime.strptime(dt_naive_value, VARS.datetime_format_str_naive)
+            dt_aware_value = VARS.eastern_tz.localize(dt_naive_string)
+            self.data_dataframe[VARS.date_time_field_name] = dt_aware_value.strftime(VARS.datetime_format_str_aware)
         return None
 
     def update_csv_item(self) -> None:
