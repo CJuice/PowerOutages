@@ -278,6 +278,11 @@ class ArcGISOnline:
     def append_new_outage_data(self) -> None:
         """
         Esri update of an existing hosted feature layer using append functionality
+        NOTE:
+            The append function periodically throws an exception, and the ESRI code is not specific and is just
+            a type Exception. Was occurring 1-3 times per day out of 97 runs. Added a loop with sleep to introduce a
+            small amount of wait before retrying the append. Features in existing hosted table have been deleted prior
+            to the appending of new records so important to not fail out and leave an empty table in cloud.
         :return: None
         """
         attempt_ceiling = 3
