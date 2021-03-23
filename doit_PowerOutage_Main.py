@@ -481,7 +481,6 @@ def main():
         DOIT_UTIL.ZIP: cloud_storage.zipcode_outage_records_df
     }
 
-    # TODO: Add exception handling for Arcgis online wackiness once observe process failures
     for style_type, style_df in agol_style_to_df_dict.items():
         print(style_type)
         arc_cloud_obj = ArcGISOnline(parser=DOIT_UTIL.PARSER, style=style_type, gis_connection=gis_connection,
