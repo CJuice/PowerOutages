@@ -49,11 +49,7 @@ class CloudStorage:
         mode > chained assignment.
         :return: None
         """
-        with pd.option_context('mode.chained_assignment', None):
-            print(pd.options.mode.chained_assignment)
-            print("NOTE: Pandas mode.chained_assignment set to None to handle SettingWithCopyWarning in calculate_county_outage_percentage")
-            self.county_outage_records_df["percent_out"] = self.county_outage_records_df.loc[:, "outages"].copy() / self.county_outage_records_df.loc[:, "customers"].copy() * 100
-            # self.county_outage_records_df["percent_out"] = self.county_outage_records_df.apply(func=lambda row: row["outages"] / row["customers"] * 100, axis=1, raw=False, result_type=None)
+        self.county_outage_records_df["percent_out"] = self.county_outage_records_df.loc[:, "outages"] / self.county_outage_records_df.loc[:, "customers"] * 100
         return None
 
     def correct_status_created_dt(self) -> None:
@@ -152,7 +148,7 @@ class CloudStorage:
         Isolate the county style records from the master outage dataframe
         :return: None
         """
-        self.county_outage_records_df = self.grouped_sums_df[self.grouped_sums_df["style"] == DOIT_UTIL.COUNTY]
+        self.county_outage_records_df = self.grouped_sums_df[self.grouped_sums_df["style"] == DOIT_UTIL.COUNTY].copy()
         return None
 
     def isolate_zip_style_records(self) -> None:
@@ -160,7 +156,7 @@ class CloudStorage:
         Isolate the zip style records from the master outage dataframe
         :return: None
         """
-        self.zipcode_outage_records_df = self.grouped_sums_df[self.grouped_sums_df["style"] == DOIT_UTIL.ZIP]
+        self.zipcode_outage_records_df = self.grouped_sums_df[self.grouped_sums_df["style"] == DOIT_UTIL.ZIP].copy()
         return None
 
     def group_by_area(self) -> None:
@@ -260,6 +256,7 @@ class ArcGISOnline:
         self.csv_item = None
         self.csv_item_id = parser["ARCGIS"][f"{style}_CSV_ITEM_ID"]
         self.data_dataframe = data_df
+        # self.dt_stamp_tz_aware = None
         self.hosted_table_item = None
         self.hosted_table_item_id = parser["ARCGIS"][f"{style}_HOSTED_TABLE_ITEM_ID"]
         self.features_table = None
@@ -353,6 +350,8 @@ class ArcGISOnline:
     def localize_dt_values(self) -> None:
         """
         Convert a naive datetime value to a timezone aware value
+        Note: Because all dt_stamp values are identical value, don't need to apply inner function to each row,
+            just need to broadcast adjusted value
         :return:
         """
         def inner_localize_func(dt_str: str):
@@ -360,6 +359,8 @@ class ArcGISOnline:
             Localize a naive datetime value to be timezone aware
             Note: For performance improvement, placed creation of eastern tz object in centralized variables so only
             instantiate once. Instantiation seemed costly.
+            Note: Known SettingWithCopyWarning warning, redesigned to use iloc instead of apply but still present
+
             :param dt_str: string representation of naive datetime value
             :return: string representation of timezone aware datetime value
             """
@@ -367,8 +368,15 @@ class ArcGISOnline:
             loc_dt = VARS.eastern_tz.localize(dt_value)
             return loc_dt.strftime(VARS.datetime_format_str_aware)
 
-        # FIXME: SettingWithCopyWarning on this dt adjustment
-        self.data_dataframe[VARS.date_time_field_name] = self.data_dataframe[VARS.date_time_field_name].apply(inner_localize_func)
+        try:
+
+            # safeguard against rare scenario where there are zero outage records in dataframe
+            dt_naive_value = self.data_dataframe.iloc[0][VARS.date_time_field_name]
+        except IndexError as ie:
+            print(ie)
+            print(f"{self.style} data_dataframe size: {self.data_dataframe.size}")
+        else:
+            self.data_dataframe[VARS.date_time_field_name] = inner_localize_func(dt_naive_value)
         return None
 
     def update_csv_item(self) -> None:
