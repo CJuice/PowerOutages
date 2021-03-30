@@ -212,7 +212,7 @@ class OpenData:
     def create_socrata_client(self) -> None:
         """
         Create and return a Socrata client for use.
-        NOTE_1: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
+        NOTE: It seems absolutely essential the the domain be a domain and not a url; 'https://opendata.maryland.gov'
             will not substitute for 'opendata.maryland.gov'.
         :return: Socrata connection client
         """
@@ -319,7 +319,6 @@ class ArcGISOnline:
     def delete_features(self) -> None:
         """
         Delete existing features in ArcGIS Online features table
-        TODO: ESRI exceptions encountered during development: "Exception: Token Required", may be able to use rollback=True if switch to upsert=True but need to test
         :return: None
         """
         delete_results = self.features_table.delete_features(where="1=1", return_delete_results=True)
@@ -347,7 +346,7 @@ class ArcGISOnline:
         Convert a naive datetime value to a timezone aware value
         Note: Because all dt_stamp values are identical value, don't need to apply inner function to each row,
             just need to broadcast adjusted value
-        :return:
+        :return: None
         """
         try:
 
