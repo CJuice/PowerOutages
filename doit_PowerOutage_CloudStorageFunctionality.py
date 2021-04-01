@@ -209,7 +209,7 @@ class OpenData:
     """
     Class for Socrata Open Data Platform specific functionality
     """
-    RECORD_DELETION_AGE_LIMIT_DAYS = 15.5
+    RECORD_DELETION_AGE_LIMIT_DAYS = 30
 
     def __init__(self, parser):
         self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
