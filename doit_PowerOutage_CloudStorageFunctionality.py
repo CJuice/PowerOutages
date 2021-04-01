@@ -12,13 +12,15 @@ Revisions:
 
 from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
 import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
-from datetime import datetime
+import datetime
 from sodapy import Socrata
 import arcgis
 import configparser
 import dataclasses
 import pandas as pd
 import time
+import types
+import requests.exceptions as req_exc
 
 
 class CloudStorage:
@@ -106,17 +108,22 @@ class CloudStorage:
     def create_unique_id_feed_status(self) -> None:
         """
         Combine provider style key with socrata acceptable datetime string to make a record unique id for feed status
+        NOTE: Socrata unique id will be accepted with spaces " " but when attempt to delete based on a unique id
+        with space in the id you get a 500 internal server error.
         :return: None
         """
-        self.feed_status_df["uid"] = self.feed_status_df["prov_style"] + self.cloud_acceptable_process_run_dt_str
+        self.feed_status_df["uid"] = self.feed_status_df["prov_style"].str.replace(" ", "_") + self.cloud_acceptable_process_run_dt_str
         return None
 
     def create_unique_id_outages(self) -> None:
         """
         Combine area value with socrata acceptable datetime string to make a record unique id for group sums
+        NOTE: Socrata unique id will be accepted with spaces " " but when attempt to delete based on a unique id
+        with space in the id you get a 500 internal server error.
         :return: None
         """
-        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"] + self.cloud_acceptable_process_run_dt_str
+        self.grouped_sums_df["uid"] = self.grouped_sums_df["area"].str.replace(" ", "_") + self.cloud_acceptable_process_run_dt_str
+        return None
 
     def drop_customers_from_zip_df(self) -> None:
         """
@@ -201,6 +208,7 @@ class OpenData:
     """
     Class for Socrata Open Data Platform specific functionality
     """
+    RECORD_DELETION_AGE_LIMIT_DAYS = 15.5
 
     def __init__(self, parser):
         self.opendata_apptoken = parser["OPENDATA"]["APPTOKEN"]
@@ -208,6 +216,30 @@ class OpenData:
         self.password = parser["OPENDATA"]["PASSWORD"]
         self.username = parser["OPENDATA"]["USERNAME"]
         self.socrata_client = None
+
+    def delete_records_by_uid(self, dataset_identifier: str, results_gen: types.GeneratorType) -> None:
+        """
+        Delete record in Socrata asset based on unique id value
+        NOTE: Socrata unique id will be accepted with spaces " " but when attempt to delete based on a unique id
+        with space in the id you get a 500 internal server error.
+        :param dataset_identifier:
+        :param results_gen:
+        :return: None
+        """
+        for record in results_gen:
+            try:
+                uid = record["uid"]
+            except KeyError as ke:
+                print(f"KeyError with record['uid']: {record}")
+                continue
+
+            try:
+                result = self.socrata_client.delete(dataset_identifier=dataset_identifier, row_id=uid)
+            except req_exc.HTTPError as httperr:
+                print(uid, httperr)
+            else:
+                print(f"\tDelete {uid}: {result}")
+        return None
 
     def create_socrata_client(self) -> None:
         """
@@ -235,6 +267,21 @@ class OpenData:
         else:
             print(result)
         return None
+
+    def retrieve_old_records_for_deletion(self, dataset_identifier: str, ) -> types.GeneratorType:
+        """
+        Query socrata asset for all records greater than age limit of interest.
+        :param dataset_identifier: four by four of the socrata asset
+        :return: generator for record retrieval
+        """
+        historical_date_str = "{:%Y-%m-%d %H:%M:%S}".format(
+            datetime.datetime.now() - datetime.timedelta(days=OpenData.RECORD_DELETION_AGE_LIMIT_DAYS)).replace(" ",
+                                                                                                                "T")
+        results_generator = self.socrata_client.get_all(dataset_identifier=dataset_identifier,
+                                                        where=f"{VARS.date_time_field_name}<='{historical_date_str}'",
+                                                        select="uid, dt_stamp",
+                                                        exclude_system_fields=True)
+        return results_generator
 
 
 class ArcGISOnline:
@@ -356,7 +403,7 @@ class ArcGISOnline:
             print(ie)
             print(f"{self.style} data_dataframe size: {self.data_dataframe.size}")
         else:
-            dt_naive_string = datetime.strptime(dt_naive_value, VARS.datetime_format_str_naive)
+            dt_naive_string = datetime.datetime.strptime(dt_naive_value, VARS.datetime_format_str_naive)
             dt_aware_value = VARS.eastern_tz.localize(dt_naive_string)
             self.data_dataframe[VARS.date_time_field_name] = dt_aware_value.strftime(VARS.datetime_format_str_aware)
         return None
