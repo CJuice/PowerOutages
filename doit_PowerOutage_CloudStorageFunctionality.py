@@ -6,7 +6,8 @@ ArcGISOnline is a class for ArcGIS Online specific functionality
 Created: November 2020
 Author: CJuice
 Revisions:
-    20210316, CJuice, added OpenData and ArcGISOnline classes for platform specific functionality.
+    20210316, CJuice, Added OpenData and ArcGISOnline classes for platform specific functionality.
+    20210401, CJuice, Added Open Data record deletion functionality for cleanup of records older than set limit
 """
 
 

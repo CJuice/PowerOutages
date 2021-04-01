@@ -42,8 +42,9 @@ Revisions:
     class for upsert of data to our open data portal, currently Socrata. Three datasets are updserted and those are
     county, zip code, and feed status. Implemented processing and upsert at the very end so that if it were to fail
     it would not interfere with the existing MEMA database functionality.
-202103/30, CJuice Redesigned to move data storage model to be cloud based. Added Socrata and ESRI ArcGIS Online
+20210330, CJuice Redesigned to move data storage model to be cloud based. Added Socrata and ESRI ArcGIS Online
     upsert functionality.
+20210401, CJuice Added Open Data record deletion functionality for cleanup of records older than set limit
 """
 
 
