@@ -498,6 +498,21 @@ def main():
         arc_cloud_obj.delete_features()
         arc_cloud_obj.append_new_outage_data()
 
+    print(f"Deleting aged records ({OpenData.RECORD_DELETION_AGE_LIMIT_DAYS} days) in Open Data assets...{DOIT_UTIL.current_date_time_str()}")
+    county_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"])
+    zip_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"])
+    status_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"])
+
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"],
+                                    results_gen=county_records_gen)
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"],
+                                    results_gen=zip_records_gen)
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"],
+                                    results_gen=status_records_gen)
+
     print(f"Process Completed...{DOIT_UTIL.current_date_time_str()}")
 
 
