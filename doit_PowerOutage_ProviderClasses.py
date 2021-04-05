@@ -101,9 +101,9 @@ class Provider:
         """
         Build the insert sql statement for real time data and yield the statement.
         For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
+        Note: sql database as is will not accept a tz aware datetime value
         :return: None
         """
-        # TODO: Assess if sql database will take a tz aware datetime value
         self.date_updated = DOIT_UTIL.current_date_time_str()
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP:
