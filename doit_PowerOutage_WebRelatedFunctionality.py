@@ -32,4 +32,8 @@ class WebFunctionality:
             message = f"{style} not yet supported"
             print(message, ke)
             return message
+        except ConnectionResetError as cre:
+            message = f"ConnectionResetError encountered. {uri}"
+            print(message, cre)
+            return message
 
