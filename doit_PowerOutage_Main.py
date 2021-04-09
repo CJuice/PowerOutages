@@ -118,7 +118,7 @@ def main():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.metadata_feed_uri in VARS.none_and_not_available:
 
-            # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
+            # Providers who do not use the metadata key style.
             continue
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
