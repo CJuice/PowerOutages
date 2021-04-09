@@ -8,14 +8,14 @@ processing of response data, output of feed status to json file, and database tr
 and customer data.
 Main relies on the following imported modules containing classes: ArchiveClasses, CustomerClass,
 CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, SMEClasses,
-and UtilityClass. It also relies on a CentralizedVariables python file, and access through a parser
-to a Credentials config file and a ProvidersURI config file.
+CloudStorageFunctionality, and UtilityClass. It also relies on a CentralizedVariables python file,
+and access through a parser to a Credentials config file and a ProvidersURI config file.
 The process is designed with an object-oriented focus. For power providers, there is a top level parent class called
 Provider. All providers are then subclassed from this parent to create child classes. The child classes contain
 unique behavior specific to a provider. Functionality/behavior common to all providers has been placed into the parent
-class and inherited downward into the children. For PEP and DEL, Provider is inherited by the PEPDEL_ParentClass. This
-class organizes behavior common to both PEP and DEL providers. Both PEP and DEL children inherit from
-PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
+class and inherited downward into the children. For PEP DEL and BGE, Provider is inherited by the Kubra Parent Class.
+This class organizes behavior common to those providers. The children inherit from
+the Kubra parent, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
 by methods in child classes.
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
