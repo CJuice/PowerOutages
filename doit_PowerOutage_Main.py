@@ -7,8 +7,8 @@ following order of sections: imports, variable definition/creation, web requests
 processing of response data, output of feed status to json file, and database transactions for 'realtime' and 'archive'
 and customer data.
 Main relies on the following imported modules containing classes: ArchiveClasses, CustomerClass,
-CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, SMEClasses,
-CloudStorageFunctionality, and UtilityClass. It also relies on a CentralizedVariables python file,
+CloudStorageFunctionality, CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses,
+SMEClasses, and UtilityClass. It also relies on a CentralizedVariables python file,
 and access through a parser to a Credentials config file and a ProvidersURI config file.
 The process is designed with an object-oriented focus. For power providers, there is a top level parent class called
 Provider. All providers are then subclassed from this parent to create child classes. The child classes contain
