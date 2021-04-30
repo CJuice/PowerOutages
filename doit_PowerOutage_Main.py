@@ -45,6 +45,8 @@ Revisions:
 20210330, CJuice Redesigned to move data storage model to be cloud based. Added Socrata and ESRI ArcGIS Online
     upsert functionality.
 20210401, CJuice Added Open Data record deletion functionality for cleanup of records older than set limit
+20210430, CJuice Added purge of zip code stats objects not in the Maryland point and polygon zip code inventory based
+    on the MDP point and polygon spatial layer features.
 """
 
 
