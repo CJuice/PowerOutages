@@ -1,5 +1,6 @@
 """
 Contains a Utility class that has functionality that is not provider specific and may be needed across the project.
+Revisions: CJuice, 20210430 added WV, VA, and PA to state abbreviations functionality
 """
 
 from datetime import datetime
@@ -26,6 +27,9 @@ class Utility:
                          "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
                          "Washington", "Wicomico", "Worcester")
     PARSER = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    PENNSYLVANIA = "Pennsylvania"
+    VIRGINIA = "Virginia"
+    WEST_VIRGINIA = "West Virginia"
     ZERO_TIME_STRING = "00:00:00 00:00:00"
     ZIP = "ZIP"
 
@@ -61,7 +65,8 @@ class Utility:
         :param abbrev: string abbreviation for the state
         :return: string value from state_abbrev_dict for given abbrev, or the abbrev itself if KeyError
         """
-        state_abbrev_dict = {"DC": Utility.DISTRICT_OF_COLUMBIA, "DE": Utility.DELAWARE, "MD": Utility.MARYLAND, }
+        state_abbrev_dict = {"DC": Utility.DISTRICT_OF_COLUMBIA, "DE": Utility.DELAWARE, "MD": Utility.MARYLAND,
+                             "VA": Utility.VIRGINIA, "WV": Utility.WEST_VIRGINIA, "PA": Utility.PENNSYLVANIA}
         try:
             return state_abbrev_dict[abbrev]
         except KeyError as ke:
