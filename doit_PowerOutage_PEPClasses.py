@@ -37,7 +37,7 @@ class PEP(KubraParent):
         :return: None
         """
         if self.style == DOIT_UTIL.ZIP:
-            self.__md_zips_keys_only = list(VARS.maryland_master_inventory_zip_codes_with_geometry.keys())
+            self.__md_zips_keys_only = list(VARS.maryland_master_inventory_zip_codes_polygon_geometry.keys())
 
     def extract_area_outage_lists_by_state(self) -> None:
         """
