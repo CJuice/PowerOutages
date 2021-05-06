@@ -10,10 +10,11 @@ web requests for various provider related data, processing of response data, out
 database transactions for 'realtime' and 'archive' and customer data, and transactions with the Open Data Portal 
 and ArcGIS Online for cloud storage of outage data.
 
-Main relies on the following imported modules containing classes: ArchiveClasses, CustomerClass,
-CloudStorageFunctionality, CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, 
-SMEClasses, and UtilityClass. It also relies on a CentralizedVariables python file,
-and access through a parser to a Credentials config file and a ProvidersURI config file.
+Main relies on the following imported modules containing classes: ArchiveClasses, BGEClasses, 
+CloudStorageFunctionality, CTKClasses, CustomerClass, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, 
+Kubra_ParentClasses, PEPClasses, ProviderClasses, SMEClasses, and UtilityClass. It also relies on a 
+CentralizedVariables python file, a WebRelatedFunctionality python file, and access through a parser to a 
+Credentials config file and a ProvidersURI config file.
 
 The process is designed with an object-oriented focus. For power providers, there is a top level parent class called
 Provider. All providers are then subclassed from this parent to create child classes. The child classes contain
@@ -28,7 +29,7 @@ simple variables. The Centralized Variables module contains variables, no classe
 variables and sql statements. It is not intended to be used by Utility class.
 
 A Web Related Functionality class exists for web related functionality and is accessed by the Provider exclusively.
-A temporary csv file is written to TEMP_AGOL_CSV for certain arcgis functionality that requires a file to be at a path.
+A temporary csv file is written to TEMP_AGOL_CSV for certain ArcGIS functionality that requires a file to be at a path.
 The output json file named PowerOutageFeeds_StatusJSON.json is stored in a folder named JSON_Outputs.
 
 This is an overhaul/redesign of an original process developed by CGIS.
