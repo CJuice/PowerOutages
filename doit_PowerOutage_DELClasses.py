@@ -1,8 +1,8 @@
 """
-Module contains a DEL class that inherits from PEPDELParent class which inherits from Provider class. 
+Module contains a DEL class that inherits from Kubra_ParentClass class which inherits from Provider class.
 DEL class is an implementation specific to the peculiarities of the DEL feeds and the processing they require
-that is not common to all providers. PEP and DEL had shared functionality. PEPDELParent was created as a result and is
-intended to provide flexibility for future changes. It acts as an interface. DEL inherits from the PEPDELParent class.
+that is not common to all providers. PEP and DEL had shared functionality. Kubra_ParentClass was created as a result and is
+intended to provide flexibility for future changes. It acts as an interface. DEL inherits from the Kubra_ParentClass class.
 """
 
 from PowerOutages.doit_PowerOutage_Kubra_ParentClass import KubraParent
@@ -10,7 +10,7 @@ from PowerOutages.doit_PowerOutage_Kubra_ParentClass import KubraParent
 
 class DEL(KubraParent):
     """
-    DEL specific functionality and variables for handling DEL feed data. Inherits from PEPDELParent and therefore
+    DEL specific functionality and variables for handling DEL feed data. Inherits from Kubra_ParentClass and therefore
     Provider.
     NOTE: DEL and PEP report.json hierarchy are different. Overload extract_area_outage_lists_by_state() for PEP
         but not DEL, to handle hierarchy variation in PEP json. Chose to treat DEL json structure as correct and

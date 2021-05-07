@@ -223,8 +223,8 @@ class OpenData:
         Delete record in Socrata asset based on unique id value
         NOTE: Socrata unique id will be accepted with spaces " " but when attempt to delete based on a unique id
         with space in the id you get a 500 internal server error.
-        :param dataset_identifier:
-        :param results_gen:
+        :param dataset_identifier: 4x4 for asset
+        :param results_gen: generator of records meeting criteria
         :return: None
         """
         for record in results_gen:
@@ -299,7 +299,6 @@ class ArcGISOnline:
         self.csv_item = None
         self.csv_item_id = parser["ARCGIS"][f"{style}_CSV_ITEM_ID"]
         self.data_dataframe = data_df
-        # self.dt_stamp_tz_aware = None
         self.hosted_table_item = None
         self.hosted_table_item_id = parser["ARCGIS"][f"{style}_HOSTED_TABLE_ITEM_ID"]
         self.features_table = None
@@ -310,7 +309,7 @@ class ArcGISOnline:
     def analyze_table(self) -> None:
         """
         Esri required analysis of csv item before publishing or generating features
-        :return:
+        :return: None
         """
         self.analyze_result = self.gis_connection.content.analyze(item=self.csv_item.id)
         return None
@@ -421,7 +420,7 @@ class ArcGISOnline:
     def write_temp_csv(self) -> None:
         """
         Write outage dataframe to csv so that have a path to provide the update function for arcgis online.
-        :return:
+        :return: None
         """
         self.data_dataframe.to_csv(path_or_buf=self.temp_csv_path, index=False)
         return None
