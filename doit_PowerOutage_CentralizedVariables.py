@@ -7,6 +7,7 @@ enjoy mucking about in the code.
 Revisions:
     20210302, CJuice, added 20880 and 20896 to zip code dict for those with geom after updating MEMA map service
     20210317, CJuice, added dt stamp, root path, timezone
+    20210501, CJuice, added zip code points
 """
 
 import textwrap
@@ -65,7 +66,7 @@ json_file_local_location_and_name = "JSON_Outputs\PowerOutageFeeds_StatusJSON.js
 less_than_five = "Less than 5"
 
 # From MDP Gary M point zip codes data on staging server as of 20210430
-# ZIP 20088 is in DC.
+# ZIP 20088 is in DC. Gary to investigate. Gary said the points dataset will be updated in near future
 maryland_master_inventory_zip_codes_point_geometry = ['20604', '20610', '20627', '20635', '20643', '20660',  # '20088',
                                                       '20661', '20682', '20686', '20703', '20704', '20709', '20717',
                                                       '20718', '20719', '20725', '20726', '20731', '20738', '20741',
