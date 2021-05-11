@@ -2,7 +2,8 @@
 The Archive module contains an ArchiveCounty class, an ArchiveZIP class, a PowerOutagesViewForArchiveCountyData
 dataclass, and a ZipCodeCountAggregated dataclass.
 The classes are built for the archive functionality in the power outage process. The County and ZIP real time data
-require manipulation before being written to the archive tables and used in GIS rest services.
+require manipulation before being written to the Osprey database archive tables and used in MEMA ArcGIS rest services.
+The archive process is no longer vital to the production application since moving to cloud storage and maps.
 """
 
 from dataclasses import dataclass

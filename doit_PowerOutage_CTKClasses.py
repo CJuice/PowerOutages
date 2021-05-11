@@ -11,9 +11,6 @@ from PowerOutages.doit_PowerOutage_ProviderClasses import Provider
 class CTK(Provider):
     """
     CTK specific functionality and variables for handling CTK feed data. Inherits from Provider.
-    CTK has unique requirements related to zip codes. CTK accesses a table called RealTime_PowerOutagesZipcodes_Grouped.
-    The table contains strings that are grouped zip code values separated by commas. Thesa are used during the insertion
-    of counts data into RealTime_PowerOutagesZipcodes.
     """
 
     def __init__(self, provider_abbrev, style):

@@ -70,6 +70,7 @@ class Provider:
     def calculate_data_age_minutes(self) -> None:
         """
         Determine the difference between two date time values.
+        NOTE: Did not convert the datetime values involved in difference calculation to be time zone aware.
         :return: None
         """
         try:
@@ -100,9 +101,10 @@ class Provider:
         """
         Build the insert sql statement for real time data and yield the statement.
         For both County and ZIP data. If is ZIP, then isolate Maryland only so that DE and DC are not written to table
+        Note: sql database as is will not accept a tz aware datetime value
         :return: None
         """
-        self.date_updated = DOIT_UTIL.current_date_time()
+        self.date_updated = DOIT_UTIL.current_date_time_str()
         for stat_obj in self.stats_objects:
             if self.style == DOIT_UTIL.ZIP:
                 sql = self.sql_insert_record_zip_realtime.format(area=stat_obj.area,
@@ -144,6 +146,7 @@ class Provider:
         """
         Use a dateutil parser to interpret inconsistent/varying date string formats and format them into specific style.
         NOTE: Valuable Resource - https://dateutil.readthedocs.io/en/stable/parser.html
+        NOTE: Since date created comes from providers it is not being converted to timezone aware
         :return: None
         """
         try:
@@ -207,13 +210,36 @@ class Provider:
     def remove_non_maryland_stat_objects(self) -> None:
         """
         Detect stats objects for those not in Maryland and delete the objects from the stats objects list
+
+        Providers may not give a state abbreviation with a zip code. For those the process assigns a default of MD.
+        This is done with an assumption that we understood their coverage area to be only within MD. Due to an issue
+        where WV and VA zips were making it into the output a check against MD polygon and point zip code inventories
+        was instituted.
         :return: None
         """
         non_maryland_stat_objects = []
-
+        all_maryland_zips_with_geometry_ls = VARS.maryland_master_inventory_zip_codes_point_geometry + list(
+            VARS.maryland_master_inventory_zip_codes_polygon_geometry.keys())
         for stat_obj in self.stats_objects:
+
+            # Applies to county and zip stats objects
             if stat_obj.state != DOIT_UTIL.MARYLAND:
                 non_maryland_stat_objects.append(stat_obj)
+            else:
+                try:
+
+                    # County string will raise ValueError on casting to type int, zip code number like strings will not
+                    int(stat_obj.area)
+                except ValueError as ve:
+
+                    # For county name strings, skip checking against zip code inventory
+                    continue
+                else:
+
+                    # For zip codes, check against zip codes inventory to safeguard against mis-assigned values.
+                    if stat_obj.area not in all_maryland_zips_with_geometry_ls:
+                        print(f"ZIP PURGED -> Not in MD geometry inventory (poly & point): {stat_obj}")
+                        non_maryland_stat_objects.append(stat_obj)
 
         for obj in non_maryland_stat_objects:
             self.stats_objects.remove(obj)

@@ -3,6 +3,7 @@ Module contains a PEP class that inherits from KubraParent class which inherits 
 PEP class is an implementation specific to the peculiarities of the PEP feeds and the processing they require
 that is not common to all providers. PEP and DEL had shared functionality. KubraParent was created as a result and is
 intended to provide flexibility for future changes. It acts as an interface. PEP inherits from the KubraParent class.
+TODO: Future, Will need to incorporate zip code points. May want to centralize master inventory of zips for point & poly
 """
 
 import PowerOutages.doit_PowerOutage_CentralizedVariables as VARS
@@ -37,7 +38,7 @@ class PEP(KubraParent):
         :return: None
         """
         if self.style == DOIT_UTIL.ZIP:
-            self.__md_zips_keys_only = list(VARS.maryland_master_inventory_zip_codes_with_geometry.keys())
+            self.__md_zips_keys_only = list(VARS.maryland_master_inventory_zip_codes_polygon_geometry.keys())
 
     def extract_area_outage_lists_by_state(self) -> None:
         """

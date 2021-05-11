@@ -1,8 +1,10 @@
 """
 Contains a Utility class that has functionality that is not provider specific and may be needed across the project.
+Revisions: CJuice, 20210430 added WV, VA, and PA to state abbreviations functionality
 """
 
 from datetime import datetime
+from pytz import timezone
 import collections
 import configparser
 import xml.etree.ElementTree as ET
@@ -25,6 +27,9 @@ class Utility:
                          "Montgomery", "Prince George's", "Queen Anne's", "St. Mary's", "Somerset", "Talbot",
                          "Washington", "Wicomico", "Worcester")
     PARSER = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    PENNSYLVANIA = "Pennsylvania"
+    VIRGINIA = "Virginia"
+    WEST_VIRGINIA = "West Virginia"
     ZERO_TIME_STRING = "00:00:00 00:00:00"
     ZIP = "ZIP"
 
@@ -39,12 +44,18 @@ class Utility:
         return data_feed_uri.format(metadata_key=metadata_key)
 
     @staticmethod
-    def current_date_time() -> str:
+    def current_date_time_str(tz_aware: bool = False) -> str:
         """
         Create a string representation of the current date and time.
+        :param tz_aware: boolean control for returning timezone naive or aware datetime stamp string
         :return: string representation of date and time
         """
-        return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
+        if tz_aware:
+            eastern_tz = timezone('US/Eastern')
+            loc_dt = eastern_tz.localize(datetime.now())
+            return loc_dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+        else:
+            return "{:%Y-%m-%d %H:%M:%S}".format(datetime.now())
 
     @staticmethod
     def exchange_state_abbrev_for_full_value(abbrev: str) -> str:
@@ -54,7 +65,8 @@ class Utility:
         :param abbrev: string abbreviation for the state
         :return: string value from state_abbrev_dict for given abbrev, or the abbrev itself if KeyError
         """
-        state_abbrev_dict = {"DC": Utility.DISTRICT_OF_COLUMBIA, "DE": Utility.DELAWARE, "MD": Utility.MARYLAND, }
+        state_abbrev_dict = {"DC": Utility.DISTRICT_OF_COLUMBIA, "DE": Utility.DELAWARE, "MD": Utility.MARYLAND,
+                             "VA": Utility.VIRGINIA, "WV": Utility.WEST_VIRGINIA, "PA": Utility.PENNSYLVANIA}
         try:
             return state_abbrev_dict[abbrev]
         except KeyError as ke:

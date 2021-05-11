@@ -7,15 +7,15 @@ following order of sections: imports, variable definition/creation, web requests
 processing of response data, output of feed status to json file, and database transactions for 'realtime' and 'archive'
 and customer data.
 Main relies on the following imported modules containing classes: ArchiveClasses, CustomerClass,
-CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses, SMEClasses,
-and UtilityClass. It also relies on a CentralizedVariables python file, and access through a parser
-to a Credentials config file and a ProvidersURI config file.
+CloudStorageFunctionality, CTKClasses, DatabaseFunctionality, DELClasses, EUCClasses, FESClasses, PEPClasses,
+SMEClasses, and UtilityClass. It also relies on a CentralizedVariables python file,
+and access through a parser to a Credentials config file and a ProvidersURI config file.
 The process is designed with an object-oriented focus. For power providers, there is a top level parent class called
 Provider. All providers are then subclassed from this parent to create child classes. The child classes contain
 unique behavior specific to a provider. Functionality/behavior common to all providers has been placed into the parent
-class and inherited downward into the children. For PEP and DEL, Provider is inherited by the PEPDEL_ParentClass. This
-class organizes behavior common to both PEP and DEL providers. Both PEP and DEL children inherit from
-PEPDEL_ParentClass, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
+class and inherited downward into the children. For PEP DEL and BGE, Provider is inherited by the Kubra Parent Class.
+This class organizes behavior common to those providers. The children inherit from
+the Kubra parent, which inherits from Provider. Where necessary, some methods in parent classes have been overloaded
 by methods in child classes.
 A Utility class is used by all modules and serves as a static resource for common/shared helper functions and a few
 simple variables. The Centralized Variables module contains variables, no classes or functions, and environment related
@@ -42,6 +42,11 @@ Revisions:
     class for upsert of data to our open data portal, currently Socrata. Three datasets are updserted and those are
     county, zip code, and feed status. Implemented processing and upsert at the very end so that if it were to fail
     it would not interfere with the existing MEMA database functionality.
+20210330, CJuice Redesigned to move data storage model to be cloud based. Added Socrata and ESRI ArcGIS Online
+    upsert functionality.
+20210401, CJuice Added Open Data record deletion functionality for cleanup of records older than set limit
+20210430, CJuice Added purge of zip code stats objects not in the Maryland point and polygon zip code inventory based
+    on the MDP point and polygon spatial layer features.
 """
 
 
@@ -50,9 +55,11 @@ def main():
     # IMPORTS
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveCounty
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ArchiveZIP
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import ArcGISOnline
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
+    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import OpenData
     from PowerOutages.doit_PowerOutage_UtilityClass import Utility as DOIT_UTIL
     from PowerOutages.doit_PowerOutage_ArchiveClasses import ZipCodeCountAggregated
-    from PowerOutages.doit_PowerOutage_CloudStorageFunctionality import CloudStorage
 
     import PowerOutages.doit_PowerOutage_BGEClasses as BGEMod
     import PowerOutages.doit_PowerOutage_CustomerClass as Customer
@@ -67,14 +74,13 @@ def main():
 
     import os
 
-    print(f"Initiated process @ {DOIT_UTIL.current_date_time()}")
+    print(f"Initiated process @ {DOIT_UTIL.current_date_time_str()}")
 
     # VARIABLES
-    _root_project_path = os.path.dirname(__file__)
-    centralized_variables_path = os.path.join(_root_project_path, VARS.provider_uri_cfg_file)
-    credentials_path = os.path.join(_root_project_path, VARS.credentials_cfg_file)
-    DOIT_UTIL.PARSER.read(filenames=[credentials_path, centralized_variables_path])
-    output_json_file = os.path.join(_root_project_path, VARS.json_file_local_location_and_name)
+    provider_uri_cfg_path = os.path.join(VARS._root_project_path, VARS.provider_uri_cfg_file)
+    credentials_cfg_path = os.path.join(VARS._root_project_path, VARS.credentials_cfg_file)
+    DOIT_UTIL.PARSER.read(filenames=[credentials_cfg_path, provider_uri_cfg_path])
+    output_json_file = os.path.join(VARS._root_project_path, VARS.json_file_local_location_and_name)
 
     #   Set up provider objects for use. Later referred to as "key, obj" in iteration loops.
     provider_objects = {"BGE_County": BGEMod.BGE(provider_abbrev="BGE", style=DOIT_UTIL.COUNTY),
@@ -94,7 +100,7 @@ def main():
                         }
 
     #   Get and store variables, as provider object attributes, from cfg file.
-    print(f"Gathering variables...{DOIT_UTIL.current_date_time()}")
+    print(f"Gathering variables...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         section_keys = [item for item in DOIT_UTIL.PARSER[key]]
@@ -109,12 +115,12 @@ def main():
     # WEB REQUESTS AND PROCESSING OF RESPONSE CONTENT
     #   Make the metadata key requests, for those providers that use the metadata key, and store the response.
     #   Key used in the uri for accessing the data feeds and date created feeds.
-    print(f"Metadata feed processing...{DOIT_UTIL.current_date_time()}")
+    print(f"Metadata feed processing...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.metadata_feed_uri in VARS.none_and_not_available:
 
-            # Providers who do not use the metadata key style. Also, BGE does not use a GET request; Uses POST.
+            # Providers who do not use the metadata key style.
             continue
         else:
             obj.metadata_feed_response = obj.web_func_class.make_web_request(uri=obj.metadata_feed_uri)
@@ -148,7 +154,7 @@ def main():
 
     #   Make the date created requests, for providers with a date created service, and store the response.
     #   NOTE: For Kubra feeds this is a second call to the metadata key uri (above)
-    print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time()}")
+    print(f"Date Generated feed processing...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -159,7 +165,7 @@ def main():
             obj.date_created_feed_response = obj.web_func_class.make_web_request(uri=obj.date_created_feed_uri)
 
     #   Extract the date created value and assign to provider object attribute
-    print(f"Extracting date created value...{DOIT_UTIL.current_date_time()}")
+    print(f"Extracting date created value...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.date_created_feed_uri in VARS.none_and_not_available:
@@ -188,7 +194,7 @@ def main():
                         data_dict=file_data,
                         attribute_name=obj.date_created_attribute)
 
-    print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time()}")
+    print(f"Configuration feed processing (Kubra)...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         if obj.abbrev in VARS.kubra_feed_providers:
             DOIT_UTIL.print_tabbed_string(value=key)
@@ -197,7 +203,7 @@ def main():
             obj.extract_source_report()
 
     #   Make the data feed requests and store the response.
-    print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time()}")
+    print(f"Data feed requests and response storage...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.metadata_key in VARS.none_and_not_available:
@@ -209,7 +215,7 @@ def main():
     # PROCESS RESPONSE DATA
     #   Extract the outage data from the response, for each provider. Where applicable, extract the
     #   date created/generated. Some providers provide the date created/generated value in the data feed.
-    print(f"Response data processing...{DOIT_UTIL.current_date_time()}")
+    print(f"Response data processing...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.data_feed_response.status_code != 200:
@@ -265,7 +271,7 @@ def main():
 
     # JSON FILE OUTPUT AND FEED STATUS EVALUATION
     #   Write json file containing status check on all feeds.
-    print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time()}")
+    print(f"Checking feed status's for notification purposes...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         obj.set_status_codes()
@@ -273,7 +279,7 @@ def main():
         #   Down Feeds - Send Notification Email to MJOC. Piggy back on JSON feed status process
         obj.perform_feed_status_check_and_notification(alert_email_address=DOIT_UTIL.PARSER["EMAIL"]["ALERTS_ADDRESS"])
 
-    print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time()}")
+    print(f"Writing feed check to json file...{DOIT_UTIL.current_date_time_str()}")
     status_check_output_dict = {}
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
@@ -282,14 +288,14 @@ def main():
 
     # DATABASE TRANSACTIONS
     #   Prepare for database transactions and establish a connection.
-    print(f"Database operations initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"Database operations initiated...{DOIT_UTIL.current_date_time_str()}")
     db_obj = DbMod.DatabaseUtilities(parser=DOIT_UTIL.PARSER)
     db_obj.create_database_connection_string()
     db_obj.establish_database_connection()
 
     # REALTIME: For every provider object need to delete existing records, and update with new. Need a cursor to do so.
     db_obj.create_database_cursor()
-    print(f"RealTime counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"RealTime counts update process initiated...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
 
@@ -304,14 +310,14 @@ def main():
             print(f"TypeError. REALTIME process. {obj.abbrev} appears to have no stats objects. \n{te}")
         else:
             db_obj.commit_changes()
-            print(f"Records inserted ({DOIT_UTIL.current_date_time()}): {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
+            print(f"Records inserted ({DOIT_UTIL.current_date_time_str()}): {obj.abbrev}  {obj.style} {len(obj.stats_objects)}")
 
     # Clean up for next step
     db_obj.delete_cursor()
 
     # CUSTOMER COUNT: Before moving to archive stage, where customer count is used to calculate percent outage, update
     #   the customer counts table using data feed values.
-    print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"County customer counts update process initiated...{DOIT_UTIL.current_date_time_str()}")
     db_obj.create_database_cursor()
     cust_obj = Customer.Customer()
     cust_obj.calculate_county_customer_counts(prov_objects=provider_objects)
@@ -329,12 +335,12 @@ def main():
 
     # ARCHIVE STEPS
     # ZIP: SUM outage counts by Zip. Append aggregated count records to the Archive_PowerOutagesZipcode table.
-    print(f"Archive counts update process initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"Archive counts update process initiated...{DOIT_UTIL.current_date_time_str()}")
     archive_zip_obj = ArchiveZIP()
     db_obj.create_database_cursor()
 
     # Aggregate counts for all zips from all providers to account for outages for zips covered by multiple providers
-    print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time()}")
+    print(f"Zip Code outage counts aggregation initiated...{DOIT_UTIL.current_date_time_str()}")
     for key, obj in provider_objects.items():
         DOIT_UTIL.print_tabbed_string(value=key)
         if obj.style == DOIT_UTIL.COUNTY:
@@ -368,7 +374,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode...{DOIT_UTIL.current_date_time()}")
+        print(f"{len(archive_zip_obj.master_aggregated_zip_count_objects_dict.values())} ZIP archive records inserted into Archive_PowerOutagesZipcode...{DOIT_UTIL.current_date_time_str()}")
 
     # Clean up for next step
     db_obj.delete_cursor()
@@ -405,7 +411,7 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time()}")
+        print(f"{len(archive_county_obj.county_archive_record_objects_list)} County archive records inserted into Archive_PowerOutagesCounty...{DOIT_UTIL.current_date_time_str()}")
     finally:
 
         # Clean up for next step
@@ -414,7 +420,7 @@ def main():
     #   Update RealTime_TaskTracking
     try:
         db_obj.create_database_cursor()
-        sql_task_tracking_update = VARS.sql_update_task_tracking_table.format(now=DOIT_UTIL.current_date_time())
+        sql_task_tracking_update = VARS.sql_update_task_tracking_table.format(now=DOIT_UTIL.current_date_time_str())
         db_obj.execute_sql_statement(sql_statement=sql_task_tracking_update)
     except Exception as e:
         print(f"Task Tracking update. Database insertion operation error. {e}")
@@ -422,40 +428,95 @@ def main():
         exit()
     else:
         db_obj.commit_changes()
-        print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time()}")
+        print(f"Task Tracking table updated...{DOIT_UTIL.current_date_time_str()}")
     finally:
 
         # Clean up for next step
         db_obj.delete_cursor()
 
     # CLOUD STORAGE
-    print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time()}")
-    cloud_storage = CloudStorage(parser=DOIT_UTIL.PARSER)
-    cloud_storage.create_socrata_acceptable_dt_string()
+    print(f"Processing data for cloud storage...{DOIT_UTIL.current_date_time_str()}")
+
+    # Generic processing, not specific to County or ZIP Code
+    cloud_storage = CloudStorage()
     cloud_storage.create_outage_records(provider_objects=provider_objects)
     cloud_storage.create_master_outage_dataframe()
     cloud_storage.group_by_area()
     cloud_storage.sum_outages()
     cloud_storage.create_unique_id_outages()
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.grouped_sums_df)
-    cloud_storage.isolate_zip_style_records()
+
+    # Data separated by area type (County vs ZIP)
     cloud_storage.isolate_county_style_records()
+    cloud_storage.isolate_zip_style_records()
     cloud_storage.calculate_county_outage_percentage()
     cloud_storage.drop_customers_from_zip_df()
-    cloud_storage.drop_style_from_record_dfs()
+    CloudStorage.drop_style_from_record_dfs(data_dataframe=cloud_storage.county_outage_records_df)
+    CloudStorage.drop_style_from_record_dfs(data_dataframe=cloud_storage.zipcode_outage_records_df)
+
+    # Feed Status Data
     cloud_storage.create_feed_status_dataframe(status_check_output=status_check_output_dict)
     cloud_storage.correct_status_created_dt()
     cloud_storage.create_unique_id_feed_status()
     cloud_storage.create_dt_stamp_column(dataframe=cloud_storage.feed_status_df)
-    cloud_storage.create_lists_of_record_dicts()
+    cloud_storage.correct_data_age_field_name()
 
-    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time()}")
-    cloud_storage.create_socrata_client()
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"], zipper=cloud_storage.county_zipper)
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"], zipper=cloud_storage.zipcode_zipper)
-    cloud_storage.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"], zipper=cloud_storage.feed_status_zipper)
+    # Prepare the three data realms for upsert to open data platform
+    cloud_storage.county_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.county_outage_records_df)
+    cloud_storage.zipcode_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.zipcode_outage_records_df)
+    cloud_storage.feed_status_zipper = CloudStorage.create_lists_of_record_dicts(dataframe=cloud_storage.feed_status_df)
 
-    print(f"Process Completed...{DOIT_UTIL.current_date_time()}")
+    print(f"Upserting data to cloud storage...{DOIT_UTIL.current_date_time_str()}")
+    print("OPEN DATA PORTAL")
+    open_data = OpenData(parser=DOIT_UTIL.PARSER)
+    open_data.create_socrata_client()
+
+    print("Upsert Results: County, ZIP, Feed Status...")
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"],
+                                zipper=cloud_storage.county_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"],
+                                zipper=cloud_storage.zipcode_zipper)
+    open_data.upsert_to_socrata(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"],
+                                zipper=cloud_storage.feed_status_zipper)
+
+    print("ARCGIS ONLINE")
+    gis_connection = ArcGISOnline.create_gis_connection()
+    agol_style_to_df_dict = {
+        DOIT_UTIL.COUNTY: cloud_storage.county_outage_records_df,
+        DOIT_UTIL.ZIP: cloud_storage.zipcode_outage_records_df
+    }
+
+    for style_type, style_df in agol_style_to_df_dict.items():
+        print(style_type)
+        arc_cloud_obj = ArcGISOnline(parser=DOIT_UTIL.PARSER, style=style_type, gis_connection=gis_connection,
+                                     data_df=style_df)
+        arc_cloud_obj.drop_unnecessary_fields()
+        arc_cloud_obj.localize_dt_values()
+        arc_cloud_obj.csv_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.csv_item_id)
+        arc_cloud_obj.write_temp_csv()
+        arc_cloud_obj.update_csv_item()
+        arc_cloud_obj.hosted_table_item = arc_cloud_obj.get_arcgis_item(item_id=arc_cloud_obj.hosted_table_item_id)
+        arc_cloud_obj.create_arcgis_features_table()
+        arc_cloud_obj.analyze_table()
+        arc_cloud_obj.delete_features()
+        arc_cloud_obj.append_new_outage_data()
+
+    print(f"Deleting aged records ({OpenData.RECORD_DELETION_AGE_LIMIT_DAYS} days) in Open Data assets...{DOIT_UTIL.current_date_time_str()}")
+    county_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"])
+    zip_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"])
+    status_records_gen = open_data.retrieve_old_records_for_deletion(
+        dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"])
+
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["COUNTY_4X4"],
+                                    results_gen=county_records_gen)
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["ZIP_4X4"],
+                                    results_gen=zip_records_gen)
+    open_data.delete_records_by_uid(dataset_identifier=DOIT_UTIL.PARSER["OPENDATA"]["STATUS_4X4"],
+                                    results_gen=status_records_gen)
+
+    print(f"Process Completed...{DOIT_UTIL.current_date_time_str()}")
 
 
 if __name__ == "__main__":

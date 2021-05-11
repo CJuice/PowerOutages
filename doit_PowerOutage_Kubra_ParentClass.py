@@ -176,8 +176,9 @@ class KubraParent(Provider):
                 # Check the master dictionary, try the key, if it's there it will work and if not it will throw
                 try:
 
+                    # TODO: Future, when incorporate point geometry zips will need to adjust here
                     # if in dict then no error, and we don't do anything with the area name value that is returned
-                    _ = VARS.maryland_master_inventory_zip_codes_with_geometry[zipcode]
+                    _ = VARS.maryland_master_inventory_zip_codes_polygon_geometry[zipcode]
 
                 except KeyError as ke:
 
